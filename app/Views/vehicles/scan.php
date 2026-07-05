@@ -2,28 +2,30 @@
 <?= $this->section('content') ?>
 
 <div class="page-head">
-  <div><h1>Scan Licence Disc</h1><div class="sub">Photograph the disc — the barcode fills the vehicle profile automatically.</div></div>
+  <div><h1>Scan Licence Disc</h1><div class="sub">Point the camera at the disc — line up the barcode inside the red box.</div></div>
 </div>
 
 <div class="grid cols-2" style="align-items:start">
   <div class="card">
-    <div class="card-h"><h3>1 · Capture the disc</h3></div>
+    <div class="card-h"><h3>1 · Live scan</h3></div>
     <div class="card-b">
-      <p class="sub" style="font-size:13px;color:var(--ink-3);margin-top:0">
-        Fill the frame with the disc, focus on the <b>square barcode</b> in the middle, avoid glare. Then choose the photo below.
-      </p>
-      <label class="btn" style="cursor:pointer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
-        Take / choose disc photo
-        <input id="discPhoto" type="file" accept="image/*" capture="environment" hidden>
-      </label>
-      <div id="status" class="mono" style="font-size:12.5px;margin-top:14px;color:var(--ink-3)">Waiting for a photo…</div>
-      <img id="preview" style="max-width:100%;margin-top:12px;border-radius:10px;border:1px solid var(--line);display:none">
-      <details style="margin-top:14px">
-        <summary class="mono" style="font-size:12px;color:var(--ink-3);cursor:pointer">Barcode didn't scan? Paste decoded data manually</summary>
-        <textarea id="rawManual" rows="3" placeholder="Paste raw disc barcode text here" style="margin-top:8px"></textarea>
-        <button type="button" class="btn ghost sm" id="parseManual" style="margin-top:8px">Parse text</button>
-      </details>
+      <div id="scanWrap" style="position:relative;background:#0b0e12;border-radius:12px;overflow:hidden;aspect-ratio:3/4;display:grid;place-items:center">
+        <video id="video" playsinline muted autoplay style="width:100%;height:100%;object-fit:cover"></video>
+        <div id="guide" style="position:absolute;left:6%;right:6%;top:36%;height:26%;border:3px solid #ef3d3d;border-radius:10px;box-shadow:0 0 0 3000px rgba(0,0,0,.42);pointer-events:none"></div>
+        <div id="camHint" style="position:absolute;color:#9fb0bf;font-family:var(--mono);font-size:12.5px;text-align:center;padding:0 24px">Tap “Start camera” and allow camera access</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button type="button" class="btn" id="startBtn">Start camera</button>
+        <button type="button" class="btn ghost" id="stopBtn" style="display:none">Stop</button>
+      </div>
+      <div id="status" class="mono" style="font-size:12.5px;margin-top:12px;color:var(--ink-3)">Camera off.</div>
+
+      <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+        <div class="sub" style="font-size:12px;color:var(--ink-3);margin-bottom:6px">No camera on this device? Upload a sharp, close photo of the barcode:</div>
+        <label class="btn ghost sm" style="cursor:pointer">Upload disc photo
+          <input id="discPhoto" type="file" accept="image/*" hidden>
+        </label>
+      </div>
     </div>
   </div>
 
@@ -55,19 +57,31 @@
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
 <script>
 const CSRF_HEADER = "<?= csrf_header() ?>";
 const CSRF_HASH   = "<?= csrf_hash() ?>";
 const PARSE_URL   = "<?= site_url('vehicles/parse-disc') ?>";
 const statusEl = document.getElementById('status');
+let controls = null, reader = null;
 
 function setStatus(msg, color){ statusEl.textContent = msg; statusEl.style.color = color || 'var(--ink-3)'; }
 
+function buildHints(){
+  const hints = new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.PDF_417, ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX,
+    ZXing.BarcodeFormat.AZTEC, ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39
+  ]);
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  return hints;
+}
+
 function fill(fields){
-  const map = ['make','model','vin','engine_number','plate','licence_no','colour','body_type','licence_expiry','date_of_test','disc_raw'];
+  const keys = ['make','model','vin','engine_number','plate','licence_no','colour','body_type','licence_expiry','date_of_test','disc_raw'];
   let filled = 0;
-  map.forEach(k => { const el = document.getElementById('f_'+k); if (el && fields[k]) { el.value = fields[k]; if(k!=='disc_raw') filled++; } });
-  setStatus(filled ? `Decoded ✓ — ${filled} fields filled. Review and save.` : 'Barcode read, but few fields matched — check/edit below.', filled ? 'var(--ok)' : 'var(--lesser)');
+  keys.forEach(k => { const el = document.getElementById('f_'+k); if (el && fields[k]) { el.value = fields[k]; if(k!=='disc_raw') filled++; } });
+  setStatus(filled ? `Decoded ✓ — ${filled} fields filled. Review on the right and save.` : 'Barcode read but few fields matched — check the fields.', filled ? 'var(--ok)' : 'var(--lesser)');
 }
 
 async function sendRaw(raw){
@@ -82,43 +96,52 @@ async function sendRaw(raw){
   } catch(e){ setStatus('Server error while parsing', 'var(--major)'); }
 }
 
-// Decode PDF417 from the chosen photo using ZXing core (version-stable API).
-function decodeImage(img){
-  setStatus('Decoding barcode…');
+async function startScan(){
+  document.getElementById('camHint').style.display = 'none';
+  setStatus('Starting camera…');
   try {
-    const maxW = 1800;
-    const scale = img.naturalWidth > maxW ? maxW / img.naturalWidth : 1;
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(img.naturalWidth * scale);
-    canvas.height = Math.round(img.naturalHeight * scale);
-    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    const hints = new Map();
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.PDF_417]);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-    const reader = new ZXing.MultiFormatReader();
-    reader.setHints(hints);
-    const luminance = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
-    const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
-    const result = reader.decode(bitmap, hints);
-    sendRaw(result.getText());
-  } catch(err){
-    setStatus('Could not read the barcode — retake closer to the barcode, or paste the data manually below.', 'var(--major)');
+    reader = new ZXingBrowser.BrowserMultiFormatReader(buildHints(), { delayBetweenScanAttempts: 100 });
+    const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } };
+    controls = await reader.decodeFromConstraints(constraints, document.getElementById('video'), (result, err, ctrl) => {
+      if (result) { ctrl.stop(); controls = null; onDecoded(result.getText()); }
+    });
+    setStatus('Scanning… fill the red box with the barcode and hold steady.');
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = '';
+  } catch(e){
+    setStatus('Camera error: ' + (e && e.message ? e.message : e) + ' — check the browser has camera permission (and the site is https).', 'var(--major)');
+    document.getElementById('camHint').style.display = '';
   }
 }
 
-document.getElementById('discPhoto').addEventListener('change', (e) => {
-  const file = e.target.files[0]; if(!file) return;
-  const img = document.getElementById('preview');
-  img.style.display = 'block';
-  img.onload = () => decodeImage(img);
-  img.src = URL.createObjectURL(file);
-});
+function stopScan(){
+  try { if (controls) controls.stop(); } catch(e){}
+  controls = null;
+  document.getElementById('startBtn').style.display = '';
+  document.getElementById('stopBtn').style.display = 'none';
+}
 
-document.getElementById('parseManual').addEventListener('click', () => {
-  const raw = document.getElementById('rawManual').value.trim();
-  if (raw) sendRaw(raw);
+function onDecoded(text){
+  setStatus('Barcode read ✓ — decoding fields…', 'var(--ok)');
+  stopScan();
+  sendRaw(text);
+}
+
+document.getElementById('startBtn').addEventListener('click', startScan);
+document.getElementById('stopBtn').addEventListener('click', () => { stopScan(); setStatus('Stopped.'); });
+window.addEventListener('beforeunload', stopScan);
+
+document.getElementById('discPhoto').addEventListener('change', async (e) => {
+  const file = e.target.files[0]; if(!file) return;
+  setStatus('Decoding photo…');
+  try {
+    const r = new ZXingBrowser.BrowserMultiFormatReader(buildHints());
+    const url = URL.createObjectURL(file);
+    const result = await r.decodeFromImageUrl(url);
+    onDecoded(result.getText());
+  } catch(err){
+    setStatus('Could not read the barcode in that photo — get closer so the barcode fills the frame, avoid glare, then retry.', 'var(--major)');
+  }
 });
 </script>
 <?= $this->endSection() ?>
