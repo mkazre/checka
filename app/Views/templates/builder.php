@@ -9,6 +9,12 @@
   .editform{padding:12px;background:#fafbfc;border-top:1px solid var(--line)}
   .editform .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
   @media(max-width:760px){.editform .grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:600px){
+    .editform .grid{grid-template-columns:1fr}
+    .editform .grid label[style*="span 2"],.editform .grid label[style*="span 3"]{grid-column:span 1 !important}
+    .field-row{flex-wrap:wrap}
+    .field-row .nm{flex-basis:100%}
+  }
 </style>
 <?= $this->endSection() ?>
 <?= $this->section('content') ?>

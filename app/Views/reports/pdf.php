@@ -28,7 +28,7 @@
   .pf-rep{font-family:sans-serif;font-size:8pt;color:#3d4753;text-align:right;line-height:1.5}
   .pf-rep b{color:#12171d}
   .pf-sub td{font-size:9pt;padding:6px 4px}
-  .sec2{background:#eef1f3;font-weight:bold;font-size:10pt;padding:5px 8px;border-left:4px solid #0d5e6e;color:#0a3f4a;margin-top:12px}
+  .sec2{background:#f1f2f3;font-weight:bold;font-size:10pt;padding:5px 8px;border-left:4px solid #37b34a;color:#2a8f3a;margin-top:12px}
   .vd{width:100%;border-collapse:collapse;margin-top:4px}
   .vd td{font-size:9pt;padding:4px 6px;border-bottom:1px solid #eef1f3}
   .vd .k{color:#6b7682;width:16%}
@@ -36,15 +36,15 @@
   .strip td{padding:0 2px}
   .strip img{width:100px;height:auto;border:1px solid #d6dce1;border-radius:3px}
   /* ---- report pages ---- */
-  .band{background:#151b22;color:#fff;padding:14px 16px}
+  .band{background:#2d2d2d;color:#fff;padding:14px 16px}
   .band .yr{font-size:8pt;color:#8395a6;letter-spacing:2px;text-transform:uppercase}
   .band h2{font-size:20pt;margin:2px 0;color:#fff}
   .band .vin{font-size:8.5pt;color:#aeb9c6}
   .verdict{padding:6px 12px;border-radius:14px;font-weight:bold;font-size:10pt;display:inline-block}
-  .metrics td{width:25%;text-align:center;border:1px solid #2b3742;background:#1e2731;color:#fff;padding:8px}
+  .metrics td{width:25%;text-align:center;border:1px solid #4a4a4a;background:#3a3a3a;color:#fff;padding:8px}
   .metrics .n{font-size:16pt;font-weight:bold}
   .metrics .t{font-size:7pt;color:#9aa7b4;text-transform:uppercase;letter-spacing:1px}
-  h3.sec{font-size:11pt;margin:16px 0 6px;padding-bottom:3px;border-bottom:2px solid #12171d}
+  h3.sec{font-size:11pt;margin:16px 0 6px;padding-bottom:3px;border-bottom:2px solid #2d2d2d}
   table.checks{width:100%;border-collapse:collapse;margin-top:4px}
   table.checks th{font-size:7pt;text-transform:uppercase;letter-spacing:.5px;color:#6b7682;text-align:left;border-bottom:1px solid #d6dce1;padding:4px 6px}
   table.checks td{padding:5px 6px;border-bottom:1px solid #eef1f3;vertical-align:top;font-size:9pt}
@@ -58,8 +58,8 @@
 </style>
 
 <!-- ============================ PAGE 1 · VEHICLE PROFILE ============================ -->
-<table width="100%" style="border-bottom:2px solid #12171d;padding-bottom:6px"><tr>
-  <td width="42%" class="pf-brand">Checka<br><span>by WheelsTurn</span></td>
+<table width="100%" style="border-bottom:2px solid #2d2d2d;padding-bottom:6px"><tr>
+  <td width="42%"><?php $logoFile = FCPATH . 'assets/img/logo.png'; if (is_file($logoFile)): ?><img src="<?= $logoFile ?>" style="height:52px"><?php else: ?><span class="pf-brand">CheckA+<br><span>by WheelsTurn</span></span><?php endif; ?></td>
   <td width="30%" class="pf-title">VEHICLE<br>CONDITION PROFILE</td>
   <td width="28%" class="pf-rep">
     <table width="100%"><tr>

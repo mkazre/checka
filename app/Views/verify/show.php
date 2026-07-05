@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Verify Report · Checka by WheelsTurn</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;background:#eef1f3;font-family:'Inter',system-ui,sans-serif;color:#12171d;display:grid;place-items:center;min-height:100vh;padding:20px}
+  body{margin:0;background:#f4f5f6;font-family:'Inter',system-ui,sans-serif;color:#2d2d2d;display:grid;place-items:center;min-height:100vh;padding:20px}
   .card{background:#fff;border:1px solid #d6dce1;border-radius:16px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 50px rgba(16,23,29,.1)}
-  .top{background:#151b22;color:#fff;padding:22px 26px}
-  .top .brand{font-family:'Space Grotesk';font-weight:700;letter-spacing:.08em}
-  .top small{font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:.2em;color:#8395a6;text-transform:uppercase}
+  .top{background:#fff;color:#2d2d2d;padding:20px 26px;border-bottom:3px solid #37b34a;text-align:center}
+  .top img{height:56px;width:auto}
+  .top small{display:block;margin-top:6px;font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:.2em;color:#7a7a7a;text-transform:uppercase}
   .body{padding:26px}
-  .badge{display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;font-family:'Space Grotesk';font-weight:600;font-size:15px}
+  .badge{display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;font-weight:700;font-size:15px}
   .badge.ok{background:#e7f6ec;color:#15803d}
   .badge.no{background:#fbeae8;color:#b42318}
   .badge .dot{width:11px;height:11px;border-radius:50%;background:currentColor}
-  h2{font-family:'Space Grotesk';margin:16px 0 4px}
+  h2{font-weight:800;letter-spacing:-.01em;margin:16px 0 4px}
   .row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eef1f3;font-size:14px}
   .row b{font-family:'JetBrains Mono';font-size:12.5px}
   .k{color:#6b7682}
@@ -25,7 +25,7 @@
 <body>
 <div class="card">
   <div class="top">
-    <div class="brand">Checka</div><small>by WheelsTurn · Report Verification</small>
+    <img src="<?= base_url('assets/img/logo.png') ?>" alt="CheckA+"><small>Report Verification</small>
   </div>
   <div class="body">
     <?php if ($valid): ?>

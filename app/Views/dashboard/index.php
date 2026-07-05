@@ -39,6 +39,7 @@
       <div style="margin-top:12px"><a class="btn" href="<?= site_url('inspections/new') ?>">New Inspection</a></div>
     </div>
   <?php else: ?>
+    <div class="tbl-scroll">
     <table class="tbl">
       <thead><tr><th>Vehicle</th><th>Reg / VIN</th><th>Date</th><th>Score</th><th>Verdict</th><th>Status</th><th></th></tr></thead>
       <tbody>
@@ -66,6 +67,7 @@
       <?php endforeach; ?>
       </tbody>
     </table>
+    </div>
   <?php endif; ?>
 </div>
 

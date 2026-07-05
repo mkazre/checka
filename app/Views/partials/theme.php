@@ -1,39 +1,37 @@
 <style>
   :root{
-    --ink:#12171d; --ink-2:#3d4753; --ink-3:#6b7682;
-    --paper:#ffffff; --ground:#eef1f3; --line:#d6dce1; --line-strong:#aab3bc;
-    --panel:#151b22; --panel-2:#1e2731;
-    --brand:#0d5e6e; --brand-ink:#0a3f4a;
+    --ink:#2d2d2d; --ink-2:#4a4a4a; --ink-3:#7a7a7a;
+    --paper:#ffffff; --ground:#f4f5f6; --line:#e2e4e6; --line-strong:#b8bcc0;
+    --panel:#2d2d2d; --panel-2:#3a3a3a;
+    --brand:#37b34a; --brand-ink:#2a8f3a;
+    --logo-h:46px;   /* header logo height — set higher (e.g. 70px) for a taller nav */
     --ok:#15803d;   --ok-bg:#e7f6ec;   --ok-line:#8fd3a7;
     --minor:#1f4e79;--minor-bg:#e6eef6;--minor-line:#9db9d6;
     --lesser:#b45309;--lesser-bg:#fbeee0;--lesser-line:#e9c48c;
     --major:#b42318;--major-bg:#fbeae8;--major-line:#e9a29c;
     --radius:12px;
     --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-    --display:'Space Grotesk',system-ui,sans-serif;
+    --display:'Inter',system-ui,sans-serif;
     --body:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  a{color:var(--brand);text-decoration:none} a:hover{text-decoration:underline}
-  h1,h2,h3,h4{font-family:var(--display);margin:0}
+  a{color:var(--brand-ink);text-decoration:none;font-weight:500} a:hover{text-decoration:underline}
+  h1,h2,h3,h4{font-family:var(--display);margin:0;letter-spacing:-.015em}
 
-  /* App shell */
-  .topbar{background:var(--panel);color:#e9eef2;position:sticky;top:0;z-index:30}
-  .topbar .wrap{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:12px 20px}
-  .logo{display:flex;align-items:center;gap:11px}
-  .logo .mark{width:38px;height:38px;border-radius:9px;background:var(--brand);display:grid;place-items:center;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
-  .logo .mark svg{width:22px;height:22px}
-  .logo b{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:.06em}
-  .logo small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:#8395a6;text-transform:uppercase}
+  /* App shell — light header carrying the CheckA+ logo */
+  .topbar{background:#fff;color:var(--ink);position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(45,45,45,.05)}
+  .topbar .wrap{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:8px 20px}
+  .logo{display:flex;align-items:center}
+  .logo img{height:var(--logo-h);width:auto;display:block}
   .nav{display:flex;gap:2px;margin-left:8px}
-  .nav a{color:#93a3b4;font-weight:600;font-size:13.5px;padding:9px 13px;border-radius:8px}
-  .nav a:hover{color:#fff;background:#ffffff12;text-decoration:none}
-  .nav a.active{color:#fff;background:#ffffff1c}
+  .nav a{color:var(--ink-3);font-weight:600;font-size:13.5px;padding:9px 13px;border-radius:8px}
+  .nav a:hover{color:var(--ink);background:#2d2d2d0d;text-decoration:none}
+  .nav a.active{color:var(--brand-ink);background:#37b34a1f}
   .topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
-  .who{text-align:right;font-family:var(--mono);font-size:11px;color:#8395a6;line-height:1.5}
-  .who b{color:#e9eef2;font-weight:600}
+  .who{text-align:right;font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.5}
+  .who b{color:var(--ink);font-weight:600}
   .btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:600;font-size:13.5px;
        padding:9px 15px;border-radius:9px;border:1px solid transparent;cursor:pointer;background:var(--brand);color:#fff}
   .btn:hover{filter:brightness(1.07);text-decoration:none}
@@ -59,7 +57,7 @@
   .cols-4{grid-template-columns:repeat(4,1fr)}
   .cols-2{grid-template-columns:repeat(2,1fr)}
   @media(max-width:820px){.cols-3,.cols-4,.cols-2{grid-template-columns:1fr 1fr}}
-  @media(max-width:560px){.cols-3,.cols-4,.cols-2{grid-template-columns:1fr}.nav{display:none}}
+  @media(max-width:560px){.cols-3,.cols-4,.cols-2{grid-template-columns:1fr}}
 
   /* KPI tiles */
   .kpi{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
@@ -89,7 +87,7 @@
   label.fld > span{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3);text-transform:uppercase}
   input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],select,textarea{
     border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;font-family:var(--body);background:#fff;color:var(--ink);width:100%}
-  input:focus,select:focus,textarea:focus{outline:2px solid #0d5e6e40;outline-offset:1px;border-color:var(--brand)}
+  input:focus,select:focus,textarea:focus{outline:2px solid #37b34a55;outline-offset:1px;border-color:var(--brand)}
   .mono{font-family:var(--mono)}
 
   /* flash */
@@ -99,4 +97,37 @@
 
   .empty{padding:44px 20px;text-align:center;color:var(--ink-3)}
   .empty svg{width:40px;height:40px;opacity:.4;margin-bottom:10px}
+
+  /* ---------- header nav + mobile menu ---------- */
+  .menu-toggle{display:none;background:none;border:1px solid var(--line);border-radius:9px;padding:6px 9px;cursor:pointer;color:var(--ink);margin-left:auto}
+  .menu-toggle svg{width:22px;height:22px;display:block}
+  .topnav{display:flex;align-items:center;gap:18px;flex:1}
+
+  /* wrap wide tables so they scroll instead of breaking the layout */
+  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:900px){
+    .topbar .wrap{flex-wrap:wrap;gap:10px}
+    .logo img{height:40px}
+    .menu-toggle{display:block}
+    .topnav{display:none;flex-basis:100%;flex-direction:column;align-items:stretch;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+    .topbar.open .topnav{display:flex}
+    .nav{flex-direction:column;margin-left:0;gap:2px}
+    .nav a{padding:11px 12px;border-radius:9px}
+    .topbar .right{margin-left:0;flex-direction:column;align-items:stretch;gap:10px}
+    .who{text-align:left;order:2}
+    .topbar .right .btn{justify-content:center;width:100%}
+  }
+  @media(max-width:640px){
+    .container{padding:18px 14px 72px}
+    .page-head h1{font-size:20px}
+    .page-head{gap:10px;margin-bottom:16px}
+    .page-head .spacer{flex-basis:100%;margin-left:0;height:0}
+    .card .card-b{padding:14px}
+    .card .card-h{flex-wrap:wrap;gap:8px}
+    table.tbl th,table.tbl td{padding:9px 10px;white-space:nowrap}
+    .btn{font-size:13px;padding:8px 13px}
+    .btn.sm{padding:6px 10px;font-size:12px}
+  }
 </style>

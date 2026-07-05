@@ -57,7 +57,8 @@
   .lg{border:1px solid var(--line);border-radius:9px;padding:10px 12px;border-left-width:4px}
   .lg.ok{border-left-color:var(--ok)}.lg.minor{border-left-color:var(--minor)}.lg.lesser{border-left-color:var(--lesser)}.lg.major{border-left-color:var(--major)}
   .lg .h{font-weight:700;font-size:12px}.lg .d{font-size:10.5px;color:var(--ink-3);margin-top:2px}
-  @media(max-width:760px){.gauges,.feature-row,.legend-strip{grid-template-columns:1fr}.sev-grid{grid-template-columns:repeat(2,1fr)}.detail-grid{grid-template-columns:1fr 1fr}.tyres{grid-template-columns:1fr}}
+  @media(max-width:760px){.gauges,.feature-row,.legend-strip{grid-template-columns:1fr}.sev-grid{grid-template-columns:repeat(2,1fr)}.detail-grid{grid-template-columns:1fr 1fr}.tyres{grid-template-columns:1fr}.gallery{grid-template-columns:repeat(3,1fr)}.dash,.rsection{padding-left:16px;padding-right:16px}}
+  @media(max-width:480px){.detail-grid{grid-template-columns:1fr}.gallery{grid-template-columns:repeat(2,1fr)}.vehicle-id h2{font-size:24px}table.checks th,table.checks td{padding:7px 6px}}
 </style>
 <?= $this->endSection() ?>
 

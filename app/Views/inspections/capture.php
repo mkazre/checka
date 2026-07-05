@@ -45,6 +45,16 @@
   .savebar{position:sticky;bottom:0;background:#ffffffe8;backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
   .wizmsg{color:var(--major);font-size:12.5px;font-weight:500}
   canvas.sig{width:100%;max-width:420px;height:130px;border:1px dashed var(--line-strong);border-radius:10px;background:#fafbfc;touch-action:none}
+  @media(max-width:640px){
+    .capbar{padding:14px;gap:14px}
+    .capbar > div:last-child{gap:14px}
+    .capbar .metric .n{font-size:22px}
+    .capbar .vid h2{font-size:18px}
+    .item .top{gap:8px}
+    .item .nm{min-width:120px}
+    .extra input[type=text],.extra input[type=number],.extra input[type=date],.extra textarea,.extra select{min-width:140px}
+    .savebar{gap:8px;padding:10px 12px}
+  }
 </style>
 <?= $this->endSection() ?>
 

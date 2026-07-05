@@ -16,6 +16,7 @@
     <?php if (empty($vehicles)): ?>
       <div class="empty">No vehicles yet.</div>
     <?php else: ?>
+    <div class="tbl-scroll">
     <table class="tbl">
       <thead><tr><th>Vehicle</th><th>Reg</th><th>VIN</th><th></th></tr></thead>
       <tbody>
@@ -32,6 +33,7 @@
       <?php endforeach; ?>
       </tbody>
     </table>
+    </div>
     <?php endif; ?>
   </div>
 

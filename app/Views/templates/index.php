@@ -8,6 +8,7 @@
 <div class="grid cols-2">
   <div class="card">
     <div class="card-h"><h3>Your Templates</h3></div>
+    <div class="tbl-scroll">
     <table class="tbl">
       <thead><tr><th>Name</th><th>Version</th><th>Status</th><th></th></tr></thead>
       <tbody>
@@ -29,6 +30,7 @@
       <?php endforeach; ?>
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="card">

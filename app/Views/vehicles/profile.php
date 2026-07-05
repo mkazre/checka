@@ -26,8 +26,22 @@
   .cr-row input,.cr-row select{border:none;border-bottom:1px solid transparent;padding:5px 4px;font-size:13.5px;font-weight:600;background:transparent;border-radius:0}
   .cr-row input:hover,.cr-row select:hover{border-bottom-color:var(--line)}
   .cr-row input:focus,.cr-row select:focus{outline:none;border-bottom:1px solid var(--brand);background:#f7fbfc}
-  @media(max-width:760px){.cr-grid{grid-template-columns:1fr}.cr-strip{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:760px){
+    .cr-grid{grid-template-columns:1fr}
+    .cr-strip{grid-template-columns:repeat(3,1fr)}
+    .cr-head{flex-wrap:wrap}
+    .cr-head .rep{margin-left:0;text-align:left;width:100%}
+    .cr-sub{flex-wrap:wrap;gap:6px}
+    .cr-sub div{text-align:left !important}
+    .cr-sec{padding:6px 16px 14px}
+  }
+  @media(max-width:480px){
+    .cr-strip{grid-template-columns:repeat(2,1fr)}
+    .cr-row{grid-template-columns:1fr;gap:2px;padding:7px 0}
+    .cr-row label{color:var(--ink-3)}
+  }
   .dmg{width:100%;border-collapse:collapse}
+  .dmg-scroll{overflow-x:auto}
   .dmg th{text-align:left;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);padding:6px 8px;border-bottom:1px solid var(--line)}
   .dmg td{padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px}
   .dmg .dmg-name{color:var(--major);font-weight:600}
@@ -55,8 +69,8 @@
 
     <!-- Header -->
     <div class="cr-head">
-      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="3.2"/></svg></span>
-      <div class="ttl">Vehicle Condition Profile<small>Checka by WheelsTurn</small></div>
+      <img src="<?= base_url('assets/img/logo.png') ?>" alt="CheckA+" style="height:42px;width:auto">
+      <div class="ttl">Vehicle Condition Profile<small>CheckA+ by WheelsTurn</small></div>
       <div class="rep">
         <div id="pqr"></div>
         <div>VIN · <b><?= $val('vin') ?: '—' ?></b></div>
@@ -138,7 +152,8 @@
       <?php if (empty($findings)): ?>
         <div class="sub" style="font-size:12.5px;color:var(--ink-3)">No findings yet. <?= $inspection ? 'The latest inspection is all-clear.' : 'Run an inspection to populate this.' ?></div>
       <?php else: ?>
-        <table class="dmg">
+        <div class="dmg-scroll">
+        <table class="dmg" style="min-width:420px">
           <thead><tr><th style="width:14%">Ref</th><th style="width:46%">Damage</th><th>Repair Way / Comment</th></tr></thead>
           <tbody>
           <?php foreach ($findings as $f): ?>
@@ -150,6 +165,7 @@
           <?php endforeach; ?>
           </tbody>
         </table>
+        </div>
         <div class="sub" style="font-size:11.5px;color:var(--ink-3);margin-top:8px">Auto-compiled from the latest inspection<?= $inspection ? ' ('.esc($insDate).')' : '' ?>.</div>
       <?php endif; ?>
     </div>
