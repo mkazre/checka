@@ -56,6 +56,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
         $routes->get('templates', 'Templates::index');
         $routes->get('templates/(:num)/builder', 'Templates::builder/$1');
         $routes->post('templates', 'Templates::create');
+        $routes->post('templates/(:num)/duplicate', 'Templates::duplicate/$1');
         $routes->post('templates/(:num)', 'Templates::update/$1');
         $routes->post('templates/(:num)/delete', 'Templates::delete/$1');
         $routes->post('templates/(:num)/sections', 'Templates::addSection/$1');

@@ -12,7 +12,7 @@ class InspectionValueModel extends Model
     protected $useTimestamps = true;
     protected $allowedFields = [
         'inspection_id', 'field_id', 'section_idx', 'section_title', 'is_critical',
-        'ref', 'field_name', 'field_type', 'role', 'measure', 'is_sub',
+        'ref', 'field_name', 'field_type', 'role', 'measure', 'is_sub', 'is_required',
         'choices', 'choice',
         'rating', 'value_text', 'value_number', 'comment', 'cost', 'sort',
     ];

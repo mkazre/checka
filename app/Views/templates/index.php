@@ -18,6 +18,7 @@
           <td><?= $t['is_active'] ? '<span class="pill completed">Active</span>' : '<span class="pill">Inactive</span>' ?></td>
           <td style="text-align:right;white-space:nowrap">
             <a class="btn ghost sm" href="<?= site_url('templates/'.$t['id'].'/builder') ?>">Edit</a>
+            <form method="post" action="<?= site_url('templates/'.$t['id'].'/duplicate') ?>" style="display:inline"><?= csrf_field() ?><button class="btn ghost sm">Duplicate</button></form>
             <?php if (! $t['is_default']): ?>
             <form method="post" action="<?= site_url('templates/'.$t['id'].'/delete') ?>" style="display:inline" onsubmit="return confirm('Delete this template?')">
               <?= csrf_field() ?><button class="btn danger sm">Delete</button>

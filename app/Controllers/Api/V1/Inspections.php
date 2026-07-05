@@ -148,6 +148,7 @@ class Inspections extends ResourceController
                     'role'          => $field['role'],
                     'measure'       => $field['measure'],
                     'is_sub'        => $field['is_sub'],
+                    'is_required'   => $field['is_required'] ?? 0,
                     'choices'       => $field['choices'] ?? null,
                     'rating'        => $isRating ? 'ok' : null,
                     'sort'          => $sort++,

@@ -46,6 +46,56 @@ class Templates extends BaseController
         return redirect()->to('templates/' . $id . '/builder')->with('message', 'Template created.');
     }
 
+    /** Deep-copy a template (sections + fields) into a new editable template. */
+    public function duplicate(int $id)
+    {
+        $template = model(TemplateModel::class)->withTree($id);
+        if ($template === null) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        $newId = model(TemplateModel::class)->insert([
+            'name'        => 'Copy of ' . $template['name'],
+            'description' => $template['description'],
+            'version'     => $template['version'],
+            'is_active'   => 1,
+            'is_default'  => 0,
+            'created_by'  => auth()->id(),
+        ], true);
+
+        $sectionModel = model(SectionModel::class);
+        $fieldModel   = model(FieldModel::class);
+
+        foreach ($template['sections'] as $section) {
+            $newSectionId = $sectionModel->insert([
+                'template_id' => $newId,
+                'idx'         => $section['idx'],
+                'title'       => $section['title'],
+                'is_critical' => $section['is_critical'],
+                'sort'        => $section['sort'],
+            ], true);
+
+            foreach ($section['fields'] as $f) {
+                $fieldModel->insert([
+                    'section_id'   => $newSectionId,
+                    'ref'          => $f['ref'],
+                    'name'         => $f['name'],
+                    'type'         => $f['type'],
+                    'role'         => $f['role'],
+                    'options'      => $f['options'],
+                    'choices'      => $f['choices'] ?? null,
+                    'measure'      => $f['measure'],
+                    'is_sub'       => $f['is_sub'],
+                    'is_required'  => $f['is_required'] ?? 0,
+                    'allow_photos' => $f['allow_photos'],
+                    'sort'         => $f['sort'],
+                ]);
+            }
+        }
+
+        return redirect()->to('templates/' . $newId . '/builder')->with('message', 'Template duplicated — rename and edit it below.');
+    }
+
     public function update(int $id)
     {
         model(TemplateModel::class)->update($id, [
@@ -134,6 +184,7 @@ class Templates extends BaseController
             'options'      => $this->normalizeOptions($this->request->getPost('options')),
             'choices'      => $this->normalizeOptions($this->request->getPost('choices')),
             'measure'      => $this->request->getPost('measure') ?: null,
+            'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
             'is_sub'       => $this->request->getPost('is_sub') ? 1 : 0,
             'allow_photos' => $this->request->getPost('allow_photos') !== null ? 1 : 0,
             'sort'         => $nextSort,
@@ -158,6 +209,7 @@ class Templates extends BaseController
             'options'      => $this->normalizeOptions($this->request->getPost('options')),
             'choices'      => $this->normalizeOptions($this->request->getPost('choices')),
             'measure'      => $this->request->getPost('measure') ?: null,
+            'is_required'  => $this->request->getPost('is_required') ? 1 : 0,
             'is_sub'       => $this->request->getPost('is_sub') ? 1 : 0,
             'allow_photos' => $this->request->getPost('allow_photos') !== null ? 1 : 0,
         ]);

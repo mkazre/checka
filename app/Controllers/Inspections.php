@@ -269,6 +269,13 @@ class Inspections extends BaseController
         }
 
         $this->persistCapture($inspection);
+
+        $missing = $this->missingRequired((int) $inspection['id']);
+        if ($missing !== []) {
+            return redirect()->to('inspections/' . $uid . '/capture')
+                ->with('error', 'Cannot complete — ' . count($missing) . ' required item(s) not filled: ' . implode(', ', array_slice($missing, 0, 12)) . (count($missing) > 12 ? '…' : ''));
+        }
+
         $model->update($inspection['id'], ['status' => 'completed']);
         $this->recompute($uid);
 
@@ -312,6 +319,7 @@ class Inspections extends BaseController
                     'role'          => $field['role'],
                     'measure'       => $field['measure'],
                     'is_sub'        => $field['is_sub'],
+                    'is_required'   => $field['is_required'] ?? 0,
                     'choices'       => $field['choices'] ?? null,
                     'rating'        => $isRating ? 'ok' : null,
                     'sort'          => $sort++,
@@ -340,6 +348,42 @@ class Inspections extends BaseController
             'verdict_status' => $verdict['status'],
             'verdict_text'   => $verdict['text'],
         ]);
+    }
+
+    /**
+     * Return the refs of required items that have not been filled in.
+     * "Filled" = an assessment choice (if the item has choices), otherwise a
+     * value for value-type fields; rating items without choices always count.
+     *
+     * @return list<string>
+     */
+    private function missingRequired(int $inspectionId): array
+    {
+        $rows = model(InspectionValueModel::class)
+            ->where('inspection_id', $inspectionId)
+            ->where('is_required', 1)
+            ->findAll();
+
+        $missing = [];
+        foreach ($rows as $r) {
+            $hasChoices = ! empty($r['choices']);
+            $filled     = false;
+
+            if ($hasChoices) {
+                $filled = trim((string) $r['choice']) !== '';
+            } elseif (in_array($r['field_type'], ['text', 'textarea', 'number', 'date', 'dropdown', 'radio', 'checkbox'], true)) {
+                $filled = trim((string) $r['value_text']) !== '' || (string) $r['value_number'] !== '';
+            } else {
+                // rating without choices — RAG is always set
+                $filled = trim((string) $r['rating']) !== '';
+            }
+
+            if (! $filled) {
+                $missing[] = $r['ref'] ?: $r['field_name'];
+            }
+        }
+
+        return $missing;
     }
 
     /** Store a base64 signature data-URL as a PNG; return its relative path. */
