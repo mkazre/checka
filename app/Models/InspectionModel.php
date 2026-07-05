@@ -76,7 +76,9 @@ class InspectionModel extends Model
                 'url'     => site_url('media/' . $p['id']),
                 'thumb'   => site_url('media/' . $p['id'] . '/thumb'),
                 'path'    => $p['path'],
+                'thumb_path' => $p['thumb_path'] ?: $p['path'],
             ];
+            // (thumb_path used by the PDF to embed the small image, not the full-res one)
         }
 
         // Group values into sections.
@@ -104,6 +106,8 @@ class InspectionModel extends Model
                 'number'  => $v['value_number'],
                 'comment' => $v['comment'],
                 'cost'    => $v['cost'],
+                'choices' => \App\Models\FieldModel::choicesList($v['choices'] ?? null),
+                'choice'  => $v['choice'] ?? null,
                 'photos'  => $photosByValue[(int) $v['id']] ?? [],
             ];
         }

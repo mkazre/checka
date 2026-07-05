@@ -72,6 +72,7 @@
               <label class="fld"><span>Role</span><select name="role"><?php foreach($roles as $k=>$lbl): ?><option value="<?= $k ?>" <?= (string)$field['role']===$k?'selected':'' ?>><?= esc($lbl) ?></option><?php endforeach; ?></select></label>
               <label class="fld"><span>Measure</span><input type="text" name="measure" value="<?= esc($field['measure']) ?>" placeholder="mm, km…"></label>
               <label class="fld"><span>Options (radio/dropdown)</span><input type="text" name="options" value="<?= esc(implode(', ', \App\Models\FieldModel::options($field))) ?>" placeholder="comma or newline separated"></label>
+              <label class="fld" style="grid-column:span 2"><span>Assessment radio (standardised)</span><input type="text" name="choices" value="<?= esc(implode(', ', \App\Models\FieldModel::choicesList($field['choices'] ?? null))) ?>" placeholder="e.g. Good, Average, Poor, N/A"></label>
               <label style="display:flex;gap:5px;align-items:center;font-size:12px"><input type="checkbox" name="is_sub" value="1" <?= $field['is_sub']?'checked':'' ?>> Sub-item</label>
               <label style="display:flex;gap:5px;align-items:center;font-size:12px"><input type="checkbox" name="allow_photos" value="1" <?= $field['allow_photos']?'checked':'' ?>> Allow photos</label>
             </div>
@@ -95,6 +96,7 @@
           <label class="fld"><span>Role</span><select name="role"><?php foreach($roles as $k=>$lbl): ?><option value="<?= $k ?>"><?= esc($lbl) ?></option><?php endforeach; ?></select></label>
           <label class="fld"><span>Measure</span><input type="text" name="measure"></label>
           <label class="fld"><span>Options</span><input type="text" name="options" placeholder="comma separated"></label>
+          <label class="fld" style="grid-column:span 2"><span>Assessment radio (standardised)</span><input type="text" name="choices" placeholder="e.g. Good, Average, Poor, N/A"></label>
         </div>
         <div style="margin-top:10px"><button class="btn sm" type="submit">Add field</button></div>
       </form>

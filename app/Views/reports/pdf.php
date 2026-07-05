@@ -6,6 +6,8 @@
   $label = fn($s)=>CHECKA_RATINGS[$s]['label'] ?? 'No Issues';
   $ev  = fn($k)=>esc($v[$k] ?? '');
   $sigFile = $ins['signature_path'] ? $uploadDir . $ins['signature_path'] : null;
+
+  // Photo strip (first 5 non-video photos) + thumbnail path helper
   $thumbAbs = function($p) use ($uploadDir){
     $tp = $p['thumb_path'] ?? (dirname($p['path']).'/thumb_'.basename($p['path']));
     $abs = $uploadDir.$tp;
@@ -19,6 +21,7 @@
 <style>
   body{font-family:sans-serif;font-size:9.5pt;color:#12171d}
   h1,h2,h3{margin:0}
+  /* ---- profile page ---- */
   .pf-brand{font-size:15pt;font-weight:bold;color:#12171d}
   .pf-brand span{font-size:7.5pt;color:#6b7682;letter-spacing:2px;text-transform:uppercase;font-weight:normal}
   .pf-title{font-size:12pt;font-weight:bold;letter-spacing:1px;text-align:center}
@@ -32,6 +35,7 @@
   .vd .v{font-weight:bold;width:34%}
   .strip td{padding:0 2px}
   .strip img{width:100px;height:auto;border:1px solid #d6dce1;border-radius:3px}
+  /* ---- report pages ---- */
   .band{background:#151b22;color:#fff;padding:14px 16px}
   .band .yr{font-size:8pt;color:#8395a6;letter-spacing:2px;text-transform:uppercase}
   .band h2{font-size:20pt;margin:2px 0;color:#fff}
@@ -46,10 +50,14 @@
   table.checks td{padding:5px 6px;border-bottom:1px solid #eef1f3;vertical-align:top;font-size:9pt}
   .ref{color:#6b7682;font-size:8.5pt}
   .chip{padding:2px 7px;border-radius:10px;font-size:8pt;font-weight:bold}
+  .detail td{border:1px solid #d6dce1;padding:6px 8px;width:33%}
+  .detail .k{font-size:7pt;text-transform:uppercase;color:#6b7682}
+  .detail .v{font-weight:bold}
   .concl{background:#f7f9fa;border:1px solid #d6dce1;padding:12px}
   .dmg-name{color:#b42318;font-weight:bold}
 </style>
 
+<!-- ============================ PAGE 1 · VEHICLE PROFILE ============================ -->
 <table width="100%" style="border-bottom:2px solid #12171d;padding-bottom:6px"><tr>
   <td width="42%" class="pf-brand">Checka<br><span>by WheelsTurn</span></td>
   <td width="30%" class="pf-title">VEHICLE<br>CONDITION PROFILE</td>
@@ -116,6 +124,7 @@
 
 <pagebreak />
 
+<!-- ============================ PAGE 2+ · INSPECTION REPORT ============================ -->
 <div class="band">
   <table width="100%"><tr>
     <td>
@@ -149,7 +158,7 @@
         <td class="ref"><?= esc($item['ref']) ?></td>
         <td style="<?= $item['sub']?'padding-left:16px;color:#3d4753':'' ?>"><?= esc($item['name']) ?></td>
         <td><?php if($item['type']==='rating'): ?><span class="chip" style="background:<?= $bg($s) ?>;color:<?= $rag($s) ?>"><?= esc($label($s)) ?></span><?php else: ?><span class="ref"><?= esc(strtoupper($item['type'])) ?></span><?php endif; ?></td>
-        <td><?= esc($item['comment'] ?: $item['text']) ?></td>
+        <td><?php if(!empty($item['choice'])): ?><b><?= esc($item['choice']) ?></b><?php if($item['comment']): ?> — <?php endif; ?><?php endif; ?><?= esc($item['comment'] ?: (empty($item['choice']) ? $item['text'] : '')) ?></td>
       </tr>
     <?php endforeach; ?>
     </tbody>

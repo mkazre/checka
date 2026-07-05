@@ -11,7 +11,7 @@ class FieldModel extends Model
     protected $returnType    = 'array';
     protected $useTimestamps = true;
     protected $allowedFields = [
-        'section_id', 'ref', 'name', 'type', 'role', 'options',
+        'section_id', 'ref', 'name', 'type', 'role', 'options', 'choices',
         'measure', 'is_sub', 'is_required', 'allow_photos', 'sort',
     ];
 
@@ -63,6 +63,23 @@ class FieldModel extends Model
             return [];
         }
         $decoded = json_decode((string) $field['options'], true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Decode the JSON standardised-assessment choices into an array.
+     *
+     * @param array<string, mixed> $field
+     *
+     * @return list<string>
+     */
+    public static function choicesList($choices): array
+    {
+        if (empty($choices)) {
+            return [];
+        }
+        $decoded = json_decode((string) $choices, true);
 
         return is_array($decoded) ? $decoded : [];
     }

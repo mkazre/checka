@@ -27,9 +27,13 @@
   .rag button svg{width:15px;height:15px}
   .extra{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .extra input[type=text],.extra input[type=number],.extra input[type=date],.extra textarea,.extra select{flex:1;min-width:200px}
+  .chpick input{position:absolute;opacity:0;width:0;height:0}
+  .chpick span{display:inline-block;font-size:12px;padding:4px 11px;border:1px solid var(--line);border-radius:999px;cursor:pointer;color:var(--ink-2);background:#fff}
+  .chpick input:checked + span{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .chpick:hover span{border-color:var(--line-strong)}
   .photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .ph{position:relative;width:78px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#eef1f3}
-  .ph img{width:100%;height:100%;object-fit:cover}
+  .ph img{max-width:100%;max-height:100%;object-fit:contain}
   .ph .x{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#000a;color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1}
   .ph.add{display:grid;place-items:center;cursor:pointer;color:var(--ink-3);border-style:dashed}
   .ph.add svg{width:20px;height:20px}
@@ -112,6 +116,15 @@
                     <?php endforeach; ?>
                   </div>
                 <?php endif; ?>
+              <?php endif; ?>
+
+              <?php $choices = $item['choices'] ?? []; if ($choices): ?>
+                <div style="flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 4px">
+                  <span class="mono" style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;margin-right:2px">Assessment</span>
+                  <?php foreach ($choices as $opt): ?>
+                    <label class="chpick"><input type="radio" name="choice[<?= $id ?>]" value="<?= esc($opt) ?>" <?= ($item['choice'] ?? '')===$opt?'checked':'' ?>><span><?= esc($opt) ?></span></label>
+                  <?php endforeach; ?>
+                </div>
               <?php endif; ?>
 
               <?php if ($type === 'rating'): ?>

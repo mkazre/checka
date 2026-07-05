@@ -38,8 +38,8 @@
   .item-name.sub{padding-left:16px;color:var(--ink-2)}
   .comment{color:var(--ink-2);font-size:12.5px}
   .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-  .gallery a{aspect-ratio:4/3;border-radius:7px;overflow:hidden;border:1px solid var(--line);display:block}
-  .gallery img{width:100%;height:100%;object-fit:cover}
+  .gallery a{aspect-ratio:1/1;max-width:300px;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:#f2f5f7;display:flex;align-items:center;justify-content:center}
+  .gallery img{max-width:100%;max-height:100%;object-fit:contain}
   .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .detail-grid .cell{padding:12px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
   .detail-grid .cell .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
@@ -212,7 +212,7 @@
             <td class="ref"><?= esc($item['ref']) ?></td>
             <td><span class="item-name <?= $item['sub']?'sub':'' ?>"><?= esc($item['name']) ?></span></td>
             <td><?= $item['type']==='rating' ? $chip($item['status']) : '<span class="mono" style="font-size:11px;color:var(--ink-3)">'.esc(strtoupper($item['type'])).'</span>' ?></td>
-            <td class="comment"><?= esc($item['comment'] ?: $item['text']) ?></td>
+            <td class="comment"><?php if (! empty($item['choice'])): ?><span style="display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;background:#eef1f3;color:var(--ink-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-right:6px"><?= esc($item['choice']) ?></span><?php endif; ?><?= esc($item['comment'] ?: $item['text']) ?></td>
           </tr>
         <?php endforeach; ?>
         </tbody>

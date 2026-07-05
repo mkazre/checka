@@ -116,6 +116,7 @@ class Inspections extends BaseController
         $texts      = $this->request->getPost('text')    ?? [];
         $numbers    = $this->request->getPost('number')  ?? [];
         $costs      = $this->request->getPost('cost')    ?? [];
+        $choices    = $this->request->getPost('choice')  ?? [];
 
         foreach ($valueModel->forInspection((int) $inspection['id']) as $row) {
             $id    = (string) $row['id'];
@@ -136,6 +137,9 @@ class Inspections extends BaseController
             }
             if (array_key_exists($id, $costs)) {
                 $patch['cost'] = $costs[$id] !== '' ? $costs[$id] : null;
+            }
+            if (array_key_exists($id, $choices)) {
+                $patch['choice'] = $choices[$id] !== '' ? $choices[$id] : null;
             }
 
             if ($patch !== []) {
@@ -184,8 +188,10 @@ class Inspections extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'File too large']);
         }
 
-        $mime = (string) $file->getMimeType(); $isVideo = str_starts_with($mime, 'video/');
-        if (! $isVideo && ! str_starts_with((string) $file->getMimeType(), 'image/')) {
+        // Read the mime BEFORE moving — after move() the temp file is gone.
+        $mime    = (string) $file->getMimeType();
+        $isVideo = str_starts_with($mime, 'video/');
+        if (! $isVideo && ! str_starts_with($mime, 'image/')) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Only images or videos allowed']);
         }
 
@@ -205,8 +211,8 @@ class Inspections extends BaseController
                 $thumbName = 'thumb_' . $newName;
                 service('image')
                     ->withFile($dir . '/' . $newName)
-                    ->fit(480, 360, 'center')
-                    ->save($dir . '/' . $thumbName, 78);
+                    ->resize(700, 700, true, 'auto') // keep aspect ratio, fit within 700x700 (no crop)
+                    ->save($dir . '/' . $thumbName, 80);
                 $thumbRel = $inspection['id'] . '/' . $thumbName;
             } catch (\Throwable $e) {
                 $thumbRel = $relative; // fall back to full image
@@ -306,6 +312,7 @@ class Inspections extends BaseController
                     'role'          => $field['role'],
                     'measure'       => $field['measure'],
                     'is_sub'        => $field['is_sub'],
+                    'choices'       => $field['choices'] ?? null,
                     'rating'        => $isRating ? 'ok' : null,
                     'sort'          => $sort++,
                 ];
