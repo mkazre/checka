@@ -1,0 +1,22 @@
+# Root .htaccess — fallback ONLY.
+#
+# Preferred setup: point the subdomain's Document Root at the `public/` folder
+# in cPanel, and this file is never used.
+#
+# If your host forces the Document Root to be this repo root, the rules below
+# route all requests into public/ so the app still works. They also block
+# direct access to app/, system vendor code, writable/, and .env.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block dotfiles like .env
+    RewriteRule ^\.env - [F,L]
+
+    # Deny direct access to sensitive folders
+    RewriteRule ^(app|writable|tests|vendor)/ - [F,L]
+
+    # Send everything into the public/ front controller
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

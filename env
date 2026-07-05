@@ -1,0 +1,52 @@
+#--------------------------------------------------------------------
+# Checka by WheelsTurn — environment template.
+# Copy this file to `.env` on the server and fill in real values.
+# `.env` is git-ignored and never committed.
+#--------------------------------------------------------------------
+
+#--------------------------------------------------------------------
+# ENVIRONMENT
+#--------------------------------------------------------------------
+CI_ENVIRONMENT = production
+
+#--------------------------------------------------------------------
+# APP
+#--------------------------------------------------------------------
+app.baseURL = 'https://checka.example.co.za/'
+app.indexPage = ''
+# app.forceGlobalSecureRequests = true
+
+#--------------------------------------------------------------------
+# DATABASE  (cPanel: Databases > MySQL Databases)
+#--------------------------------------------------------------------
+database.default.hostname = localhost
+database.default.database = cpaneluser_checka
+database.default.username = cpaneluser_checka
+database.default.password = ''
+database.default.DBDriver = MySQLi
+database.default.DBPrefix =
+database.default.port = 3306
+
+#--------------------------------------------------------------------
+# ENCRYPTION  (generate with: php spark key:generate)
+#--------------------------------------------------------------------
+encryption.key =
+
+#--------------------------------------------------------------------
+# SESSION
+#--------------------------------------------------------------------
+session.driver = 'CodeIgniter\Session\Handlers\FileHandler'
+session.savePath = null
+
+#--------------------------------------------------------------------
+# SECURITY (CSRF)
+#--------------------------------------------------------------------
+security.csrfProtection = 'cookie'
+security.tokenRandomize = true
+
+#--------------------------------------------------------------------
+# CHECKA APP SETTINGS
+#--------------------------------------------------------------------
+checka.brandName = 'Checka'
+checka.brandBy = 'WheelsTurn'
+checka.uploadMaxKb = 8192

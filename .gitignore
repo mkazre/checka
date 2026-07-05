@@ -1,0 +1,29 @@
+# CodeIgniter 4 / Checka
+/vendor/
+/.env
+
+# Writable — keep the tree, ignore runtime junk & uploads
+/writable/cache/*
+!/writable/cache/index.html
+/writable/debugbar/*
+!/writable/debugbar/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+
+# Build / tooling
+/build/
+/phpunit.xml
+.phpunit.result.cache
+/results/
+/coverage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
