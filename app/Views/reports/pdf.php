@@ -4,11 +4,34 @@
   $rag = fn($s)=>CHECKA_RATINGS[$s]['colour'] ?? '#15803d';
   $bg  = fn($s)=>CHECKA_RATINGS[$s]['bg'] ?? '#e7f6ec';
   $label = fn($s)=>CHECKA_RATINGS[$s]['label'] ?? 'No Issues';
+  $ev  = fn($k)=>esc($v[$k] ?? '');
   $sigFile = $ins['signature_path'] ? $uploadDir . $ins['signature_path'] : null;
+  $thumbAbs = function($p) use ($uploadDir){
+    $tp = $p['thumb_path'] ?? (dirname($p['path']).'/thumb_'.basename($p['path']));
+    $abs = $uploadDir.$tp;
+    if (! is_file($abs)) { $abs = $uploadDir.$p['path']; }
+    return is_file($abs) ? $abs : null;
+  };
+  $strip = [];
+  foreach ($report['sections'] as $sctn) { foreach ($sctn['items'] as $it) { foreach ($it['photos'] as $p) { if (! $p['video']) { $strip[] = $p; } } } }
+  $strip = array_slice($strip, 0, 5);
 ?>
 <style>
   body{font-family:sans-serif;font-size:9.5pt;color:#12171d}
   h1,h2,h3{margin:0}
+  .pf-brand{font-size:15pt;font-weight:bold;color:#12171d}
+  .pf-brand span{font-size:7.5pt;color:#6b7682;letter-spacing:2px;text-transform:uppercase;font-weight:normal}
+  .pf-title{font-size:12pt;font-weight:bold;letter-spacing:1px;text-align:center}
+  .pf-rep{font-family:sans-serif;font-size:8pt;color:#3d4753;text-align:right;line-height:1.5}
+  .pf-rep b{color:#12171d}
+  .pf-sub td{font-size:9pt;padding:6px 4px}
+  .sec2{background:#eef1f3;font-weight:bold;font-size:10pt;padding:5px 8px;border-left:4px solid #0d5e6e;color:#0a3f4a;margin-top:12px}
+  .vd{width:100%;border-collapse:collapse;margin-top:4px}
+  .vd td{font-size:9pt;padding:4px 6px;border-bottom:1px solid #eef1f3}
+  .vd .k{color:#6b7682;width:16%}
+  .vd .v{font-weight:bold;width:34%}
+  .strip td{padding:0 2px}
+  .strip img{width:100px;height:auto;border:1px solid #d6dce1;border-radius:3px}
   .band{background:#151b22;color:#fff;padding:14px 16px}
   .band .yr{font-size:8pt;color:#8395a6;letter-spacing:2px;text-transform:uppercase}
   .band h2{font-size:20pt;margin:2px 0;color:#fff}
@@ -23,11 +46,75 @@
   table.checks td{padding:5px 6px;border-bottom:1px solid #eef1f3;vertical-align:top;font-size:9pt}
   .ref{color:#6b7682;font-size:8.5pt}
   .chip{padding:2px 7px;border-radius:10px;font-size:8pt;font-weight:bold}
-  .detail td{border:1px solid #d6dce1;padding:6px 8px;width:33%}
-  .detail .k{font-size:7pt;text-transform:uppercase;color:#6b7682}
-  .detail .v{font-weight:bold}
   .concl{background:#f7f9fa;border:1px solid #d6dce1;padding:12px}
+  .dmg-name{color:#b42318;font-weight:bold}
 </style>
+
+<table width="100%" style="border-bottom:2px solid #12171d;padding-bottom:6px"><tr>
+  <td width="42%" class="pf-brand">Checka<br><span>by WheelsTurn</span></td>
+  <td width="30%" class="pf-title">VEHICLE<br>CONDITION PROFILE</td>
+  <td width="28%" class="pf-rep">
+    <table width="100%"><tr>
+      <td align="right"><barcode code="<?= esc($report['verifyUrl']) ?>" type="QR" class="barcode" size="0.7" error="M" /></td>
+      <td width="2"></td>
+      <td align="right">Report No<br><b><?= esc(substr($ins['report_uid'],0,10)) ?></b><br>Date<br><b><?= esc($ins['inspection_date'] ?: date('Y-m-d')) ?></b></td>
+    </tr></table>
+  </td>
+</tr></table>
+
+<table width="100%" class="pf-sub" style="border-bottom:1px solid #d6dce1"><tr>
+  <td width="55%"><span style="color:#6b7682">Client</span> &nbsp; <b><?= $ev('client') ?: esc($meta['dealer'] ?? '—') ?></b></td>
+  <td width="45%" align="right"><span style="color:#6b7682">Inspection Location</span> &nbsp; <b><?= $ev('inspection_location') ?: '—' ?></b></td>
+</tr></table>
+
+<?php if ($strip): ?>
+<table width="100%" class="strip" style="margin-top:8px"><tr>
+  <?php $i=0; foreach ($strip as $p): $a=$thumbAbs($p); if($a): ?><td align="center"><img src="<?= $a ?>"></td><?php $i++; endif; endforeach; for(;$i<5;$i++) echo '<td></td>'; ?>
+</tr></table>
+<?php endif; ?>
+
+<div class="sec2">Assignment</div>
+<table class="vd">
+  <tr><td class="k">Client</td><td class="v"><?= $ev('client') ?: esc($meta['dealer'] ?? '—') ?></td>
+      <td class="k">Inspection Date</td><td class="v"><?= esc($ins['inspection_date'] ?: '—') ?></td></tr>
+  <tr><td class="k">Inspection Location</td><td class="v" colspan="3"><?= $ev('inspection_location') ?: '—' ?></td></tr>
+</table>
+
+<div class="sec2">Vehicle Data</div>
+<table class="vd">
+  <tr><td class="k">Vehicle Type</td><td class="v"><?= $ev('vehicle_type') ?: '—' ?></td><td class="k">Registered Owner</td><td class="v"><?= $ev('registered_owner') ?: '—' ?></td></tr>
+  <tr><td class="k">Manufacturer</td><td class="v"><?= $ev('make') ?: '—' ?></td><td class="k">Registration No.</td><td class="v"><?= $ev('plate') ?: '—' ?></td></tr>
+  <tr><td class="k">Model</td><td class="v"><?= $ev('model') ?: '—' ?></td><td class="k">Register Number</td><td class="v"><?= $ev('register_number') ?: '—' ?></td></tr>
+  <tr><td class="k">Derivative</td><td class="v"><?= $ev('derivative') ?: '—' ?></td><td class="k">Licence No.</td><td class="v"><?= $ev('licence_no') ?: '—' ?></td></tr>
+  <tr><td class="k">VIN</td><td class="v"><?= $ev('vin') ?: '—' ?></td><td class="k">Date First Licensing</td><td class="v"><?= $ev('date_first_licensing') ?: '—' ?></td></tr>
+  <tr><td class="k">Engine Number</td><td class="v"><?= $ev('engine_number') ?: '—' ?></td><td class="k">Last COR</td><td class="v"><?= $ev('last_cor') ?: '—' ?></td></tr>
+  <tr><td class="k">Doors</td><td class="v"><?= $ev('doors') ?: '—' ?></td><td class="k">Licence Expiry</td><td class="v"><?= $ev('licence_expiry') ?: '—' ?></td></tr>
+  <tr><td class="k">Color</td><td class="v"><?= $ev('colour') ?: '—' ?></td><td class="k">Power / Displacement</td><td class="v"><?= $ev('power_displacement') ?: '—' ?></td></tr>
+  <tr><td class="k">Year Model</td><td class="v"><?= $ev('year') ?: '—' ?></td><td class="k">Paint Finish</td><td class="v"><?= $ev('paint_finish') ?: '—' ?></td></tr>
+  <tr><td class="k">Km Reading</td><td class="v"><?= $ev('odometer') ?: esc($meta['km_before'] ?? '—') ?></td><td class="k">Fuel</td><td class="v"><?= $ev('fuel') ?: '—' ?></td></tr>
+  <tr><td class="k">Cab / Body Type</td><td class="v"><?= $ev('body_type') ?: '—' ?></td><td class="k">Transmission</td><td class="v"><?= $ev('transmission') ?: '—' ?></td></tr>
+  <tr><td class="k">GVM</td><td class="v"><?= $ev('gvm') ?: '—' ?></td><td class="k">Seating</td><td class="v"><?= $ev('seating') ?: '—' ?></td></tr>
+  <tr><td class="k">Tare</td><td class="v"><?= $ev('tare') ?: '—' ?></td><td class="k">Date of Test</td><td class="v"><?= $ev('date_of_test') ?: '—' ?></td></tr>
+</table>
+
+<div class="sec2">Vehicle Options &amp; Accessories</div>
+<div style="font-size:9pt;padding:6px 2px;line-height:1.5"><?= $ev('options') ?: '<span style="color:#6b7682">None recorded.</span>' ?></div>
+
+<div class="sec2">Damage &amp; Findings</div>
+<?php if (empty($compute['findings'])): ?>
+  <div style="font-size:9pt;color:#6b7682;padding:6px 2px">No findings recorded — vehicle is all-clear on the latest inspection.</div>
+<?php else: ?>
+<table class="checks" cellspacing="0">
+  <thead><tr><th width="12%">Ref</th><th width="46%">Damage</th><th>Repair Way / Comment</th></tr></thead>
+  <tbody>
+  <?php foreach ($compute['findings'] as $f): ?>
+    <tr><td class="ref"><?= esc($f['ref']) ?></td><td class="dmg-name"><?= esc($f['name']) ?></td><td><?= esc($f['comment'] ?: '—') ?></td></tr>
+  <?php endforeach; ?>
+  </tbody>
+</table>
+<?php endif; ?>
+
+<pagebreak />
 
 <div class="band">
   <table width="100%"><tr>
@@ -51,37 +138,6 @@
   <td><div class="n" style="color:#e9a29c"><?= $counts['major'] ?></div><div class="t">Major</div></td>
 </tr></table>
 
-<h3 class="sec">Vehicle Details</h3>
-<table class="detail" width="100%" cellspacing="0">
-  <tr>
-    <td><div class="k">Inspection Date</div><div class="v"><?= esc($ins['inspection_date']) ?></div></td>
-    <td><div class="k">Odometer</div><div class="v"><?= esc($meta['km_before'] ?? $v['odometer'] ?? '—') ?></div></td>
-    <td><div class="k">Colour</div><div class="v"><?= esc($v['colour'] ?? '—') ?></div></td>
-  </tr>
-  <tr>
-    <td><div class="k">Dealer / Seller</div><div class="v"><?= esc($meta['dealer'] ?? $v['seller'] ?? '—') ?></div></td>
-    <td><div class="k">Mechanic</div><div class="v"><?= esc($meta['mechanic'] ?? '—') ?></div></td>
-    <td><div class="k">Report ID</div><div class="v"><?= esc(substr($ins['report_uid'],0,8)) ?></div></td>
-  </tr>
-</table>
-
-<?php if (! empty($compute['findings'])): ?>
-<h3 class="sec">Summary of Findings</h3>
-<table class="checks" cellspacing="0">
-  <thead><tr><th width="8%">Ref</th><th width="42%">Item</th><th width="18%">Result</th><th>Comment</th></tr></thead>
-  <tbody>
-  <?php foreach ($compute['findings'] as $f): ?>
-    <tr>
-      <td class="ref"><?= esc($f['ref']) ?></td>
-      <td><?= esc(preg_replace('/ Checks?$/','',$f['section_title'] ?? '')) ?> » <?= esc($f['name']) ?></td>
-      <td><span class="chip" style="background:<?= $bg($f['status']) ?>;color:<?= $rag($f['status']) ?>"><?= esc($label($f['status'])) ?></span></td>
-      <td><?= esc($f['comment']) ?></td>
-    </tr>
-  <?php endforeach; ?>
-  </tbody>
-</table>
-<?php endif; ?>
-
 <?php foreach ($report['sections'] as $section): ?>
   <?php $photos=[]; foreach($section['items'] as $it){ foreach($it['photos'] as $p){ if(!$p['video']) $photos[]=$p; } } ?>
   <h3 class="sec"><?= $section['idx'] ?>. <?= esc($section['title']) ?></h3>
@@ -104,13 +160,8 @@
         <tr>
           <?php for ($c = 0; $c < 4; $c++): ?>
             <td width="25%" style="text-align:center;vertical-align:top">
-              <?php if (isset($row[$c])):
-                $p   = $row[$c];
-                $tp  = $p['thumb_path'] ?? (dirname($p['path']) . '/thumb_' . basename($p['path']));
-                $abs = $uploadDir . $tp;
-                if (! is_file($abs)) { $abs = $uploadDir . $p['path']; }
-                if (is_file($abs)): ?>
-                  <img src="<?= $abs ?>" style="width:125px;height:auto">
+              <?php if (isset($row[$c])): $a = $thumbAbs($row[$c]); if ($a): ?>
+                  <img src="<?= $a ?>" style="width:125px;height:auto">
               <?php endif; endif; ?>
             </td>
           <?php endfor; ?>
