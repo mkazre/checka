@@ -11,7 +11,7 @@
     <div class="card-b">
       <div id="scanWrap" style="position:relative;background:#0b0e12;border-radius:12px;overflow:hidden;aspect-ratio:3/4;display:grid;place-items:center">
         <video id="video" playsinline muted autoplay style="width:100%;height:100%;object-fit:cover"></video>
-        <div id="guide" style="position:absolute;left:6%;right:6%;top:36%;height:26%;border:3px solid #ef3d3d;border-radius:10px;box-shadow:0 0 0 3000px rgba(0,0,0,.42);pointer-events:none"></div>
+        <div id="guide" style="position:absolute;left:6%;right:6%;top:37%;height:26%;border:3px solid #ef3d3d;border-radius:10px;box-shadow:0 0 0 3000px rgba(0,0,0,.42);pointer-events:none"></div>
         <div id="camHint" style="position:absolute;color:#9fb0bf;font-family:var(--mono);font-size:12.5px;text-align:center;padding:0 24px">Tap “Start camera” and allow camera access</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:12px">
@@ -57,13 +57,15 @@
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
 <script>
 const CSRF_HEADER = "<?= csrf_header() ?>";
 const CSRF_HASH   = "<?= csrf_hash() ?>";
 const PARSE_URL   = "<?= site_url('vehicles/parse-disc') ?>";
 const statusEl = document.getElementById('status');
-let controls = null, reader = null;
+const video    = document.getElementById('video');
+let stream = null, scanning = false, reader = null;
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
 function setStatus(msg, color){ statusEl.textContent = msg; statusEl.style.color = color || 'var(--ink-3)'; }
 
@@ -75,6 +77,20 @@ function buildHints(){
   ]);
   hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
   return hints;
+}
+
+function getReader(){
+  if (!reader){ reader = new ZXing.MultiFormatReader(); reader.setHints(buildHints()); }
+  return reader;
+}
+
+function decodeCanvas(){
+  try {
+    const lum = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+    const bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
+    const result = getReader().decode(bmp, buildHints());
+    return result ? result.getText() : null;
+  } catch(e){ return null; } finally { try { getReader().reset(); } catch(e){} }
 }
 
 function fill(fields){
@@ -96,27 +112,48 @@ async function sendRaw(raw){
   } catch(e){ setStatus('Server error while parsing', 'var(--major)'); }
 }
 
+function scanLoop(){
+  if (!scanning) return;
+  if (video.readyState >= 2 && video.videoWidth) {
+    const gx = 0.06, gw = 0.88, gy = 0.37, gh = 0.26;
+    const sx = Math.round(video.videoWidth * gx), sw = Math.round(video.videoWidth * gw);
+    const sy = Math.round(video.videoHeight * gy), sh = Math.round(video.videoHeight * gh);
+    canvas.width = sw; canvas.height = sh;
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+    const text = decodeCanvas();
+    if (text) { onDecoded(text); return; }
+  }
+  setTimeout(() => { if (scanning) requestAnimationFrame(scanLoop); }, 110);
+}
+
 async function startScan(){
   document.getElementById('camHint').style.display = 'none';
-  setStatus('Starting camera…');
+  setStatus('Requesting camera…');
   try {
-    reader = new ZXingBrowser.BrowserMultiFormatReader(buildHints(), { delayBetweenScanAttempts: 100 });
-    const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } };
-    controls = await reader.decodeFromConstraints(constraints, document.getElementById('video'), (result, err, ctrl) => {
-      if (result) { ctrl.stop(); controls = null; onDecoded(result.getText()); }
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
     });
-    setStatus('Scanning… fill the red box with the barcode and hold steady.');
+    video.srcObject = stream;
+    await video.play();
+    scanning = true;
     document.getElementById('startBtn').style.display = 'none';
     document.getElementById('stopBtn').style.display = '';
+    setStatus('Scanning… fill the red box with the barcode and hold steady.');
+    requestAnimationFrame(scanLoop);
   } catch(e){
-    setStatus('Camera error: ' + (e && e.message ? e.message : e) + ' — check the browser has camera permission (and the site is https).', 'var(--major)');
+    let m = e && e.name === 'NotAllowedError' ? 'Camera permission was blocked. Allow camera for this site and retry.'
+          : e && e.name === 'NotFoundError' ? 'No camera found on this device.'
+          : 'Camera error: ' + (e && e.message ? e.message : e);
+    setStatus(m, 'var(--major)');
     document.getElementById('camHint').style.display = '';
   }
 }
 
 function stopScan(){
-  try { if (controls) controls.stop(); } catch(e){}
-  controls = null;
+  scanning = false;
+  if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
   document.getElementById('startBtn').style.display = '';
   document.getElementById('stopBtn').style.display = 'none';
 }
@@ -131,17 +168,20 @@ document.getElementById('startBtn').addEventListener('click', startScan);
 document.getElementById('stopBtn').addEventListener('click', () => { stopScan(); setStatus('Stopped.'); });
 window.addEventListener('beforeunload', stopScan);
 
-document.getElementById('discPhoto').addEventListener('change', async (e) => {
+document.getElementById('discPhoto').addEventListener('change', (e) => {
   const file = e.target.files[0]; if(!file) return;
   setStatus('Decoding photo…');
-  try {
-    const r = new ZXingBrowser.BrowserMultiFormatReader(buildHints());
-    const url = URL.createObjectURL(file);
-    const result = await r.decodeFromImageUrl(url);
-    onDecoded(result.getText());
-  } catch(err){
-    setStatus('Could not read the barcode in that photo — get closer so the barcode fills the frame, avoid glare, then retry.', 'var(--major)');
-  }
+  const img = new Image();
+  img.onload = () => {
+    const maxW = 2000, scale = img.naturalWidth > maxW ? maxW / img.naturalWidth : 1;
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const text = decodeCanvas();
+    if (text) onDecoded(text);
+    else setStatus('Could not read the barcode in that photo — get closer so the barcode fills the frame, avoid glare, then retry.', 'var(--major)');
+  };
+  img.src = URL.createObjectURL(file);
 });
 </script>
 <?= $this->endSection() ?>
