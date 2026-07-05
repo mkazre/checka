@@ -12,8 +12,18 @@ class VehicleModel extends Model
     protected $useSoftDeletes = true;
     protected $useTimestamps  = true;
     protected $allowedFields  = [
+        // core
         'make', 'model', 'year', 'colour', 'vin', 'plate', 'odometer',
         'seller', 'service_date', 'service_km', 'created_by',
+        // spec
+        'vehicle_type', 'derivative', 'body_type', 'doors', 'engine_number',
+        'power_displacement', 'fuel', 'transmission', 'paint_finish', 'options',
+        // registration / licence disc
+        'registered_owner', 'register_number', 'licence_no', 'disc_control_no',
+        'date_first_licensing', 'last_cor', 'licence_expiry', 'gvm', 'tare',
+        'seating', 'date_of_test',
+        // assignment / context
+        'client', 'inspection_location', 'disc_raw',
     ];
 
     protected $validationRules = [

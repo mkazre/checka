@@ -3,6 +3,11 @@
 
 <div class="page-head">
   <div><h1>Vehicles</h1><div class="sub">The vehicle register.</div></div>
+  <div class="spacer"></div>
+  <a class="btn" href="<?= site_url('vehicles/scan') ?>">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+    Scan Licence Disc
+  </a>
 </div>
 
 <div class="grid cols-2">
@@ -19,8 +24,9 @@
           <td><b><?= esc(trim(($v['year']?:'').' '.($v['make']?:'').' '.($v['model']?:'')) ?: 'Vehicle') ?></b><div class="sub" style="font-size:12px;color:var(--ink-3)"><?= esc($v['colour']) ?></div></td>
           <td class="mono"><?= esc($v['plate'] ?: '—') ?></td>
           <td class="mono" style="font-size:11px"><?= esc($v['vin'] ?: '—') ?></td>
-          <td style="text-align:right">
-            <form method="post" action="<?= site_url('vehicles/'.$v['id'].'/delete') ?>" onsubmit="return confirm('Delete vehicle?')"><?= csrf_field() ?><button class="btn danger sm">Delete</button></form>
+          <td style="text-align:right;white-space:nowrap">
+            <a class="btn ghost sm" href="<?= site_url('vehicles/'.$v['id'].'/profile') ?>">Profile</a>
+            <form method="post" action="<?= site_url('vehicles/'.$v['id'].'/delete') ?>" style="display:inline" onsubmit="return confirm('Delete vehicle?')"><?= csrf_field() ?><button class="btn danger sm">Delete</button></form>
           </td>
         </tr>
       <?php endforeach; ?>

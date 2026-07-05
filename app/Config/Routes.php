@@ -44,7 +44,10 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
 
     // Vehicles
     $routes->get('vehicles', 'Vehicles::index');
+    $routes->get('vehicles/scan', 'Vehicles::scan');
+    $routes->post('vehicles/parse-disc', 'Vehicles::parseDisc');
     $routes->post('vehicles', 'Vehicles::create');
+    $routes->get('vehicles/(:num)/profile', 'Vehicles::profile/$1');
     $routes->post('vehicles/(:num)', 'Vehicles::update/$1');
     $routes->post('vehicles/(:num)/delete', 'Vehicles::delete/$1');
 
