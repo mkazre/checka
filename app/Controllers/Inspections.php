@@ -207,6 +207,24 @@ class Inspections extends BaseController
         $file->move($dir, $newName);
         $relative = $inspection['id'] . '/' . $newName;
 
+        // Down-scale the stored original (images only) so a 24 MP phone photo
+        // (8–15 MB) is kept as a reasonable ~2000px, ~1–2 MB file — plenty for
+        // zooming in on a report, but a fraction of the disk. Videos untouched.
+        if (! $isVideo) {
+            try {
+                $maxDim = (int) (env('checka.imageMaxDim') ?: 2000);
+                $img    = service('image')->withFile($dir . '/' . $newName);
+                $props  = $img->getFile()->getProperties();
+                if (($props['width'] ?? 0) > $maxDim || ($props['height'] ?? 0) > $maxDim) {
+                    $img->resize($maxDim, $maxDim, true, 'auto') // keep aspect ratio, no crop
+                        ->save($dir . '/' . $newName, 82);
+                }
+            } catch (\Throwable $e) {
+                // Non-fatal: keep the full-size original if resizing fails.
+                log_message('error', 'Image down-scale failed: ' . $e->getMessage());
+            }
+        }
+
         // Thumbnail for images.
         $thumbRel = null;
         if (! $isVideo) {
