@@ -15,7 +15,8 @@
     --body:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{margin:0}
+  html,body{margin:0;max-width:100%;overflow-x:hidden}
+  *{box-sizing:border-box}
   body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:var(--brand-ink);text-decoration:none;font-weight:500} a:hover{text-decoration:underline}
   h1,h2,h3,h4{font-family:var(--display);margin:0;letter-spacing:-.015em}
@@ -53,6 +54,10 @@
   .card .card-b{padding:18px}
 
   .grid{display:grid;gap:16px}
+  /* let grid/flex children shrink so wide content scrolls inside its own box
+     instead of stretching the card and the whole page */
+  .grid > *{min-width:0}
+  .card{min-width:0}
   .cols-3{grid-template-columns:repeat(3,1fr)}
   .cols-4{grid-template-columns:repeat(4,1fr)}
   .cols-2{grid-template-columns:repeat(2,1fr)}
@@ -104,7 +109,7 @@
   .topnav{display:flex;align-items:center;gap:18px;flex:1}
 
   /* wrap wide tables so they scroll instead of breaking the layout */
-  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
 
   /* ---------- responsive ---------- */
   @media(max-width:900px){
