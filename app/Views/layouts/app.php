@@ -33,6 +33,7 @@
         <?php if ($isAdmin): ?>
           <a href="<?= site_url('templates') ?>" class="<?= str_starts_with($uri,'templates')?'active':'' ?>">Templates</a>
           <a href="<?= site_url('users') ?>" class="<?= str_starts_with($uri,'users')?'active':'' ?>">Users</a>
+          <a href="<?= site_url('settings') ?>" class="<?= str_starts_with($uri,'settings')?'active':'' ?>">Settings</a>
         <?php endif; ?>
       </nav>
       <div class="right">

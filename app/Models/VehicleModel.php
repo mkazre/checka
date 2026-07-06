@@ -24,6 +24,8 @@ class VehicleModel extends Model
         'seating', 'date_of_test',
         // assignment / context
         'client', 'inspection_location', 'disc_raw',
+        // reference (Wikimedia) hero image
+        'stock_image_url',
     ];
 
     protected $validationRules = [

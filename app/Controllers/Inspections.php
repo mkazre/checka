@@ -79,11 +79,12 @@ class Inspections extends BaseController
         }
 
         return view('inspections/capture', [
-            'title'    => 'Capture Inspection',
-            'uid'      => $uid,
-            'report'   => $report,
-            'ratings'  => CHECKA_RATINGS,
-            'compute'  => service('intelligence')->compute($report),
+            'title'      => 'Capture Inspection',
+            'uid'        => $uid,
+            'report'     => $report,
+            'ratings'    => CHECKA_RATINGS,
+            'compute'    => service('intelligence')->compute($report),
+            'stockImage' => (new \App\Services\VehicleImageService())->imageFor($report['vehicle'] ?? []),
         ]);
     }
 

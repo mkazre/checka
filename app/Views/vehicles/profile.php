@@ -11,6 +11,17 @@
   .cr-head .rep{margin-left:auto;text-align:right;font-family:var(--mono);font-size:10.5px;color:var(--ink-2);line-height:1.6}
   .cr-head .rep b{color:var(--ink)}
   #pqr{width:74px;height:74px}
+  .cr-hero{position:relative;padding:16px 24px;border-bottom:1px solid var(--line);background:#fafbfc;text-align:center}
+  .cr-hero img{max-width:100%;max-height:280px;width:auto;object-fit:contain;border-radius:8px}
+  .cr-hero-tag{position:absolute;top:22px;left:30px;background:var(--brand);color:#fff;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:5px}
+  .cr-hero-empty{color:var(--ink-3);font-size:13px;padding:22px;border:1px dashed var(--line);border-radius:8px}
+  .cr-hero-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-top:12px}
+  .cr-hero-tools input{border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:12.5px;min-width:180px}
+  .cr-hero-tools .sep{color:var(--ink-3)}
+  .cr-hero-tools .mini{border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
+  .cr-hero-tools .mini.danger{background:#fff;color:#b42318;border-color:#e6c3bf}
+  .cr-hero-tools .mini:disabled{opacity:.55;cursor:default}
+  @media(max-width:480px){.cr-hero-tools input{min-width:0;flex:1}}
   .cr-sub{display:flex;justify-content:space-between;gap:20px;padding:10px 24px;background:#fafbfc;border-bottom:1px solid var(--line);font-size:12.5px}
   .cr-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:14px 24px;border-bottom:1px solid var(--line)}
   .cr-strip .ph{aspect-ratio:4/3;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:#eef1f3;display:grid;place-items:center}
@@ -58,6 +69,10 @@
 <div class="page-head">
   <div><h1>Vehicle Profile</h1><div class="sub mono"><?= esc(trim(($v['year']?:'').' '.($v['make']?:'').' '.($v['model']?:'')) ?: 'Vehicle') ?></div></div>
   <div class="spacer"></div>
+  <button type="button" class="btn ghost" id="aiFill">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
+    AI Auto-fill
+  </button>
   <a class="btn ghost" href="<?= site_url('vehicles/scan') ?>">Scan Disc</a>
   <?php if ($inspection): ?><a class="btn ghost" href="<?= site_url('reports/'.$inspection['report_uid']) ?>">Latest Report</a><?php endif; ?>
   <a class="btn" href="<?= site_url('inspections/new') ?>">New Inspection</a>
@@ -82,6 +97,26 @@
       <div><span style="color:var(--ink-3)">Client</span> &nbsp;<b><?= $val('client') ?: '—' ?></b></div>
       <div style="text-align:right;color:var(--ink-3)">Inspection date &nbsp;<b style="color:var(--ink)"><?= esc($insDate ?: '—') ?></b></div>
     </div>
+
+    <?php if (! empty($imageEnabled)): ?>
+    <!-- Reference image (Wikimedia) + manual override -->
+    <div class="cr-hero" id="heroWrap">
+      <?php if (! empty($stockImage)): ?>
+        <img src="<?= esc($stockImage) ?>" alt="Reference image">
+        <span class="cr-hero-tag">Reference · ideal condition</span>
+      <?php else: ?>
+        <div class="cr-hero-empty">No reference image found. Re-search Wikimedia or paste a direct image URL below.</div>
+      <?php endif; ?>
+      <div class="cr-hero-tools">
+        <button type="button" class="mini" data-act="search">Re-search Wikimedia</button>
+        <input type="text" id="imgQuery" placeholder="search term (e.g. Kia Cerato 2019)">
+        <span class="sep">·</span>
+        <input type="text" id="imgUrl" placeholder="paste image URL…">
+        <button type="button" class="mini" data-act="url">Set URL</button>
+        <?php if (! empty($stockImage)): ?><button type="button" class="mini danger" data-act="remove">Remove</button><?php endif; ?>
+      </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Photo strip -->
     <div class="cr-strip">
@@ -180,6 +215,52 @@
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 <script>
-  try { new QRCode(document.getElementById("pqr"), {text:"<?= esc($v['vin'] ?: site_url('vehicles/'.$v['id'].'/profile'), 'js') ?>", width:74, height:74, colorDark:"#12171d", colorLight:"#fff"}); } catch(e){}
+  try { new QRCode(document.getElementById("pqr"), {text:"<?= esc($v['vin'] ?: site_url('vehicles/'.$v['id'].'/profile'), 'js') ?>", width:74, height:74, colorDark:"#2d2d2d", colorLight:"#fff"}); } catch(e){}
+
+  // ---- AI auto-fill of empty spec fields ----
+  (function(){
+    const btn = document.getElementById('aiFill'); if(!btn) return;
+    const CSRF_HEADER = "<?= csrf_header() ?>", CSRF_HASH = "<?= csrf_hash() ?>";
+    const URL = "<?= site_url('vehicles/'.$v['id'].'/ai-fill') ?>";
+    btn.addEventListener('click', async () => {
+      const original = btn.innerHTML;
+      btn.disabled = true; btn.textContent = 'Asking AI…';
+      try {
+        const res = await fetch(URL, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded', [CSRF_HEADER]:CSRF_HASH }, body: encodeURIComponent(CSRF_HEADER)+'='+encodeURIComponent(CSRF_HASH) });
+        const j = await res.json();
+        if (!j.ok) { alert(j.error || 'AI request failed.'); return; }
+        let filled = 0;
+        Object.entries(j.fields || {}).forEach(([k, val]) => {
+          const el = document.querySelector(`[name="${k}"]`);
+          if (el && !el.value) { el.value = val; el.style.background = '#eafaf0'; filled++; }
+        });
+        btn.textContent = filled ? `AI filled ${filled} field(s) — review & save` : 'AI found nothing new';
+        setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2600);
+        return;
+      } catch(e){ alert('AI request failed.'); }
+      btn.innerHTML = original; btn.disabled = false;
+    });
+  })();
+
+  // ---- Reference image manual override ----
+  (function(){
+    const wrap = document.getElementById('heroWrap'); if(!wrap) return;
+    const CSRF_HEADER = "<?= csrf_header() ?>", CSRF_HASH = "<?= csrf_hash() ?>";
+    const URL = "<?= site_url('vehicles/'.$v['id'].'/image') ?>";
+    wrap.querySelectorAll('.mini').forEach(b => b.addEventListener('click', async () => {
+      const act = b.dataset.act;
+      const body = new URLSearchParams({ [CSRF_HEADER]: CSRF_HASH, action: act });
+      if (act === 'search') body.set('query', (document.getElementById('imgQuery').value || '').trim());
+      if (act === 'url')    body.set('url',   (document.getElementById('imgUrl').value || '').trim());
+      if (act === 'remove' && !confirm('Remove the reference image for this vehicle?')) return;
+      const btns = wrap.querySelectorAll('.mini'); btns.forEach(x => x.disabled = true);
+      try {
+        const res = await fetch(URL, { method:'POST', headers:{ [CSRF_HEADER]:CSRF_HASH }, body });
+        const j = await res.json();
+        if (!j.ok) { alert(j.error || 'Could not update image.'); btns.forEach(x => x.disabled = false); return; }
+        location.reload();
+      } catch(e){ alert('Request failed.'); btns.forEach(x => x.disabled = false); }
+    }));
+  })();
 </script>
 <?= $this->endSection() ?>

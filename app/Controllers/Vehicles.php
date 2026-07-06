@@ -64,7 +64,9 @@ class Vehicles extends BaseController
             'vehicle'    => $vehicle,
             'inspection' => $inspection,
             'findings'   => $findings,
-            'photos'     => array_slice($photos, 0, 5),
+            'photos'       => array_slice($photos, 0, 5),
+            'stockImage'   => (new \App\Services\VehicleImageService())->imageFor($vehicle),
+            'imageEnabled' => \App\Services\VehicleImageService::enabled(),
         ]);
     }
 
@@ -72,6 +74,75 @@ class Vehicles extends BaseController
     public function scan()
     {
         return view('vehicles/scan', ['title' => 'Scan Licence Disc']);
+    }
+
+    /** AJAX: ask the configured AI to infer missing spec fields. */
+    public function aiFill(int $id)
+    {
+        $vehicle = model(VehicleModel::class)->find($id);
+        if ($vehicle === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Vehicle not found']);
+        }
+
+        $known = array_filter([
+            'make'          => $vehicle['make'],
+            'model'         => $vehicle['model'],
+            'derivative'    => $vehicle['derivative'],
+            'year'          => $vehicle['year'],
+            'vin'           => $vehicle['vin'],
+            'engine_number' => $vehicle['engine_number'],
+            'colour'        => $vehicle['colour'],
+            'body_type'     => $vehicle['body_type'],
+            'plate'         => $vehicle['plate'],
+        ], static fn ($v) => $v !== null && $v !== '');
+
+        if (($known['vin'] ?? '') === '' && ($known['make'] ?? '') === '') {
+            return $this->response->setJSON(['ok' => false, 'error' => 'Add at least a VIN or Make/Model first, then try AI fill.']);
+        }
+
+        return $this->response->setJSON((new \App\Services\AiService())->enrichVehicle($known));
+    }
+
+    /**
+     * AJAX: manually override the reference image.
+     *  - action=url   + url=…    → set an explicit image URL
+     *  - action=search + query=… → re-search Wikimedia for a term
+     *  - action=remove           → clear the image
+     */
+    public function setImage(int $id)
+    {
+        $model   = model(VehicleModel::class);
+        $vehicle = $model->find($id);
+        if ($vehicle === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Vehicle not found']);
+        }
+
+        $action = (string) $this->request->getPost('action');
+        $url    = null;
+
+        if ($action === 'remove') {
+            $url = null;
+        } elseif ($action === 'url') {
+            $url = trim((string) $this->request->getPost('url'));
+            if ($url === '' || ! preg_match('#^https?://#i', $url)) {
+                return $this->response->setJSON(['ok' => false, 'error' => 'Enter a valid image URL (must start with http).']);
+            }
+        } elseif ($action === 'search') {
+            $query = trim((string) $this->request->getPost('query'));
+            if ($query === '') {
+                $query = trim(($vehicle['make'] ?? '') . ' ' . ($vehicle['model'] ?? '') . ' ' . ($vehicle['year'] ?? ''));
+            }
+            $url = (new \App\Services\VehicleImageService())->lookup($query);
+            if ($url === null) {
+                return $this->response->setJSON(['ok' => false, 'error' => 'No image found for that search. Try a different term or paste a URL.']);
+            }
+        } else {
+            return $this->response->setStatusCode(400)->setJSON(['ok' => false, 'error' => 'Unknown action']);
+        }
+
+        $model->update($id, ['stock_image_url' => $url]);
+
+        return $this->response->setJSON(['ok' => true, 'url' => $url]);
     }
 
     /** AJAX: decode string in → parsed vehicle fields out. */

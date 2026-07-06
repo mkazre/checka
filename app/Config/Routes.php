@@ -48,6 +48,8 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->post('vehicles/parse-disc', 'Vehicles::parseDisc');
     $routes->post('vehicles', 'Vehicles::create');
     $routes->get('vehicles/(:num)/profile', 'Vehicles::profile/$1');
+    $routes->post('vehicles/(:num)/ai-fill', 'Vehicles::aiFill/$1');
+    $routes->post('vehicles/(:num)/image', 'Vehicles::setImage/$1');
     $routes->post('vehicles/(:num)', 'Vehicles::update/$1');
     $routes->post('vehicles/(:num)/delete', 'Vehicles::delete/$1');
 
@@ -71,6 +73,9 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
         $routes->post('users', 'Users::create');
         $routes->post('users/(:num)/role', 'Users::setRole/$1');
         $routes->post('users/(:num)/delete', 'Users::delete/$1');
+
+        $routes->get('settings', 'Settings::index');
+        $routes->post('settings', 'Settings::save');
     });
 });
 

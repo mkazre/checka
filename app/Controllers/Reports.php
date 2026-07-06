@@ -32,11 +32,15 @@ class Reports extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
+        $imgSvc     = new \App\Services\VehicleImageService();
+        $stockImage = $imgSvc->dataUri($imgSvc->imageFor($report['vehicle'] ?? []));
+
         $html = view('reports/pdf', [
-            'report'    => $report,
-            'compute'   => service('intelligence')->compute($report),
-            'ratings'   => CHECKA_RATINGS,
-            'uploadDir' => WRITEPATH . 'uploads/',
+            'report'     => $report,
+            'compute'    => service('intelligence')->compute($report),
+            'ratings'    => CHECKA_RATINGS,
+            'uploadDir'  => WRITEPATH . 'uploads/',
+            'stockImage' => $stockImage,
         ]);
 
         $v        = $report['vehicle'] ?? [];

@@ -68,6 +68,10 @@
 ?>
 
 <div class="capbar">
+  <?php if (! empty($stockImage)): ?>
+    <img src="<?= esc($stockImage) ?>" alt="Reference" title="Reference · ideal condition"
+         style="height:64px;width:auto;max-width:110px;object-fit:contain;border-radius:8px;background:#fff;margin-right:16px;flex:none">
+  <?php endif; ?>
   <div class="vid">
     <div class="yr"><?= esc(($v['year'] ?? '') . ' · ' . ($v['colour'] ?? '')) ?></div>
     <h2><?= esc(trim(($v['make'] ?? '') . ' ' . ($v['model'] ?? '')) ?: 'Vehicle') ?></h2>

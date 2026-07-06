@@ -36,15 +36,18 @@
   .strip td{padding:0 2px}
   .strip img{width:100px;height:auto;border:1px solid #d6dce1;border-radius:3px}
   /* ---- report pages ---- */
-  .band{background:#2d2d2d;color:#fff;padding:14px 16px}
-  .band .yr{font-size:8pt;color:#8395a6;letter-spacing:2px;text-transform:uppercase}
+  .band{background:#37b34a;color:#fff;padding:16px 18px}
+  .band .yr{font-size:8pt;color:#dff3e5;letter-spacing:2px;text-transform:uppercase}
   .band h2{font-size:20pt;margin:2px 0;color:#fff}
-  .band .vin{font-size:8.5pt;color:#aeb9c6}
-  .verdict{padding:6px 12px;border-radius:14px;font-weight:bold;font-size:10pt;display:inline-block}
-  .metrics td{width:25%;text-align:center;border:1px solid #4a4a4a;background:#3a3a3a;color:#fff;padding:8px}
+  .band .vin{font-size:8.5pt;color:#eaf7ee}
+  .band .vlabel{font-size:7pt;color:#dff3e5;text-transform:uppercase;letter-spacing:1px}
+  .verdict-badge{background:#ffffff;border-radius:6px;padding:6px 12px;font-weight:bold;font-size:10.5pt;display:inline-block}
+  .score-big{font-size:23pt;font-weight:bold;color:#fff;margin-top:7px}
+  .score-big span{font-size:9pt;color:#dff3e5;font-weight:normal}
+  .metrics td{width:25%;text-align:center;border:1px solid #d6dce1;background:#ffffff;color:#12171d;padding:9px}
   .metrics .n{font-size:16pt;font-weight:bold}
-  .metrics .t{font-size:7pt;color:#9aa7b4;text-transform:uppercase;letter-spacing:1px}
-  h3.sec{font-size:11pt;margin:16px 0 6px;padding-bottom:3px;border-bottom:2px solid #2d2d2d}
+  .metrics .t{font-size:7pt;color:#6b7682;text-transform:uppercase;letter-spacing:1px}
+  h3.sec{font-size:11pt;margin:16px 0 6px;padding-bottom:3px;border-bottom:2px solid #37b34a}
   table.checks{width:100%;border-collapse:collapse;margin-top:4px}
   table.checks th{font-size:7pt;text-transform:uppercase;letter-spacing:.5px;color:#6b7682;text-align:left;border-bottom:1px solid #d6dce1;padding:4px 6px}
   table.checks td{padding:5px 6px;border-bottom:1px solid #eef1f3;vertical-align:top;font-size:9pt}
@@ -74,6 +77,15 @@
   <td width="55%"><span style="color:#6b7682">Client</span> &nbsp; <b><?= $ev('client') ?: esc($meta['dealer'] ?? '—') ?></b></td>
   <td width="45%" align="right"><span style="color:#6b7682">Inspection Location</span> &nbsp; <b><?= $ev('inspection_location') ?: '—' ?></b></td>
 </tr></table>
+
+<?php if (! empty($stockImage)): ?>
+<table width="100%" style="margin-top:8px"><tr>
+  <td align="center" style="background:#fafbfc;border:1px solid #d6dce1;border-radius:6px;padding:8px">
+    <img src="<?= $stockImage ?>" style="max-height:200px;width:auto">
+    <div style="font-family:monospace;font-size:7pt;color:#6b7682;letter-spacing:1px;text-transform:uppercase;margin-top:4px">Reference · ideal condition</div>
+  </td>
+</tr></table>
+<?php endif; ?>
 
 <?php if ($strip): ?>
 <table width="100%" class="strip" style="margin-top:8px"><tr>
@@ -133,18 +145,18 @@
       <div class="vin">VIN <?= esc($v['vin'] ?? '—') ?> &nbsp;·&nbsp; <?= esc($v['plate'] ?? '') ?></div>
     </td>
     <td align="right">
-      <div style="font-size:7pt;color:#8395a6;text-transform:uppercase;letter-spacing:1px">Overall Verdict</div>
-      <div class="verdict" style="background:<?= $rag($vs) ?>;color:#fff;margin-top:4px"><?= esc($compute['verdict']['text']) ?></div>
-      <div style="font-size:20pt;font-weight:bold;color:<?= $rag($vs) ?>;margin-top:8px"><?= $compute['score'] ?><span style="font-size:9pt;color:#8395a6">/100</span></div>
+      <div class="vlabel">Overall Verdict</div>
+      <div class="verdict-badge" style="color:<?= $rag($vs) ?>;border-left:5px solid <?= $rag($vs) ?>;margin-top:4px"><?= esc($compute['verdict']['text']) ?></div>
+      <div class="score-big"><?= $compute['score'] ?><span>/100</span></div>
     </td>
   </tr></table>
 </div>
 
 <table class="metrics" width="100%" cellspacing="0" style="margin-top:2px"><tr>
-  <td><div class="n" style="color:#8fd3a7"><?= $counts['ok'] ?></div><div class="t">No Issues</div></td>
-  <td><div class="n" style="color:#9db9d6"><?= $counts['minor'] ?></div><div class="t">Minor</div></td>
-  <td><div class="n" style="color:#e9c48c"><?= $counts['lesser'] ?></div><div class="t">Lesser</div></td>
-  <td><div class="n" style="color:#e9a29c"><?= $counts['major'] ?></div><div class="t">Major</div></td>
+  <td><div class="n" style="color:#2a8f3a"><?= $counts['ok'] ?></div><div class="t">No Issues</div></td>
+  <td><div class="n" style="color:#2f6fb0"><?= $counts['minor'] ?></div><div class="t">Minor</div></td>
+  <td><div class="n" style="color:#c98a1e"><?= $counts['lesser'] ?></div><div class="t">Lesser</div></td>
+  <td><div class="n" style="color:#b42318"><?= $counts['major'] ?></div><div class="t">Major</div></td>
 </tr></table>
 
 <?php foreach ($report['sections'] as $section): ?>
