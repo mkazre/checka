@@ -184,9 +184,11 @@ class Inspections extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'No valid file uploaded']);
         }
 
-        $maxKb = (int) (env('checka.uploadMaxKb') ?: 8192);
+        $maxKb = (int) (env('checka.uploadMaxKb') ?: 30720); // 30 MB
         if ($file->getSizeByUnit('kb') > $maxKb) {
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'File too large']);
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => 'File too large — max ' . round($maxKb / 1024) . ' MB (this file is ' . round($file->getSizeByUnit('mb'), 1) . ' MB)',
+            ]);
         }
 
         // Read the mime BEFORE moving — after move() the temp file is gone.
