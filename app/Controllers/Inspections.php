@@ -184,10 +184,14 @@ class Inspections extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'No valid file uploaded']);
         }
 
-        $maxKb = (int) (env('checka.uploadMaxKb') ?: 30720); // 30 MB
-        if ($file->getSizeByUnit('kb') > $maxKb) {
+        // Compare raw bytes — getSizeByUnit('kb'|'mb') runs number_format() which
+        // adds a thousands-comma at >=1000, and PHP then string-compares it,
+        // wrongly failing anything over ~1 MB. getSize() is a plain integer.
+        $maxKb    = (int) (env('checka.uploadMaxKb') ?: 30720); // 30 MB
+        $maxBytes = $maxKb * 1024;
+        if ($file->getSize() > $maxBytes) {
             return $this->response->setStatusCode(400)->setJSON([
-                'error' => 'File too large — max ' . round($maxKb / 1024) . ' MB (this file is ' . round($file->getSizeByUnit('mb'), 1) . ' MB)',
+                'error' => 'File too large — max ' . round($maxKb / 1024) . ' MB (this file is ' . round($file->getSize() / 1048576, 1) . ' MB)',
             ]);
         }
 
