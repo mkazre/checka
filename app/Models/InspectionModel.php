@@ -15,6 +15,7 @@ class InspectionModel extends Model
         'report_uid', 'template_id', 'vehicle_id', 'mechanic_id', 'status',
         'inspection_date', 'conclusion', 'signature_path', 'score',
         'verdict_status', 'verdict_text', 'meta', 'created_by',
+        'client_status', 'client_name', 'client_signature', 'client_note', 'client_signed_at',
     ];
 
     /**
@@ -107,6 +108,7 @@ class InspectionModel extends Model
                 'number'  => $v['value_number'],
                 'comment' => $v['comment'],
                 'cost'    => $v['cost'],
+                'approved' => $v['repair_approved'] ?? null,
                 'choices' => \App\Models\FieldModel::choicesList($v['choices'] ?? null),
                 'choice'  => $v['choice'] ?? null,
                 'photos'  => $photosByValue[(int) $v['id']] ?? [],

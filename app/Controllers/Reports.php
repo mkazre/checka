@@ -21,6 +21,7 @@ class Reports extends BaseController
             'report'  => $report,
             'compute' => service('intelligence')->compute($report),
             'ratings' => CHECKA_RATINGS,
+            'quote'   => feature('quotes') ? (new \App\Services\QuoteService())->build($report) : null,
         ]);
     }
 
@@ -41,6 +42,7 @@ class Reports extends BaseController
             'ratings'    => CHECKA_RATINGS,
             'uploadDir'  => WRITEPATH . 'uploads/',
             'stockImage' => $stockImage,
+            'quote'      => feature('quotes') ? (new \App\Services\QuoteService())->build($report) : null,
         ]);
 
         $v        = $report['vehicle'] ?? [];

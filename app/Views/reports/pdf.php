@@ -198,6 +198,45 @@
   <?php endif; ?>
 <?php endforeach; ?>
 
+<?php if (! empty($quote) && $quote['count'] > 0): $vp = rtrim(rtrim(number_format($quote['vatRate'],1),'0'),'.'); ?>
+<h3 class="sec">Repair Estimate</h3>
+<table class="checks" cellspacing="0">
+  <thead><tr><th width="8%">Ref</th><th width="52%">Repair</th><th width="20%" style="text-align:right">Cost</th><th width="20%">Client</th></tr></thead>
+  <tbody>
+  <?php foreach ($quote['items'] as $it): ?>
+    <tr>
+      <td class="ref"><?= esc($it['ref']) ?></td>
+      <td><?= esc($it['name']) ?><?php if($it['comment']): ?><br><span style="color:#6b7682;font-size:8pt"><?= esc($it['comment']) ?></span><?php endif; ?></td>
+      <td style="text-align:right;white-space:nowrap"><?= \App\Services\QuoteService::money($it['cost']) ?></td>
+      <td><?php if($it['approved']===null): ?><span style="color:#6b7682">—</span><?php elseif((int)$it['approved']===1): ?><span style="color:#2a8f3a;font-weight:bold">Approved</span><?php else: ?><span style="color:#b42318;font-weight:bold">Declined</span><?php endif; ?></td>
+    </tr>
+  <?php endforeach; ?>
+  </tbody>
+</table>
+<table width="100%" style="margin-top:6px"><tr><td>&nbsp;</td><td width="240">
+  <table width="100%" style="font-size:9pt">
+    <tr><td style="color:#6b7682;padding:3px 0">Subtotal</td><td align="right"><?= \App\Services\QuoteService::money($quote['subtotal']) ?></td></tr>
+    <tr><td style="color:#6b7682;padding:3px 0">VAT (<?= $vp ?>%)</td><td align="right"><?= \App\Services\QuoteService::money($quote['vat']) ?></td></tr>
+    <tr><td style="border-top:2px solid #2d2d2d;padding-top:6px;font-weight:bold;font-size:11pt">Total</td><td align="right" style="border-top:2px solid #2d2d2d;padding-top:6px;font-weight:bold;font-size:11pt"><?= \App\Services\QuoteService::money($quote['total']) ?></td></tr>
+    <?php if($quote['decided']>0): ?><tr><td style="color:#2a8f3a;font-weight:bold;padding-top:4px">Approved by client</td><td align="right" style="color:#2a8f3a;font-weight:bold;padding-top:4px"><?= \App\Services\QuoteService::money($quote['approvedTotal']) ?></td></tr><?php endif; ?>
+  </table>
+</td></tr></table>
+<?php endif; ?>
+
+<?php if (feature('clientPortal') && ! empty($ins['client_signed_at'])): ?>
+<h3 class="sec">Client Approval</h3>
+<table width="100%" class="concl" cellspacing="0"><tr>
+  <td valign="top">
+    <span style="font-weight:bold;font-size:10pt;color:<?= $ins['client_status']==='approved'?'#2a8f3a':'#b42318' ?>"><?= $ins['client_status']==='approved'?'✓ Repairs approved':'✕ Repairs declined' ?></span><br>
+    <span style="font-size:9pt;color:#3d4753">by <b><?= esc($ins['client_name']) ?></b> · <?= esc($ins['client_signed_at']) ?></span>
+    <?php if(!empty($ins['client_note'])): ?><br><span style="font-size:8.5pt;color:#6b7682">“<?= esc($ins['client_note']) ?>”</span><?php endif; ?>
+  </td>
+  <td align="right" valign="top" width="180">
+    <?php if(!empty($ins['client_signature'])): ?><img src="<?= $ins['client_signature'] ?>" style="height:46px"><?php endif; ?>
+  </td>
+</tr></table>
+<?php endif; ?>
+
 <h3 class="sec">Vehicle Conclusion</h3>
 <div class="concl">
   <p style="margin:0;color:#3d4753;font-size:9pt;line-height:1.5"><?= esc($ins['conclusion']) ?></p>

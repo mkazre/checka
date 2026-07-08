@@ -15,6 +15,7 @@ class InspectionValueModel extends Model
         'ref', 'field_name', 'field_type', 'role', 'measure', 'is_sub', 'is_required',
         'choices', 'choice',
         'rating', 'value_text', 'value_number', 'comment', 'cost', 'sort',
+        'repair_approved',
     ];
 
     /**

@@ -17,6 +17,10 @@ service('auth')->routes($routes);
 $routes->get('/', 'Home::index');
 $routes->get('verify/(:segment)', 'Verify::show/$1');
 
+// Public client approval portal (feature: clientPortal)
+$routes->get('portal/(:segment)', 'Portal::show/$1');
+$routes->post('portal/(:segment)', 'Portal::submit/$1');
+
 // ---------------------------------------------------------------------
 // Dashboard / app — requires a logged-in session
 // ---------------------------------------------------------------------

@@ -237,6 +237,58 @@
     </div>
   <?php endforeach; ?>
 
+  <?php if ($quote && $quote['count'] > 0): ?>
+  <!-- Repair estimate (feature: quotes) -->
+  <div class="rsection">
+    <div class="rsection-head"><span class="idx">R</span><h3>Repair Estimate</h3></div>
+    <div style="overflow-x:auto">
+    <table class="checks" style="min-width:420px">
+      <thead><tr><th>Ref</th><th>Repair</th><th style="text-align:right">Cost</th><th style="width:110px">Client</th></tr></thead>
+      <tbody>
+        <?php foreach ($quote['items'] as $it): ?>
+          <tr>
+            <td class="ref" style="color:var(--ink-3)"><?= esc($it['ref']) ?></td>
+            <td><b><?= esc($it['name']) ?></b><?php if($it['comment']): ?><div class="sub" style="font-size:11.5px;color:var(--ink-3)"><?= esc($it['comment']) ?></div><?php endif; ?></td>
+            <td style="text-align:right;font-family:var(--mono);white-space:nowrap"><?= \App\Services\QuoteService::money($it['cost']) ?></td>
+            <td><?php if($it['approved']===null): ?><span style="color:var(--ink-3)">—</span><?php elseif((int)$it['approved']===1): ?><span style="color:var(--ok);font-weight:700">✓ Approved</span><?php else: ?><span style="color:var(--major);font-weight:700">✕ Declined</span><?php endif; ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <div style="min-width:260px">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--ink-2)"><span>Subtotal</span><span class="mono"><?= \App\Services\QuoteService::money($quote['subtotal']) ?></span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--ink-2)"><span>VAT (<?= rtrim(rtrim(number_format($quote['vatRate'],1),'0'),'.') ?>%)</span><span class="mono"><?= \App\Services\QuoteService::money($quote['vat']) ?></span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--ink);font-weight:800;font-size:16px"><span>Total</span><span class="mono"><?= \App\Services\QuoteService::money($quote['total']) ?></span></div>
+        <?php if ($quote['decided'] > 0): ?><div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--ok);font-weight:700"><span>Approved by client</span><span class="mono"><?= \App\Services\QuoteService::money($quote['approvedTotal']) ?></span></div><?php endif; ?>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <?php if (feature('clientPortal')): ?>
+  <!-- Client approval + share (feature: clientPortal) -->
+  <div class="rsection">
+    <div class="rsection-head"><span class="idx">↗</span><h3>Client Approval</h3></div>
+    <?php $cs = $ins['client_status'] ?? null; ?>
+    <?php if ($cs): ?>
+      <div style="display:inline-block;padding:8px 14px;border-radius:8px;font-weight:700;<?= $cs==='approved'?'background:var(--ok-bg);color:#0f5f2e':'background:var(--major-bg);color:#8a1a12' ?>">
+        <?= $cs==='approved' ? '✓ Approved' : '✕ Declined' ?> by <?= esc($ins['client_name']) ?> · <?= esc($ins['client_signed_at']) ?>
+      </div>
+      <?php if (! empty($ins['client_note'])): ?><p style="color:var(--ink-2);font-size:13px;margin-top:8px">“<?= esc($ins['client_note']) ?>”</p><?php endif; ?>
+      <?php if (! empty($ins['client_signature'])): ?><div style="margin-top:8px"><img src="<?= esc($ins['client_signature']) ?>" alt="signature" style="height:60px"></div><?php endif; ?>
+    <?php else: ?>
+      <p class="sub" style="color:var(--ink-3);font-size:13px;margin:0 0 10px">Share this secure link with the client to review, approve repairs and e-sign — no login needed.</p>
+    <?php endif; ?>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">
+      <input type="text" id="portalLink" readonly value="<?= site_url('portal/'.$uid) ?>" style="flex:1;min-width:220px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:var(--mono);font-size:12px">
+      <button type="button" class="btn ghost sm" onclick="navigator.clipboard.writeText(document.getElementById('portalLink').value).then(()=>{this.textContent='Copied ✓';setTimeout(()=>this.textContent='Copy link',1500);})">Copy link</button>
+      <a class="btn ghost sm" href="<?= site_url('portal/'.$uid) ?>" target="_blank">Open portal</a>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <!-- Conclusion + verify -->
   <div class="rsection">
     <div class="rsection-head"><span class="idx">✓</span><h3>Vehicle Conclusion</h3></div>
