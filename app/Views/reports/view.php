@@ -195,6 +195,15 @@
   </div>
   <?php endif; ?>
 
+  <?php if (feature('aiIntelligence')): ?>
+  <!-- AI insights (feature: aiIntelligence) -->
+  <div class="rsection">
+    <div class="rsection-head"><span class="idx">✦</span><h3>AI Insights</h3></div>
+    <div id="aiInsightsBody"><p class="sub" style="color:var(--ink-3);font-size:13px;margin:0">Generate a plain-language summary and a repair-urgency triage (Fix now / Soon / Monitor) for this report.</p></div>
+    <div style="margin-top:10px"><button type="button" class="btn ghost sm" id="aiInsightsBtn">Generate with AI</button><span id="aiInsightsMsg" class="sub" style="margin-left:8px;font-size:12px"></span></div>
+  </div>
+  <?php endif; ?>
+
   <!-- All sections -->
   <?php foreach ($report['sections'] as $section): ?>
     <?php
@@ -337,6 +346,41 @@
 <?= $this->section('scripts') ?>
 <script>
   try { new QRCode(document.getElementById("qr"), {text:"<?= esc($report['verifyUrl'], 'js') ?>", width:104, height:104, colorDark:"#12171d", colorLight:"#fff"}); } catch(e){}
+
+  // ---- AI insights (summary + triage) ----
+  (function(){
+    const body = document.getElementById('aiInsightsBody'); if(!body) return;
+    const CSRF_HEADER = "<?= csrf_header() ?>", CSRF_HASH = "<?= csrf_hash() ?>";
+    const URL = "<?= site_url('reports/'.$uid.'/ai-insights') ?>";
+    const btn = document.getElementById('aiInsightsBtn'), msg = document.getElementById('aiInsightsMsg');
+    const U = { now:{l:'Fix now',c:'#b42318',b:'#fbeae8'}, soon:{l:'Soon',c:'#c98a1e',b:'#fdf3e2'}, monitor:{l:'Monitor',c:'#2f6fb0',b:'#e8f1fb'} };
+    function render(obj){
+      if(!obj){ return; }
+      let h = obj.summary ? `<p style="font-size:13.5px;line-height:1.6;color:var(--ink-2);margin:0 0 12px">${obj.summary.replace(/</g,'&lt;')}</p>` : '';
+      const groups = { now:[], soon:[], monitor:[] };
+      (obj.triage||[]).forEach(t => { (groups[t.urgency]||groups.monitor).push(t); });
+      ['now','soon','monitor'].forEach(k => {
+        if(!groups[k].length) return;
+        h += `<div style="margin-bottom:8px"><span style="display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${U[k].c};background:${U[k].b};padding:2px 9px;border-radius:999px">${U[k].l}</span>`;
+        h += '<ul style="margin:6px 0 0;padding-left:18px">';
+        groups[k].forEach(t => { h += `<li style="font-size:13px;margin:3px 0"><b>${(t.name||'').replace(/</g,'&lt;')}</b>${t.action?(' — '+t.action.replace(/</g,'&lt;')):''}</li>`; });
+        h += '</ul></div>';
+      });
+      body.innerHTML = h || '<p class="sub">No findings to triage — vehicle is all-clear.</p>';
+    }
+    const stored = <?= $ins['ai_summary'] ? json_encode(json_decode($ins['ai_summary'], true)) : 'null' ?>;
+    if(stored){ render(stored); if(btn) btn.textContent='Regenerate with AI'; }
+    if(btn) btn.addEventListener('click', async () => {
+      const orig=btn.textContent; btn.disabled=true; btn.textContent='Thinking…'; msg.textContent='';
+      try{
+        const res = await fetch(URL, { method:'POST', headers:{ [CSRF_HEADER]:CSRF_HASH }, body:new URLSearchParams({[CSRF_HEADER]:CSRF_HASH}) });
+        const j = await res.json();
+        if(j.ok){ render(j); btn.textContent='Regenerate with AI'; msg.style.color='#0f5f2e'; msg.textContent='Saved to report ✓'; }
+        else { msg.style.color='#b42318'; msg.textContent=j.error||'Could not generate.'; btn.textContent=orig; }
+      }catch(e){ msg.style.color='#b42318'; msg.textContent='Request failed.'; btn.textContent=orig; }
+      btn.disabled=false;
+    });
+  })();
 
   // ---- Send report to client ----
   (function(){

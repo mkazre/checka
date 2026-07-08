@@ -198,6 +198,20 @@
   <?php endif; ?>
 <?php endforeach; ?>
 
+<?php if (feature('aiIntelligence') && ! empty($ins['ai_summary'])): $ai = json_decode($ins['ai_summary'], true); if ($ai): ?>
+<h3 class="sec">AI Insights</h3>
+<?php if (! empty($ai['summary'])): ?><p style="font-size:9pt;color:#3d4753;line-height:1.5;margin:4px 0 8px"><?= esc($ai['summary']) ?></p><?php endif; ?>
+<?php
+  $ub = ['now' => ['Fix now', '#b42318'], 'soon' => ['Soon', '#c98a1e'], 'monitor' => ['Monitor', '#2f6fb0']];
+  $grp = ['now' => [], 'soon' => [], 'monitor' => []];
+  foreach (($ai['triage'] ?? []) as $t) { $u = in_array($t['urgency'] ?? '', ['now','soon','monitor'], true) ? $t['urgency'] : 'monitor'; $grp[$u][] = $t; }
+  foreach (['now','soon','monitor'] as $k): if (! $grp[$k]) continue; ?>
+    <div style="margin-bottom:3px;font-size:8.5pt"><span style="color:<?= $ub[$k][1] ?>;font-weight:bold"><?= $ub[$k][0] ?>:</span>
+      <?php foreach ($grp[$k] as $t): ?><?= esc($t['name']) ?><?= !empty($t['action']) ? ' (' . esc($t['action']) . ')' : '' ?>; <?php endforeach; ?>
+    </div>
+  <?php endforeach; ?>
+<?php endif; endif; ?>
+
 <?php if (! empty($quote) && $quote['count'] > 0): $vp = rtrim(rtrim(number_format($quote['vatRate'],1),'0'),'.'); ?>
 <h3 class="sec">Repair Estimate</h3>
 <table class="checks" cellspacing="0">

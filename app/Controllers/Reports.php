@@ -25,6 +25,27 @@ class Reports extends BaseController
         ]);
     }
 
+    /** AJAX: generate & store AI insights (summary + triage) for a report. */
+    public function aiInsights(string $uid)
+    {
+        if (! feature('aiIntelligence')) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'AI intelligence is disabled.']);
+        }
+        $report = model(InspectionModel::class)->assembleReport($uid);
+        if ($report === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Report not found']);
+        }
+
+        $res = (new \App\Services\AiService())->insights($report);
+        if ($res['ok'] ?? false) {
+            model(InspectionModel::class)->update($report['inspection']['id'], [
+                'ai_summary' => json_encode(['summary' => $res['summary'], 'triage' => $res['triage']]),
+            ]);
+        }
+
+        return $this->response->setJSON($res);
+    }
+
     /** AJAX: email / WhatsApp the report link to the client (feature: notifications). */
     public function send(string $uid)
     {

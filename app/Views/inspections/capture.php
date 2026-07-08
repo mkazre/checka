@@ -43,6 +43,8 @@
   .ph .play{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:24px;text-shadow:0 1px 5px #000b;pointer-events:none}
   .ph .prog{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
   .ph .x{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#000a;color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1;z-index:2}
+  .ph .aiph{position:absolute;bottom:3px;right:3px;background:var(--brand);color:#fff;border:none;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.04em;padding:2px 5px;cursor:pointer;z-index:2}
+  .ph .aiph:disabled{opacity:.6}
   .ph .cap{width:106px;margin-top:4px;font-size:11px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;box-sizing:border-box}
   .ph.add{width:106px;height:80px;display:grid;place-items:center;align-content:center;cursor:pointer;color:var(--ink-3);border:1px dashed var(--line-strong);border-radius:8px;background:#fff}
   .ph.add svg{width:20px;height:20px}
@@ -184,6 +186,7 @@
                   <img src="<?= $p['thumb'] ?>" alt="">
                   <?php if ($p['video']): ?><span class="play">▶</span><?php endif; ?>
                   <button type="button" class="x" data-del="<?= $p['id'] ?>">×</button>
+                  <?php if (feature('aiPhotoAnalysis') && ! $p['video']): ?><button type="button" class="aiph" data-id="<?= $p['id'] ?>" title="Describe with AI">AI</button><?php endif; ?>
                 </div>
                 <input type="text" class="cap" data-id="<?= $p['id'] ?>" value="<?= esc($p['caption']) ?>" placeholder="Caption…">
               </div>
@@ -210,8 +213,15 @@
     <div class="card-b grid cols-2" style="gap:18px;padding:18px">
       <div>
         <label class="fld"><span>Conclusion</span>
-          <textarea name="conclusion" rows="5"><?= esc($ins['conclusion']) ?></textarea>
+          <textarea name="conclusion" id="conclusion" rows="5"><?= esc($ins['conclusion']) ?></textarea>
         </label>
+        <?php if (feature('aiConclusion')): ?>
+        <button type="button" class="btn ghost sm" id="aiConclusionBtn" style="margin-top:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>
+          Draft with AI
+        </button>
+        <span id="aiConclusionMsg" class="sub" style="font-size:11.5px;margin-left:8px"></span>
+        <?php endif; ?>
         <div class="grid cols-2" style="gap:12px;margin-top:12px">
           <label class="fld"><span>Dealer / Seller</span><input type="text" name="meta_dealer" value="<?= esc($meta['dealer'] ?? '') ?>"></label>
           <label class="fld"><span>Mechanic</span><input type="text" name="meta_mechanic" value="<?= esc($meta['mechanic'] ?? '') ?>"></label>
@@ -372,10 +382,13 @@ function uploadWithProgress(fd, onProgress){
     xhr.send(fd);
   });
 }
+const AI_PHOTO = <?= feature('aiPhotoAnalysis') ? 'true' : 'false' ?>;
 function tileInner(id, thumb, isVideo, caption){
   const c=(caption||'').replace(/"/g,'&quot;');
   return `<div class="media"><img src="${thumb}">${isVideo?'<span class="play">▶</span>':''}`
-       + `<button type="button" class="x" data-del="${id}">×</button></div>`
+       + `<button type="button" class="x" data-del="${id}">×</button>`
+       + ((AI_PHOTO && !isVideo)?`<button type="button" class="aiph" data-id="${id}" title="Describe with AI">AI</button>`:'')
+       + `</div>`
        + `<input type="text" class="cap" data-id="${id}" value="${c}" placeholder="Caption…">`;
 }
 
@@ -466,6 +479,39 @@ document.addEventListener('click', async (e) => {
   if (!confirm('Remove this photo?')) return;
   await fetch(DEL_URL(id), { method:'POST', headers:{[CSRF_HEADER]:CSRF_HASH,'X-Requested-With':'XMLHttpRequest'} });
   e.target.closest('.ph').remove();
+});
+
+// ---- AI: draft conclusion ----
+(function(){
+  const btn = document.getElementById('aiConclusionBtn'); if(!btn) return;
+  const URL = "<?= site_url('inspections/'.$uid.'/ai-conclusion') ?>";
+  const msg = document.getElementById('aiConclusionMsg');
+  btn.addEventListener('click', async () => {
+    const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Drafting…'; msg.textContent = '';
+    try {
+      const res = await fetch(URL, { method:'POST', headers:{ [CSRF_HEADER]:CSRF_HASH }, body:new URLSearchParams({[CSRF_HEADER]:CSRF_HASH}) });
+      const j = await res.json();
+      if (j.ok && j.text) { document.getElementById('conclusion').value = j.text; msg.style.color='#0f5f2e'; msg.textContent='Drafted — review & edit.'; }
+      else { msg.style.color='#b42318'; msg.textContent = j.error || 'Could not draft.'; }
+    } catch(e){ msg.style.color='#b42318'; msg.textContent='Request failed.'; }
+    btn.innerHTML = orig; btn.disabled = false;
+  });
+})();
+
+// ---- AI: analyse a photo → caption ----
+document.addEventListener('click', async (e) => {
+  if (!e.target.classList.contains('aiph')) return;
+  const btn = e.target, id = btn.dataset.id;
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = '…';
+  try {
+    const res = await fetch("<?= site_url('photos') ?>/"+id+"/ai-analyze", { method:'POST', headers:{ [CSRF_HEADER]:CSRF_HASH }, body:new URLSearchParams({[CSRF_HEADER]:CSRF_HASH}) });
+    const j = await res.json();
+    if (j.ok && j.text) {
+      const cap = btn.closest('.ph').querySelector('.cap');
+      if (cap) { cap.value = j.text; cap.style.background = '#eafaf0'; }
+    } else { alert(j.error || 'Analysis failed'); }
+  } catch(err){ alert('Analysis failed'); }
+  btn.textContent = orig; btn.disabled = false;
 });
 
 // ---- Signature pad ----

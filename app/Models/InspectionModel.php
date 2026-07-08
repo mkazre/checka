@@ -16,6 +16,7 @@ class InspectionModel extends Model
         'inspection_date', 'conclusion', 'signature_path', 'score',
         'verdict_status', 'verdict_text', 'meta', 'created_by',
         'client_status', 'client_name', 'client_signature', 'client_note', 'client_signed_at',
+        'ai_summary',
     ];
 
     /**

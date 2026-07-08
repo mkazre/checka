@@ -283,6 +283,61 @@ class Inspections extends BaseController
         ]);
     }
 
+    /** AJAX: AI-draft the conclusion paragraph (feature: aiConclusion). */
+    public function aiConclusion(string $uid)
+    {
+        if (! feature('aiConclusion')) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'AI conclusion is disabled.']);
+        }
+        $report = model(InspectionModel::class)->assembleReport($uid);
+        if ($report === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Report not found']);
+        }
+
+        return $this->response->setJSON((new \App\Services\AiService())->conclusion($report));
+    }
+
+    /** AJAX: AI-analyse a single photo and set it as the caption (feature: aiPhotoAnalysis). */
+    public function aiAnalyzePhoto(int $id)
+    {
+        if (! feature('aiPhotoAnalysis')) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Photo analysis is disabled.']);
+        }
+        $photo = model(PhotoModel::class)->find($id);
+        if ($photo === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Photo not found']);
+        }
+        if ($photo['is_video']) {
+            return $this->response->setJSON(['ok' => false, 'error' => 'Videos cannot be analysed.']);
+        }
+
+        $rel  = $photo['thumb_path'] ?: $photo['path'];
+        $full = WRITEPATH . 'uploads/' . ltrim($rel, '/');
+        if (! is_file($full)) {
+            $full = WRITEPATH . 'uploads/' . ltrim($photo['path'], '/');
+        }
+        if (! is_file($full)) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Image file missing']);
+        }
+
+        $info = @getimagesize($full);
+        $mime = $info['mime'] ?? 'image/jpeg';
+        $b64  = base64_encode((string) file_get_contents($full));
+
+        $context = '';
+        if ($photo['value_id']) {
+            $row     = model(InspectionValueModel::class)->find((int) $photo['value_id']);
+            $context = $row['field_name'] ?? '';
+        }
+
+        $res = (new \App\Services\AiService())->analyzePhoto($b64, $mime, $context);
+        if ($res['ok'] ?? false) {
+            model(PhotoModel::class)->update($id, ['caption' => $res['text']]);
+        }
+
+        return $this->response->setJSON($res);
+    }
+
     /** AJAX: update a photo's caption. */
     public function captionPhoto(int $id)
     {
