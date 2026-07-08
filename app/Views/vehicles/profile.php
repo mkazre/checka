@@ -139,6 +139,8 @@
       <div class="cr-grid">
         <div class="cr-row"><label>Client</label><input name="client" value="<?= $val('client') ?>"></div>
         <div class="cr-row"><label>Inspection Location</label><input name="inspection_location" value="<?= $val('inspection_location') ?>"></div>
+        <div class="cr-row"><label>Client Email</label><input name="client_email" value="<?= $val('client_email') ?>"></div>
+        <div class="cr-row"><label>Client Phone</label><input name="client_phone" value="<?= $val('client_phone') ?>"></div>
       </div>
     </div>
 

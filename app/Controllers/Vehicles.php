@@ -16,7 +16,8 @@ class Vehicles extends BaseController
         'power_displacement', 'fuel', 'transmission', 'paint_finish', 'options',
         'registered_owner', 'register_number', 'licence_no', 'disc_control_no',
         'date_first_licensing', 'last_cor', 'licence_expiry', 'gvm', 'tare',
-        'seating', 'date_of_test', 'client', 'inspection_location', 'disc_raw',
+        'seating', 'date_of_test', 'client', 'client_email', 'client_phone',
+        'inspection_location', 'disc_raw',
     ];
 
     public function index()

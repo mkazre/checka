@@ -289,6 +289,20 @@
   </div>
   <?php endif; ?>
 
+  <?php if (feature('notifications') && (feature('notifyEmail') || feature('notifyWhatsapp'))): $veh = $report['vehicle'] ?? []; ?>
+  <!-- Send to client (feature: notifications) -->
+  <div class="rsection">
+    <div class="rsection-head"><span class="idx">✉</span><h3>Send to Client</h3></div>
+    <p class="sub" style="color:var(--ink-3);font-size:13px;margin:0 0 10px">Deliver the report link to the client<?= feature('notifyEmail')?' by email':'' ?><?= feature('notifyEmail')&&feature('notifyWhatsapp')?' or':'' ?><?= feature('notifyWhatsapp')?' by WhatsApp':'' ?>.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <?php if (feature('notifyEmail')): ?><input id="sendEmail" type="email" placeholder="client@email.com" value="<?= esc($veh['client_email'] ?? '') ?>" style="flex:1;min-width:200px;border:1px solid var(--line);border-radius:9px;padding:10px 12px"><?php endif; ?>
+      <?php if (feature('notifyWhatsapp')): ?><input id="sendPhone" type="text" placeholder="+27 82 000 0000" value="<?= esc($veh['client_phone'] ?? '') ?>" style="flex:1;min-width:170px;border:1px solid var(--line);border-radius:9px;padding:10px 12px"><?php endif; ?>
+      <button class="btn" id="sendBtn" type="button">Send report</button>
+    </div>
+    <span id="sendMsg" style="display:block;margin-top:8px;font-size:13px;font-weight:600"></span>
+  </div>
+  <?php endif; ?>
+
   <!-- Conclusion + verify -->
   <div class="rsection">
     <div class="rsection-head"><span class="idx">✓</span><h3>Vehicle Conclusion</h3></div>
@@ -323,5 +337,27 @@
 <?= $this->section('scripts') ?>
 <script>
   try { new QRCode(document.getElementById("qr"), {text:"<?= esc($report['verifyUrl'], 'js') ?>", width:104, height:104, colorDark:"#12171d", colorLight:"#fff"}); } catch(e){}
+
+  // ---- Send report to client ----
+  (function(){
+    const btn = document.getElementById('sendBtn'); if(!btn) return;
+    const CSRF_HEADER = "<?= csrf_header() ?>", CSRF_HASH = "<?= csrf_hash() ?>";
+    const URL = "<?= site_url('reports/'.$uid.'/send') ?>";
+    const msg = document.getElementById('sendMsg');
+    btn.addEventListener('click', async () => {
+      const email = (document.getElementById('sendEmail')||{}).value || '';
+      const phone = (document.getElementById('sendPhone')||{}).value || '';
+      if(!email && !phone){ msg.style.color='#b42318'; msg.textContent='Enter an email or phone number.'; return; }
+      btn.disabled=true; const orig=btn.textContent; btn.textContent='Sending…'; msg.textContent='';
+      try{
+        const body = new URLSearchParams({ [CSRF_HEADER]:CSRF_HASH, email, phone });
+        const res = await fetch(URL, { method:'POST', headers:{ [CSRF_HEADER]:CSRF_HASH }, body });
+        const j = await res.json();
+        if(j.ok){ msg.style.color='#0f5f2e'; msg.textContent='Sent via '+(j.sent||[]).join(' & ')+(j.partial?(' — but: '+j.partial):' ✓'); }
+        else { msg.style.color='#b42318'; msg.textContent=j.error||'Could not send.'; }
+      }catch(e){ msg.style.color='#b42318'; msg.textContent='Request failed.'; }
+      btn.disabled=false; btn.textContent=orig;
+    });
+  })();
 </script>
 <?= $this->endSection() ?>

@@ -25,6 +25,45 @@ class Reports extends BaseController
         ]);
     }
 
+    /** AJAX: email / WhatsApp the report link to the client (feature: notifications). */
+    public function send(string $uid)
+    {
+        if (! feature('notifications')) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Delivery is disabled.']);
+        }
+
+        $report = model(InspectionModel::class)->assembleReport($uid);
+        if ($report === null || $report['inspection']['status'] !== 'completed') {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Report not found or not completed.']);
+        }
+
+        $email = trim((string) $this->request->getPost('email'));
+        $phone = trim((string) $this->request->getPost('phone'));
+        if ($email === '' && $phone === '') {
+            return $this->response->setJSON(['ok' => false, 'error' => 'Enter an email address or phone number.']);
+        }
+
+        // Remember the contact on the vehicle for next time.
+        if (! empty($report['vehicle']['id'])) {
+            model(\App\Models\VehicleModel::class)->update($report['vehicle']['id'], array_filter([
+                'client_email' => $email ?: null,
+                'client_phone' => $phone ?: null,
+            ], static fn ($x) => $x !== null));
+        }
+
+        $results = (new \App\Services\NotificationService())->sendReport($report, $email ?: null, $phone ?: null);
+
+        $sent   = array_keys(array_filter($results, static fn ($r) => $r['ok'] ?? false));
+        $errors = array_map(static fn ($r) => $r['error'] ?? '', array_filter($results, static fn ($r) => ! ($r['ok'] ?? false)));
+
+        return $this->response->setJSON([
+            'ok'      => ! empty($sent),
+            'sent'    => $sent,
+            'error'   => empty($sent) ? (implode(' ', $errors) ?: 'Nothing was sent — check which channels are enabled.') : null,
+            'partial' => ! empty($sent) && ! empty($errors) ? implode(' ', $errors) : null,
+        ]);
+    }
+
     /** Downloadable PDF (mPDF). */
     public function pdf(string $uid)
     {

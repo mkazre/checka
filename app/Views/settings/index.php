@@ -100,6 +100,51 @@
     </div>
   </div>
 
+  <div class="card" style="margin-top:16px" x-data="{ proto: '<?= esc($notify['protocol']) ?>' }">
+    <div class="card-h"><h3>Notifications (report delivery)</h3></div>
+    <div class="card-b grid" style="gap:14px">
+      <div class="grid cols-2" style="gap:14px">
+        <label class="fld"><span>From email</span><input type="text" name="n_fromEmail" value="<?= esc($notify['fromEmail']) ?>" placeholder="reports@yourdomain.co.za"></label>
+        <label class="fld"><span>From name</span><input type="text" name="n_fromName" value="<?= esc($notify['fromName']) ?>"></label>
+      </div>
+      <label class="fld"><span>Sending method</span>
+        <select name="n_protocol" x-model="proto">
+          <option value="mail" <?= $notify['protocol']==='mail'?'selected':'' ?>>Server mail (cPanel — simplest)</option>
+          <option value="smtp" <?= $notify['protocol']==='smtp'?'selected':'' ?>>SMTP (recommended for deliverability)</option>
+        </select>
+      </label>
+      <div class="grid cols-2" style="gap:14px" x-show="proto==='smtp'">
+        <label class="fld"><span>SMTP host</span><input type="text" name="n_smtpHost" value="<?= esc($notify['smtpHost']) ?>" placeholder="mail.yourdomain.co.za"></label>
+        <label class="fld"><span>SMTP username</span><input type="text" name="n_smtpUser" value="<?= esc($notify['smtpUser']) ?>" autocomplete="off"></label>
+        <label class="fld"><span>SMTP password</span><input type="password" name="n_smtpPass" autocomplete="off" placeholder="<?= $notify['smtpPass'] ? '•••••••• (leave blank to keep)' : '' ?>"></label>
+        <div class="grid cols-2" style="gap:10px">
+          <label class="fld"><span>Port</span><input type="number" name="n_smtpPort" value="<?= esc($notify['smtpPort']) ?>"></label>
+          <label class="fld"><span>Encryption</span>
+            <select name="n_smtpCrypto">
+              <option value="tls" <?= $notify['smtpCrypto']==='tls'?'selected':'' ?>>TLS</option>
+              <option value="ssl" <?= $notify['smtpCrypto']==='ssl'?'selected':'' ?>>SSL</option>
+              <option value="" <?= $notify['smtpCrypto']===''?'selected':'' ?>>None</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600">
+        <input type="checkbox" name="n_notifyWorkshop" value="1" <?= $notify['notifyWorkshop']?'checked':'' ?>> Also copy the workshop on each send
+      </label>
+      <label class="fld" style="max-width:340px"><span>Workshop email (for copies)</span><input type="text" name="n_workshopEmail" value="<?= esc($notify['workshopEmail']) ?>"></label>
+
+      <div style="border-top:1px solid var(--line);padding-top:14px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px">WhatsApp <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;background:#eef1f3;color:var(--ink-3)">OPTIONAL</span></div>
+        <p class="sub" style="font-size:11.5px;color:var(--ink-3);margin:0 0 10px">Leave blank for now. When you set up a Meta WhatsApp Cloud API number, paste the token + phone-number ID here and tick the WhatsApp channel under Features. Business-initiated messages need an approved template.</p>
+        <div class="grid cols-2" style="gap:14px">
+          <label class="fld"><span>WhatsApp token</span><input type="password" name="n_waToken" autocomplete="off" placeholder="<?= $notify['waToken'] ? '•••••••• (leave blank to keep)' : 'EAAG…' ?>"></label>
+          <label class="fld"><span>Phone number ID</span><input type="text" name="n_waPhoneId" value="<?= esc($notify['waPhoneId']) ?>" class="mono"></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div style="margin-top:16px;display:flex;gap:10px">
     <button class="btn" type="submit">Save Settings</button>
   </div>

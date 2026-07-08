@@ -46,6 +46,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     // Report view + PDF
     $routes->get('reports/(:segment)', 'Reports::view/$1');
     $routes->get('reports/(:segment)/pdf', 'Reports::pdf/$1');
+    $routes->post('reports/(:segment)/send', 'Reports::send/$1');
 
     // Vehicles
     $routes->get('vehicles', 'Vehicles::index');

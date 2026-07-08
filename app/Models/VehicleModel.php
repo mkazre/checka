@@ -23,7 +23,7 @@ class VehicleModel extends Model
         'date_first_licensing', 'last_cor', 'licence_expiry', 'gvm', 'tare',
         'seating', 'date_of_test',
         // assignment / context
-        'client', 'inspection_location', 'disc_raw',
+        'client', 'client_email', 'client_phone', 'inspection_location', 'disc_raw',
         // reference (Wikimedia) hero image
         'stock_image_url',
     ];
