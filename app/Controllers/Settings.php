@@ -39,6 +39,7 @@ class Settings extends BaseController
                 'waPhoneId'      => (string) setting('Notify.waPhoneId'),
                 'notifyWorkshop' => (bool) setting('Notify.notifyWorkshop'),
                 'workshopEmail'  => (string) setting('Notify.workshopEmail'),
+                'fcmServerKey'   => (string) setting('Push.fcmServerKey'),
             ],
             'brand' => [
                 'brandName'    => (string) (setting('Brand.brandName') ?: 'CheckA+'),
@@ -88,6 +89,9 @@ class Settings extends BaseController
         }
         if (($wt = trim((string) $this->request->getPost('n_waToken'))) !== '') {
             setting()->set('Notify.waToken', $wt);
+        }
+        if (($fk = trim((string) $this->request->getPost('n_fcmKey'))) !== '') {
+            setting()->set('Push.fcmServerKey', $fk);
         }
 
         // White-label branding.

@@ -81,6 +81,19 @@
 </main>
 
 <?= $this->renderSection('scripts') ?>
+<script>
+  // Native push registration — only runs inside the Capacitor shell once the
+  // PushNotifications plugin is present; a harmless no-op in a normal browser.
+  (function(){
+    if (!window.Capacitor || !Capacitor.Plugins || !Capacitor.Plugins.PushNotifications) return;
+    var Push = Capacitor.Plugins.PushNotifications;
+    Push.requestPermissions().then(function(r){ if (r.receive === 'granted') Push.register(); });
+    Push.addListener('registration', function(t){
+      fetch("<?= site_url('push/register') ?>", { method:'POST', headers:{ "<?= csrf_header() ?>":"<?= csrf_hash() ?>" },
+        body: new URLSearchParams({ token: t.value, platform: 'android', "<?= csrf_header() ?>":"<?= csrf_hash() ?>" }) });
+    });
+  })();
+</script>
 <?php if (feature('offline')): ?>
 <script>
   window.CHECKA_BASE = "<?= rtrim(base_url(), '/') ?>/";

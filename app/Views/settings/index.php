@@ -12,7 +12,7 @@
     <div class="card-h"><h3>Features</h3></div>
     <div class="card-b">
       <p class="sub" style="font-size:12.5px;color:var(--ink-3);margin:0 0 4px">
-        Switch capabilities on or off individually. Some are live now; the rest are rolling out in phases — you can pre-enable them and they activate as each phase deploys.
+        Switch capabilities on or off individually.
       </p>
       <?php
         $rows = [
@@ -35,7 +35,6 @@
             <input type="checkbox" name="feat_<?= $key ?>" value="1" <?= $feat[$key]?'checked':'' ?> style="margin-top:3px">
             <span style="flex:1">
               <b style="font-size:14px"><?= esc($title) ?></b>
-              <span style="font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:1px 7px;border-radius:999px;margin-left:6px;<?= $stage==='Live'?'background:var(--ok-bg);color:#0f5f2e':'background:#eef1f3;color:var(--ink-3)' ?>"><?= $stage==='Live'?'LIVE':'ROLLING OUT' ?></span>
               <span class="sub" style="display:block;font-size:12px;color:var(--ink-3);margin-top:2px"><?= esc($desc) ?></span>
               <?php if ($subs): ?>
                 <span style="display:flex;gap:18px;flex-wrap:wrap;margin-top:7px">
@@ -141,6 +140,9 @@
           <label class="fld"><span>WhatsApp token</span><input type="password" name="n_waToken" autocomplete="off" placeholder="<?= $notify['waToken'] ? '•••••••• (leave blank to keep)' : 'EAAG…' ?>"></label>
           <label class="fld"><span>Phone number ID</span><input type="text" name="n_waPhoneId" value="<?= esc($notify['waPhoneId']) ?>" class="mono"></label>
         </div>
+        <label class="fld" style="margin-top:12px"><span>Push (FCM) server key <span style="font-size:10px;color:var(--ink-3)">— for the mobile app</span></span>
+          <input type="password" name="n_fcmKey" autocomplete="off" placeholder="<?= $notify['fcmServerKey'] ? '•••••••• (leave blank to keep)' : 'AAAA… (from Firebase)' ?>">
+        </label>
       </div>
     </div>
   </div>

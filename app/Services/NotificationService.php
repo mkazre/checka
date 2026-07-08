@@ -105,6 +105,48 @@ class NotificationService
             . '<div style="text-align:center;color:#aaa;font-size:11px;padding:14px">Powered by CheckA+ by WheelsTurn</div></div>';
     }
 
+    public function pushConfigured(): bool
+    {
+        return trim((string) setting('Push.fcmServerKey')) !== '';
+    }
+
+    /**
+     * Send a native push (FCM) to every device registered to a user.
+     * Dormant until a server key is set. @return array{ok:bool,sent:int}
+     */
+    public function pushToUser(int $userId, string $title, string $body, array $data = []): array
+    {
+        if (! $this->pushConfigured()) {
+            return ['ok' => false, 'sent' => 0];
+        }
+        $tokens = model(\App\Models\DeviceTokenModel::class)->tokensFor($userId);
+        if (empty($tokens)) {
+            return ['ok' => false, 'sent' => 0];
+        }
+
+        $sent = 0;
+        try {
+            $client = Services::curlrequest(['timeout' => 15, 'http_errors' => false, 'headers' => [
+                'Authorization' => 'key=' . trim((string) setting('Push.fcmServerKey')),
+                'Content-Type'  => 'application/json',
+            ]]);
+            foreach (array_chunk($tokens, 500) as $batch) {
+                $res = $client->post('https://fcm.googleapis.com/fcm/send', ['json' => [
+                    'registration_ids' => $batch,
+                    'notification'     => ['title' => $title, 'body' => $body, 'sound' => 'default'],
+                    'data'             => $data,
+                ]]);
+                if ($res->getStatusCode() < 300) {
+                    $sent += count($batch);
+                }
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'FCM push failed: ' . $e->getMessage());
+        }
+
+        return ['ok' => $sent > 0, 'sent' => $sent];
+    }
+
     /** @return array{ok:bool,error?:string} */
     private function sendWhatsApp(string $to, string $vehicle, string $link): array
     {

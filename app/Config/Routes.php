@@ -34,6 +34,9 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
         return service('response')->setJSON(['name' => csrf_header(), 'hash' => csrf_hash()]);
     });
 
+    // Native push: register this device's FCM token.
+    $routes->post('push/register', 'Push::register');
+
     // Serve uploaded media (auth-guarded)
     $routes->get('media/(:num)', 'Media::serve/$1');
     $routes->get('media/(:num)/thumb', 'Media::thumb/$1');
