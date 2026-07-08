@@ -37,9 +37,12 @@
   .ref{font-family:var(--mono);font-size:11px;color:var(--ink-3);white-space:nowrap}
   .item-name.sub{padding-left:16px;color:var(--ink-2)}
   .comment{color:var(--ink-2);font-size:12.5px}
-  .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-  .gallery a{aspect-ratio:1/1;max-width:300px;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:#f2f5f7;display:flex;align-items:center;justify-content:center}
+  .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+  .gallery figure{margin:0}
+  .gallery a{position:relative;aspect-ratio:1/1;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:#f2f5f7;display:flex;align-items:center;justify-content:center}
   .gallery img{max-width:100%;max-height:100%;object-fit:contain}
+  .gallery .gplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;text-shadow:0 1px 6px #000b;pointer-events:none}
+  .gallery figcaption{font-size:11px;color:var(--ink-3);margin-top:5px;line-height:1.25;text-align:center}
   .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .detail-grid .cell{padding:12px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
   .detail-grid .cell .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
@@ -221,7 +224,13 @@
       <?php if ($photos): ?>
         <div class="gallery">
           <?php foreach (array_slice($photos,0,8) as $p): ?>
-            <a href="<?= $p['url'] ?>" target="_blank"><img src="<?= $p['thumb'] ?>" alt=""></a>
+            <figure class="gcell">
+              <a href="<?= $p['url'] ?>" target="_blank">
+                <img src="<?= $p['thumb'] ?>" alt="">
+                <?php if ($p['video']): ?><span class="gplay">▶</span><?php endif; ?>
+              </a>
+              <?php if (! empty($p['caption'])): ?><figcaption><?= esc($p['caption']) ?></figcaption><?php endif; ?>
+            </figure>
           <?php endforeach; ?>
         </div>
       <?php endif; ?>

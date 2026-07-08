@@ -160,7 +160,7 @@
 </tr></table>
 
 <?php foreach ($report['sections'] as $section): ?>
-  <?php $photos=[]; foreach($section['items'] as $it){ foreach($it['photos'] as $p){ if(!$p['video']) $photos[]=$p; } } ?>
+  <?php $photos=[]; foreach($section['items'] as $it){ foreach($it['photos'] as $p){ $photos[]=$p; } } ?>
   <h3 class="sec"><?= $section['idx'] ?>. <?= esc($section['title']) ?></h3>
   <table class="checks" cellspacing="0">
     <thead><tr><th width="8%">Ref</th><th width="42%">Item</th><th width="18%">Result</th><th>Comment</th></tr></thead>
@@ -180,10 +180,16 @@
       <?php foreach (array_chunk($photos, 4) as $row): ?>
         <tr>
           <?php for ($c = 0; $c < 4; $c++): ?>
-            <td width="25%" style="text-align:center;vertical-align:top">
-              <?php if (isset($row[$c])): $a = $thumbAbs($row[$c]); if ($a): ?>
-                  <img src="<?= $a ?>" style="width:125px;height:auto">
-              <?php endif; endif; ?>
+            <td width="25%" style="text-align:center;vertical-align:top;padding:4px">
+              <?php if (isset($row[$c])): $p = $row[$c]; $a = $thumbAbs($p); ?>
+                <?php if ($a): ?>
+                  <img src="<?= $a ?>" height="90" style="border:1px solid #d6dce1;border-radius:4px">
+                <?php elseif ($p['video']): ?>
+                  <div style="height:90px;line-height:90px;background:#2d2d2d;color:#fff;border-radius:4px;font-size:8pt">&#9654; VIDEO</div>
+                <?php endif; ?>
+                <?php if ($p['video']): ?><div style="font-size:6.5pt;font-weight:bold;color:#2a8f3a;margin-top:2px">&#9654; VIDEO CLIP</div><?php endif; ?>
+                <?php if (! empty($p['caption'])): ?><div style="font-size:7pt;color:#3d4753;margin-top:1px;line-height:1.15"><?= esc($p['caption']) ?></div><?php endif; ?>
+              <?php endif; ?>
             </td>
           <?php endfor; ?>
         </tr>

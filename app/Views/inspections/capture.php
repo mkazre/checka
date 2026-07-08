@@ -36,12 +36,17 @@
   .chpick span{display:inline-block;font-size:12px;padding:4px 11px;border:1px solid var(--line);border-radius:999px;cursor:pointer;color:var(--ink-2);background:#fff}
   .chpick input:checked + span{background:var(--brand);color:#fff;border-color:var(--brand)}
   .chpick:hover span{border-color:var(--line-strong)}
-  .photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  .ph{position:relative;width:78px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#eef1f3}
-  .ph img{max-width:100%;max-height:100%;object-fit:contain}
-  .ph .x{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#000a;color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1}
-  .ph.add{display:grid;place-items:center;cursor:pointer;color:var(--ink-3);border-style:dashed}
+  .photos{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .ph{position:relative;width:106px}
+  .ph .media{position:relative;width:106px;height:80px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#eef1f3;display:grid;place-items:center}
+  .ph .media img{max-width:100%;max-height:100%;object-fit:contain}
+  .ph .play{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:24px;text-shadow:0 1px 5px #000b;pointer-events:none}
+  .ph .prog{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  .ph .x{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#000a;color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1;z-index:2}
+  .ph .cap{width:106px;margin-top:4px;font-size:11px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;box-sizing:border-box}
+  .ph.add{width:106px;height:80px;display:grid;place-items:center;align-content:center;cursor:pointer;color:var(--ink-3);border:1px dashed var(--line-strong);border-radius:8px;background:#fff}
   .ph.add svg{width:20px;height:20px}
+  .ph.add small{font-size:9px;letter-spacing:.05em;text-transform:uppercase;margin-top:3px}
   .savebar{position:sticky;bottom:0;background:#ffffffe8;backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
   .wizmsg{color:var(--major);font-size:12.5px;font-weight:500}
   canvas.sig{width:100%;max-width:420px;height:130px;border:1px dashed var(--line-strong);border-radius:10px;background:#fafbfc;touch-action:none}
@@ -172,16 +177,26 @@
           </div>
 
           <?php if ($type !== 'signature'): ?>
-          <div class="photos" data-value="<?= $id ?>" data-ref="<?= esc($item['ref']) ?>">
+          <div class="photos" data-value="<?= $id ?>" data-ref="<?= esc($item['ref']) ?>" data-name="<?= esc($item['name']) ?>">
             <?php foreach ($item['photos'] as $p): ?>
               <div class="ph" data-id="<?= $p['id'] ?>">
-                <img src="<?= $p['thumb'] ?>" alt="">
-                <button type="button" class="x" data-del="<?= $p['id'] ?>">×</button>
+                <div class="media">
+                  <img src="<?= $p['thumb'] ?>" alt="">
+                  <?php if ($p['video']): ?><span class="play">▶</span><?php endif; ?>
+                  <button type="button" class="x" data-del="<?= $p['id'] ?>">×</button>
+                </div>
+                <input type="text" class="cap" data-id="<?= $p['id'] ?>" value="<?= esc($p['caption']) ?>" placeholder="Caption…">
               </div>
             <?php endforeach; ?>
-            <label class="ph add">
+            <label class="ph add" title="Take a photo now">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5L5 19"/></svg>
-              <input type="file" accept="image/*,video/*" hidden class="upl">
+              <small>Photo</small>
+              <input type="file" accept="image/*" capture="environment" hidden class="upl" data-kind="image">
+            </label>
+            <label class="ph add" title="Record a video now">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>
+              <small>Video</small>
+              <input type="file" accept="video/*" capture="environment" hidden class="upl" data-kind="video">
             </label>
           </div>
           <?php endif; ?>
@@ -303,27 +318,112 @@ window.completeInspection = function(){
   form.submit();
 };
 
-// ---- Photo upload (delegated) ----
+const CAPTION_URL = id => "<?= site_url('photos') ?>/" + id + "/caption";
+
+// Decode an image File into an <img> (Safari decodes HEIC here natively).
+function loadImage(file){
+  return new Promise((res,rej)=>{
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{URL.revokeObjectURL(url);res(img);};
+    img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('decode'));};
+    img.src=url;
+  });
+}
+// Downscale + re-encode to JPEG in the browser → small, fast upload; also
+// converts HEIC → JPEG so the server never has to.
+async function compressImage(file, maxDim=1600, q=0.82){
+  try{
+    const img=await loadImage(file);
+    let w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+    const scale=Math.min(1, maxDim/Math.max(w,h));
+    w=Math.round(w*scale); h=Math.round(h*scale);
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',q));
+    return blob||file;
+  }catch(e){ return file; }               // fall back to the original on any failure
+}
+// Grab the first frame of a video as a JPEG poster (for thumbnails / PDF).
+function videoPoster(file){
+  return new Promise((resolve)=>{
+    try{
+      const v=document.createElement('video'); v.muted=true; v.playsInline=true; v.preload='metadata';
+      const url=URL.createObjectURL(file);
+      const done=b=>{ URL.revokeObjectURL(url); resolve(b); };
+      v.onloadeddata=()=>{ try{ v.currentTime=Math.min(0.2, (v.duration||1)/2); }catch(e){ done(null); } };
+      v.onseeked=()=>{ try{
+        const cv=document.createElement('canvas'); cv.width=v.videoWidth||640; cv.height=v.videoHeight||480;
+        cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height); cv.toBlob(b=>done(b),'image/jpeg',0.8);
+      }catch(e){ done(null); } };
+      v.onerror=()=>done(null);
+      v.src=url;
+    }catch(e){ resolve(null); }
+  });
+}
+// POST with an upload-progress callback (fetch has no upload progress).
+function uploadWithProgress(fd, onProgress){
+  return new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST', UPLOAD_URL);
+    xhr.setRequestHeader(CSRF_HEADER, CSRF_HASH);
+    xhr.upload.onprogress=e=>{ if(e.lengthComputable&&onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
+    xhr.onload=()=>{ try{ resolve(JSON.parse(xhr.responseText)); }catch(err){ reject(err); } };
+    xhr.onerror=()=>reject(new Error('network'));
+    xhr.send(fd);
+  });
+}
+function tileInner(id, thumb, isVideo, caption){
+  const c=(caption||'').replace(/"/g,'&quot;');
+  return `<div class="media"><img src="${thumb}">${isVideo?'<span class="play">▶</span>':''}`
+       + `<button type="button" class="x" data-del="${id}">×</button></div>`
+       + `<input type="text" class="cap" data-id="${id}" value="${c}" placeholder="Caption…">`;
+}
+
+// ---- Photo / video capture (delegated) ----
 document.addEventListener('change', async (e) => {
   if (!e.target.classList.contains('upl')) return;
-  const file = e.target.files[0]; if (!file) return;
-  const wrap = e.target.closest('.photos');
-  const fd = new FormData();
-  fd.append('photo', file);
-  fd.append('value_id', wrap.dataset.value);
-  fd.append('ref', wrap.dataset.ref);
-  fd.append(CSRF_HEADER, CSRF_HASH);
-  try {
-    const res = await fetch(UPLOAD_URL, { method:'POST', body:fd, headers:{[CSRF_HEADER]:CSRF_HASH} });
-    const j = await res.json();
-    if (j.ok) {
-      const div = document.createElement('div');
-      div.className='ph'; div.dataset.id=j.id;
-      div.innerHTML = `<img src="${j.thumb}"><button type="button" class="x" data-del="${j.id}">×</button>`;
-      wrap.insertBefore(div, e.target.closest('.add'));
-    } else { alert(j.error || 'Upload failed'); }
-  } catch(err){ alert('Upload failed'); }
-  e.target.value='';
+  const input=e.target;
+  const file = input.files[0]; input.value=''; if (!file) return;
+  const kind = input.dataset.kind || 'image';
+  const wrap = input.closest('.photos');
+  const caption = wrap.dataset.name || '';               // default caption = checklist item title
+
+  const tile=document.createElement('div'); tile.className='ph';
+  tile.innerHTML=`<div class="media"><span class="prog">0%</span></div>`;
+  wrap.insertBefore(tile, wrap.querySelector('.add'));
+  const setProg=p=>{ const el=tile.querySelector('.prog'); if(el) el.textContent=(kind==='video'&&p>=100)?'Saving…':p+'%'; };
+
+  try{
+    const fd=new FormData();
+    if(kind==='image'){
+      const blob=await compressImage(file);
+      fd.append('photo', blob, 'photo.jpg');
+    } else {
+      const poster=await videoPoster(file);
+      fd.append('photo', file, file.name||'video.mp4');
+      if(poster) fd.append('poster', poster, 'poster.jpg');
+    }
+    fd.append('value_id', wrap.dataset.value);
+    fd.append('ref', wrap.dataset.ref);
+    fd.append('caption', caption);
+    fd.append(CSRF_HEADER, CSRF_HASH);
+    const j=await uploadWithProgress(fd, setProg);
+    if(j&&j.ok){
+      tile.dataset.id=j.id;
+      tile.innerHTML=tileInner(j.id, j.thumb + '?t=' + Date.now(), j.video, j.caption || caption);
+    } else { tile.remove(); alert((j&&j.error)||'Upload failed'); }
+  }catch(err){ tile.remove(); alert('Upload failed'); }
+});
+
+// ---- Caption edit (debounced autosave) ----
+let capTimer;
+document.addEventListener('input', (e)=>{
+  if(!e.target.classList.contains('cap')) return;
+  const el=e.target; clearTimeout(capTimer);
+  capTimer=setTimeout(()=>{
+    const fd=new FormData(); fd.append('caption', el.value); fd.append(CSRF_HEADER, CSRF_HASH);
+    fetch(CAPTION_URL(el.dataset.id), { method:'POST', body:fd, headers:{[CSRF_HEADER]:CSRF_HASH} });
+  }, 600);
 });
 
 // ---- Photo delete ----

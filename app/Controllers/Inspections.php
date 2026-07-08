@@ -229,7 +229,7 @@ class Inspections extends BaseController
             }
         }
 
-        // Thumbnail for images.
+        // Thumbnail: images resize themselves; videos use the client poster frame.
         $thumbRel = null;
         if (! $isVideo) {
             try {
@@ -242,15 +242,30 @@ class Inspections extends BaseController
             } catch (\Throwable $e) {
                 $thumbRel = $relative; // fall back to full image
             }
+        } else {
+            $poster = $this->request->getFile('poster');
+            if ($poster !== null && $poster->isValid() && str_starts_with((string) $poster->getMimeType(), 'image/')) {
+                try {
+                    $posterName = 'thumb_' . pathinfo($newName, PATHINFO_FILENAME) . '.jpg';
+                    $poster->move($dir, $posterName);
+                    service('image')->withFile($dir . '/' . $posterName)
+                        ->resize(700, 700, true, 'auto')->save($dir . '/' . $posterName, 80);
+                    $thumbRel = $inspection['id'] . '/' . $posterName;
+                } catch (\Throwable $e) {
+                    $thumbRel = null;
+                }
+            }
         }
 
         $valueId = $this->request->getPost('value_id') ?: null;
         $ref     = $this->request->getPost('ref') ?: null;
+        $caption = trim((string) $this->request->getPost('caption')) ?: null;
 
         $photoId = model(PhotoModel::class)->insert([
             'inspection_id' => $inspection['id'],
             'value_id'      => $valueId,
             'ref'           => $ref,
+            'caption'       => $caption,
             'path'          => $relative,
             'thumb_path'    => $thumbRel,
             'mime'          => $mime,
@@ -259,12 +274,25 @@ class Inspections extends BaseController
         ], true);
 
         return $this->response->setJSON([
-            'ok'    => true,
-            'id'    => $photoId,
-            'url'   => site_url('media/' . $photoId),
-            'thumb' => site_url('media/' . $photoId . '/thumb'),
-            'video' => $isVideo,
+            'ok'      => true,
+            'id'      => $photoId,
+            'url'     => site_url('media/' . $photoId),
+            'thumb'   => site_url('media/' . $photoId . '/thumb'),
+            'video'   => $isVideo,
+            'caption' => $caption,
         ]);
+    }
+
+    /** AJAX: update a photo's caption. */
+    public function captionPhoto(int $id)
+    {
+        if (model(PhotoModel::class)->find($id) === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false]);
+        }
+        $caption = trim((string) $this->request->getPost('caption'));
+        model(PhotoModel::class)->update($id, ['caption' => $caption ?: null]);
+
+        return $this->response->setJSON(['ok' => true]);
     }
 
     public function deletePhoto(int $id)
