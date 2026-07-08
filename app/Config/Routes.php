@@ -46,6 +46,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->post('inspections/(:segment)/ai-conclusion', 'Inspections::aiConclusion/$1');
     $routes->post('photos/(:num)/caption', 'Inspections::captionPhoto/$1');
     $routes->post('photos/(:num)/ai-analyze', 'Inspections::aiAnalyzePhoto/$1');
+    $routes->post('photos/(:num)/annotate', 'Inspections::annotatePhoto/$1');
     $routes->post('photos/(:num)/delete', 'Inspections::deletePhoto/$1');
     $routes->post('inspections/(:segment)/complete', 'Inspections::complete/$1');
     $routes->post('inspections/(:segment)/delete', 'Inspections::delete/$1');

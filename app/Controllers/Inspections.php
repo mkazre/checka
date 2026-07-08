@@ -338,6 +338,42 @@ class Inspections extends BaseController
         return $this->response->setJSON($res);
     }
 
+    /** AJAX: save an annotated (marked-up) image over the original (feature: annotation). */
+    public function annotatePhoto(int $id)
+    {
+        if (! feature('annotation')) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'Annotation is disabled.']);
+        }
+        $photo = model(PhotoModel::class)->find($id);
+        if ($photo === null || $photo['is_video']) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Photo not found']);
+        }
+
+        $file = $this->request->getFile('image');
+        if ($file === null || ! $file->isValid() || ! str_starts_with((string) $file->getMimeType(), 'image/')) {
+            return $this->response->setStatusCode(400)->setJSON(['ok' => false, 'error' => 'No valid image']);
+        }
+
+        $dir  = WRITEPATH . 'uploads/' . $photo['inspection_id'];
+        $name = basename($photo['path']);                 // overwrite the existing original
+        $file->move($dir, $name, true);
+
+        // Regenerate the thumbnail from the annotated image.
+        try {
+            $thumbName = 'thumb_' . $name;
+            service('image')->withFile($dir . '/' . $name)
+                ->resize(700, 700, true, 'auto')->save($dir . '/' . $thumbName, 80);
+            model(PhotoModel::class)->update($id, ['thumb_path' => $photo['inspection_id'] . '/' . $thumbName]);
+        } catch (\Throwable $e) {
+            // keep existing thumb path on failure
+        }
+
+        return $this->response->setJSON([
+            'ok'    => true,
+            'thumb' => site_url('media/' . $id . '/thumb') . '?t=' . time(),
+        ]);
+    }
+
     /** AJAX: update a photo's caption. */
     public function captionPhoto(int $id)
     {

@@ -45,6 +45,17 @@
   .ph .x{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#000a;color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1;z-index:2}
   .ph .aiph{position:absolute;bottom:3px;right:3px;background:var(--brand);color:#fff;border:none;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.04em;padding:2px 5px;cursor:pointer;z-index:2}
   .ph .aiph:disabled{opacity:.6}
+  .ph .ann{position:absolute;bottom:3px;left:3px;background:#2d2d2d;color:#fff;border:none;border-radius:5px;font-size:11px;line-height:1;padding:3px 6px;cursor:pointer;z-index:2}
+  /* annotation editor */
+  .ann-modal{position:fixed;inset:0;background:#111c;z-index:9998;display:flex;flex-direction:column}
+  .ann-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px;background:#1c2126}
+  .ann-bar button{background:#2b3238;color:#cfd8e0;border:1px solid #3a444c;border-radius:8px;padding:8px 11px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .ann-bar button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .ann-bar .sw{width:24px;height:24px;border-radius:6px;border:2px solid #3a444c;cursor:pointer;padding:0}
+  .ann-bar .sw.on{border-color:#fff}
+  .ann-bar .grow{flex:1}
+  .ann-stage{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:10px}
+  .ann-stage canvas{max-width:100%;max-height:100%;background:#000;touch-action:none;box-shadow:0 6px 30px #0008}
   .ph .cap{width:106px;margin-top:4px;font-size:11px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;box-sizing:border-box}
   .ph.add{width:106px;height:80px;display:grid;place-items:center;align-content:center;cursor:pointer;color:var(--ink-3);border:1px dashed var(--line-strong);border-radius:8px;background:#fff}
   .ph.add svg{width:20px;height:20px}
@@ -187,6 +198,7 @@
                   <?php if ($p['video']): ?><span class="play">▶</span><?php endif; ?>
                   <button type="button" class="x" data-del="<?= $p['id'] ?>">×</button>
                   <?php if (feature('aiPhotoAnalysis') && ! $p['video']): ?><button type="button" class="aiph" data-id="<?= $p['id'] ?>" title="Describe with AI">AI</button><?php endif; ?>
+                  <?php if (feature('annotation') && ! $p['video']): ?><button type="button" class="ann" data-id="<?= $p['id'] ?>" title="Annotate">✎</button><?php endif; ?>
                 </div>
                 <input type="text" class="cap" data-id="<?= $p['id'] ?>" value="<?= esc($p['caption']) ?>" placeholder="Caption…">
               </div>
@@ -251,6 +263,30 @@
     <a class="btn ghost" href="<?= site_url('reports/'.$uid) ?>">Preview Report</a>
   </div>
 </form>
+
+<?php if (feature('annotation')): ?>
+<div id="annModal" class="ann-modal" style="display:none">
+  <div class="ann-bar">
+    <button type="button" data-tool="pen" class="on">✏ Pen</button>
+    <button type="button" data-tool="arrow">↗ Arrow</button>
+    <button type="button" data-tool="rect">▭ Box</button>
+    <button type="button" data-tool="ellipse">◯ Circle</button>
+    <button type="button" data-tool="text">T Text</button>
+    <span style="width:10px"></span>
+    <button type="button" class="sw on" data-color="#ff2d2d" style="background:#ff2d2d"></button>
+    <button type="button" class="sw" data-color="#ffd400" style="background:#ffd400"></button>
+    <button type="button" class="sw" data-color="#37b34a" style="background:#37b34a"></button>
+    <button type="button" class="sw" data-color="#ffffff" style="background:#ffffff"></button>
+    <button type="button" class="sw" data-color="#1c2126" style="background:#1c2126"></button>
+    <span class="grow"></span>
+    <button type="button" id="annUndo">↶ Undo</button>
+    <button type="button" id="annClear">Clear</button>
+    <button type="button" id="annCancel">Cancel</button>
+    <button type="button" id="annSave" style="background:var(--brand);color:#fff;border-color:var(--brand)">Save</button>
+  </div>
+  <div class="ann-stage"><canvas id="annCanvas"></canvas></div>
+</div>
+<?php endif; ?>
 
 <?= $this->endSection() ?>
 
@@ -383,11 +419,13 @@ function uploadWithProgress(fd, onProgress){
   });
 }
 const AI_PHOTO = <?= feature('aiPhotoAnalysis') ? 'true' : 'false' ?>;
+const ANN_ON   = <?= feature('annotation') ? 'true' : 'false' ?>;
 function tileInner(id, thumb, isVideo, caption){
   const c=(caption||'').replace(/"/g,'&quot;');
   return `<div class="media"><img src="${thumb}">${isVideo?'<span class="play">▶</span>':''}`
        + `<button type="button" class="x" data-del="${id}">×</button>`
        + ((AI_PHOTO && !isVideo)?`<button type="button" class="aiph" data-id="${id}" title="Describe with AI">AI</button>`:'')
+       + ((ANN_ON && !isVideo)?`<button type="button" class="ann" data-id="${id}" title="Annotate">✎</button>`:'')
        + `</div>`
        + `<input type="text" class="cap" data-id="${id}" value="${c}" placeholder="Caption…">`;
 }
@@ -513,6 +551,62 @@ document.addEventListener('click', async (e) => {
   } catch(err){ alert('Analysis failed'); }
   btn.textContent = orig; btn.disabled = false;
 });
+
+// ---- Photo annotation editor ----
+const Annot = (function(){
+  const modal = document.getElementById('annModal'); if(!modal) return null;
+  const canvas = document.getElementById('annCanvas'), ctx = canvas.getContext('2d');
+  let baseImg=null, shapes=[], tool='pen', color='#ff2d2d', width=5, drawing=false, cur=null, curId=null;
+
+  function drawShape(s){
+    ctx.strokeStyle=s.color; ctx.fillStyle=s.color; ctx.lineWidth=s.width; ctx.lineCap='round'; ctx.lineJoin='round';
+    if(s.type==='pen'){ ctx.beginPath(); s.points.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.stroke(); }
+    else if(s.type==='rect'){ ctx.strokeRect(s.x0,s.y0,s.x1-s.x0,s.y1-s.y0); }
+    else if(s.type==='ellipse'){ ctx.beginPath(); ctx.ellipse((s.x0+s.x1)/2,(s.y0+s.y1)/2,Math.abs(s.x1-s.x0)/2,Math.abs(s.y1-s.y0)/2,0,0,7); ctx.stroke(); }
+    else if(s.type==='arrow'){ arrow(s.x0,s.y0,s.x1,s.y1,s.width); }
+    else if(s.type==='text'){ ctx.font='bold '+s.size+'px sans-serif'; ctx.fillText(s.text,s.x,s.y); }
+  }
+  function arrow(x0,y0,x1,y1,w){ ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke(); const a=Math.atan2(y1-y0,x1-x0), h=12+w*2; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-h*Math.cos(a-0.4),y1-h*Math.sin(a-0.4)); ctx.lineTo(x1-h*Math.cos(a+0.4),y1-h*Math.sin(a+0.4)); ctx.closePath(); ctx.fill(); }
+  function redraw(){ ctx.clearRect(0,0,canvas.width,canvas.height); if(baseImg) ctx.drawImage(baseImg,0,0,canvas.width,canvas.height); shapes.forEach(drawShape); if(cur) drawShape(cur); }
+  function pos(e){ const r=canvas.getBoundingClientRect(); const p=e.touches?e.touches[0]:e; return { x:(p.clientX-r.left)*(canvas.width/r.width), y:(p.clientY-r.top)*(canvas.height/r.height) }; }
+  function down(e){ e.preventDefault(); const p=pos(e);
+    if(tool==='text'){ const t=prompt('Label text:'); if(t){ shapes.push({type:'text',color,size:Math.max(22,width*6),x:p.x,y:p.y,text:t}); redraw(); } return; }
+    drawing=true; cur = tool==='pen' ? {type:'pen',color,width,points:[p]} : {type:tool,color,width,x0:p.x,y0:p.y,x1:p.x,y1:p.y}; }
+  function move(e){ if(!drawing)return; e.preventDefault(); const p=pos(e); if(cur.type==='pen') cur.points.push(p); else { cur.x1=p.x; cur.y1=p.y; } redraw(); }
+  function up(){ if(!drawing)return; drawing=false; if(cur) shapes.push(cur); cur=null; redraw(); }
+  canvas.addEventListener('mousedown',down); canvas.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
+  canvas.addEventListener('touchstart',down,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',up);
+
+  modal.querySelectorAll('[data-tool]').forEach(b=> b.addEventListener('click',()=>{ tool=b.dataset.tool; modal.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('on',x===b)); }));
+  modal.querySelectorAll('.sw').forEach(b=> b.addEventListener('click',()=>{ color=b.dataset.color; modal.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x===b)); }));
+  document.getElementById('annUndo').addEventListener('click',()=>{ shapes.pop(); redraw(); });
+  document.getElementById('annClear').addEventListener('click',()=>{ shapes=[]; redraw(); });
+  document.getElementById('annCancel').addEventListener('click',close);
+  document.getElementById('annSave').addEventListener('click',save);
+
+  function open(id){ curId=id; shapes=[]; cur=null;
+    const img=new Image();
+    img.onload=()=>{ const cap=1600, sc=Math.min(1,cap/Math.max(img.naturalWidth,img.naturalHeight)); canvas.width=Math.round(img.naturalWidth*sc); canvas.height=Math.round(img.naturalHeight*sc); baseImg=img; redraw(); modal.style.display='flex'; };
+    img.onerror=()=>alert('Could not load image');
+    img.src="<?= site_url('media') ?>/"+id+"?t="+Date.now();
+  }
+  function close(){ modal.style.display='none'; baseImg=null; shapes=[]; }
+  function save(){
+    const btn=document.getElementById('annSave'); btn.disabled=true; btn.textContent='Saving…';
+    canvas.toBlob(async (blob)=>{
+      try{
+        const fd=new FormData(); fd.append('image',blob,'annotated.jpg'); fd.append(CSRF_HEADER,CSRF_HASH);
+        const res=await fetch("<?= site_url('photos') ?>/"+curId+"/annotate",{method:'POST',body:fd,headers:{[CSRF_HEADER]:CSRF_HASH}});
+        const j=await res.json();
+        if(j.ok){ const im=document.querySelector('.ph[data-id="'+curId+'"] .media img'); if(im) im.src=j.thumb; close(); }
+        else alert(j.error||'Save failed');
+      }catch(e){ alert('Save failed'); }
+      btn.disabled=false; btn.textContent='Save';
+    },'image/jpeg',0.9);
+  }
+  return { open };
+})();
+document.addEventListener('click',(e)=>{ if(e.target.classList.contains('ann') && Annot){ Annot.open(e.target.dataset.id); } });
 
 // ---- Signature pad ----
 (function(){
