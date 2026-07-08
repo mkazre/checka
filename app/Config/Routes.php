@@ -27,6 +27,11 @@ $routes->post('portal/(:segment)', 'Portal::submit/$1');
 $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('dashboard', 'Dashboard::index');
 
+    // Fresh CSRF token for the offline sync queue (feature: offline).
+    $routes->get('csrf', static function () {
+        return service('response')->setJSON(['name' => csrf_header(), 'hash' => csrf_hash()]);
+    });
+
     // Serve uploaded media (auth-guarded)
     $routes->get('media/(:num)', 'Media::serve/$1');
     $routes->get('media/(:num)/thumb', 'Media::thumb/$1');

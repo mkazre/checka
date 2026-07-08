@@ -237,7 +237,7 @@
     <button type="button" class="btn dark" @click="completeInspection()" x-show="step === total-1">Complete &amp; Generate Report</button>
     <span class="wizmsg" id="wizMsg"></span>
     <div style="margin-left:auto"></div>
-    <button type="submit" class="btn ghost">Save Progress</button>
+    <button type="button" class="btn ghost" id="saveProgress">Save Progress</button>
     <a class="btn ghost" href="<?= site_url('reports/'.$uid) ?>">Preview Report</a>
   </div>
 </form>
@@ -393,27 +393,60 @@ document.addEventListener('change', async (e) => {
   wrap.insertBefore(tile, wrap.querySelector('.add'));
   const setProg=p=>{ const el=tile.querySelector('.prog'); if(el) el.textContent=(kind==='video'&&p>=100)?'Saving…':p+'%'; };
 
-  try{
-    const fd=new FormData();
-    if(kind==='image'){
-      const blob=await compressImage(file);
-      fd.append('photo', blob, 'photo.jpg');
+  // Build the request parts once so we can also queue them if offline.
+  const parts = { fields: [['value_id', wrap.dataset.value], ['ref', wrap.dataset.ref], ['caption', caption]], files: [] };
+  let previewUrl = null;
+  try {
+    if (kind === 'image') {
+      const blob = await compressImage(file);
+      parts.files.push({ name: 'photo', filename: 'photo.jpg', blob });
+      previewUrl = URL.createObjectURL(blob);
     } else {
-      const poster=await videoPoster(file);
-      fd.append('photo', file, file.name||'video.mp4');
-      if(poster) fd.append('poster', poster, 'poster.jpg');
+      const poster = await videoPoster(file);
+      parts.files.push({ name: 'photo', filename: file.name || 'video.mp4', blob: file });
+      if (poster) { parts.files.push({ name: 'poster', filename: 'poster.jpg', blob: poster }); previewUrl = URL.createObjectURL(poster); }
     }
-    fd.append('value_id', wrap.dataset.value);
-    fd.append('ref', wrap.dataset.ref);
-    fd.append('caption', caption);
+    const fd = new FormData();
+    parts.fields.forEach(([k, v]) => fd.append(k, v));
+    parts.files.forEach(f => fd.append(f.name, f.blob, f.filename));
     fd.append(CSRF_HEADER, CSRF_HASH);
-    const j=await uploadWithProgress(fd, setProg);
-    if(j&&j.ok){
-      tile.dataset.id=j.id;
-      tile.innerHTML=tileInner(j.id, j.thumb + '?t=' + Date.now(), j.video, j.caption || caption);
-    } else { tile.remove(); alert((j&&j.error)||'Upload failed'); }
-  }catch(err){ tile.remove(); alert('Upload failed'); }
+    const j = await uploadWithProgress(fd, setProg);
+    if (j && j.ok) {
+      tile.dataset.id = j.id;
+      tile.innerHTML = tileInner(j.id, j.thumb + '?t=' + Date.now(), j.video, j.caption || caption);
+    } else { tile.remove(); alert((j && j.error) || 'Upload failed'); }
+  } catch (err) {
+    // Network failure → queue it for auto-sync if the offline feature is on.
+    if (window.Checka && !navigator.onLine) {
+      await window.Checka.enqueue({ url: UPLOAD_URL, fields: parts.fields, files: parts.files });
+      tile.innerHTML = `<div class="media">${previewUrl ? `<img src="${previewUrl}">` : ''}${kind === 'video' ? '<span class="play">▶</span>' : ''}`
+        + `<span style="position:absolute;left:3px;bottom:3px;background:#2d2d2d;color:#fff;font-size:9px;padding:2px 6px;border-radius:6px">⏳ Queued</span></div>`
+        + `<div class="cap" style="color:#6b7682;font-size:10.5px;text-align:center;padding:2px">Will sync when online</div>`;
+    } else { tile.remove(); alert('Upload failed'); }
+  }
 });
+
+// ---- Save Progress (AJAX; queues offline) ----
+(function(){
+  const btn = document.getElementById('saveProgress'); if(!btn) return;
+  const SAVE_URL = "<?= site_url('inspections/'.$uid) ?>";
+  btn.addEventListener('click', async () => {
+    const form = document.getElementById('captureForm');
+    const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const res = await fetch(SAVE_URL, { method:'POST', body:new FormData(form), headers:{'X-Requested-With':'XMLHttpRequest'} });
+      if (!res.ok) throw new Error('http');
+      msgEl().style.color = '#0f5f2e'; msgEl().textContent = 'Progress saved ✓';
+    } catch(e) {
+      if (window.Checka && !navigator.onLine) {
+        const fields = [...new FormData(form).entries()].filter(([k,v]) => v !== CSRF_HASH).map(([k,v]) => [k, v]);
+        await window.Checka.enqueue({ url: SAVE_URL, fields, files: [] });
+        msgEl().style.color = '#2d2d2d'; msgEl().textContent = 'Saved offline — will sync when online.';
+      } else { msgEl().style.color = '#b42318'; msgEl().textContent = 'Save failed — check your connection.'; }
+    }
+    btn.disabled = false; btn.textContent = orig;
+  });
+})();
 
 // ---- Caption edit (debounced autosave) ----
 let capTimer;
