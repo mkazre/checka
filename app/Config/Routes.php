@@ -92,6 +92,8 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
 
         $routes->get('settings', 'Settings::index');
         $routes->post('settings', 'Settings::save');
+
+        $routes->get('analytics', 'Analytics::index');
     });
 });
 
