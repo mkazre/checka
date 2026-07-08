@@ -1,0 +1,53 @@
+name: Build Android (CheckA+)
+
+# Cloud-builds the Capacitor Android app. No local tooling needed — the APK
+# is produced here and downloadable from the run's "Artifacts".
+on:
+  push:
+    branches: [ main, master ]
+    paths: [ 'mobile/**', '.github/workflows/android.yml' ]
+  workflow_dispatch: {}   # lets you run it manually from the Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Capacitor deps
+        run: npm install
+
+      - name: Add Android platform
+        run: npx cap add android || npx cap sync android
+
+      - name: Build debug APK
+        working-directory: mobile/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checka-debug-apk
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

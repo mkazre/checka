@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CheckA+</title>
+<style>
+  html,body{margin:0;height:100%;background:#ffffff;font-family:system-ui,Arial,sans-serif;color:#2d2d2d}
+  .wrap{height:100%;display:grid;place-items:center;text-align:center}
+  .dot{width:64px;height:64px;border-radius:16px;background:#37b34a;display:grid;place-items:center;margin:0 auto 16px;color:#fff;font-weight:800;font-size:26px}
+  .spin{margin-top:18px;width:26px;height:26px;border:3px solid #e2e4e6;border-top-color:#37b34a;border-radius:50%;animation:s 1s linear infinite;display:inline-block}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <!-- Placeholder shown only if the live site is unreachable; normally Capacitor
+       loads the hosted CheckA+ URL from capacitor.config.json (server.url). -->
+  <div class="wrap">
+    <div>
+      <div class="dot">C+</div>
+      <div>Loading CheckA+…</div>
+      <div class="spin"></div>
+    </div>
+  </div>
+</body>
+</html>

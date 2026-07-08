@@ -1,0 +1,10 @@
+{
+  "appId": "za.co.wheelsturn.checka",
+  "appName": "CheckA+",
+  "webDir": "www",
+  "server": {
+    "url": "https://checka.bjspecialisedsolutions.co.za",
+    "cleartext": false,
+    "androidScheme": "https"
+  }
+}
