@@ -68,6 +68,7 @@ class Vehicles extends BaseController
             'photos'       => array_slice($photos, 0, 5),
             'stockImage'   => (new \App\Services\VehicleImageService())->imageFor($vehicle),
             'imageEnabled' => \App\Services\VehicleImageService::enabled(),
+            'history'      => feature('history') ? (new \App\Services\HistoryService())->forVehicle($id) : [],
         ]);
     }
 

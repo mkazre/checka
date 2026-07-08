@@ -222,6 +222,91 @@
   </div>
 </form>
 
+<?php if (feature('history') && ! empty($history)):
+  $hist = $history;
+  $sum  = (new \App\Services\HistoryService())->summary($hist);
+  $n = count($hist);
+  // score trend polyline
+  $w = 600; $h = 130; $pad = 12; $pts = []; $dots = [];
+  foreach ($hist as $i => $row) {
+    $x = $n > 1 ? $pad + ($i/($n-1))*($w-2*$pad) : $w/2;
+    $y = $pad + (1 - max(0,min(100,$row['score']))/100)*($h-2*$pad);
+    $pts[] = round($x,1).','.round($y,1);
+    $dots[] = [round($x,1), round($y,1), $row['score']];
+  }
+  $poly = implode(' ', $pts);
+  $area = $poly !== '' ? ($pad.','.($h-$pad).' '.$poly.' '.($n>1?($w-$pad):$w/2).','.($h-$pad)) : '';
+?>
+<div class="sheet" style="margin-top:16px">
+  <div class="cr-head" style="border-bottom:1px solid var(--line)">
+    <div class="ttl" style="margin-left:4px">Inspection History &amp; Trends<small>CheckA+ · <?= $n ?> inspection<?= $n>1?'s':'' ?></small></div>
+  </div>
+
+  <div class="cr-sec">
+    <?php if ($n > 1): ?>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 4px">
+      <div><div class="mono" style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em">Span</div><b style="font-size:14px"><?= esc($sum['spanFrom']) ?> → <?= esc($sum['spanTo']) ?></b></div>
+      <div><div class="mono" style="font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em">Condition Score</div>
+        <b style="font-size:14px"><?= $sum['scoreFirst'] ?> → <?= $sum['scoreLast'] ?>
+        <?php $d=$sum['scoreDelta']; ?><span style="color:<?= $d>0?'var(--ok)':($d<0?'var(--major)':'var(--ink-3)') ?>;font-weight:700"><?= $d>0?'▲ +'.$d:($d<0?'▼ '.$d:'—') ?></span></b>
+      </div>
+    </div>
+
+    <!-- Score trend -->
+    <div style="overflow-x:auto;margin-top:8px">
+      <svg viewBox="0 0 <?= $w ?> <?= $h ?>" width="100%" style="min-width:360px;max-width:640px;display:block">
+        <?php for ($g=0;$g<=100;$g+=25): $gy=$pad+(1-$g/100)*($h-2*$pad); ?>
+          <line x1="<?= $pad ?>" y1="<?= round($gy,1) ?>" x2="<?= $w-$pad ?>" y2="<?= round($gy,1) ?>" stroke="#eef1f3" stroke-width="1"/>
+          <text x="0" y="<?= round($gy+3,1) ?>" font-size="8" fill="#9aa7b4"><?= $g ?></text>
+        <?php endfor; ?>
+        <?php if ($area): ?><polygon points="<?= $area ?>" fill="#37b34a" opacity="0.08"/><?php endif; ?>
+        <polyline points="<?= $poly ?>" fill="none" stroke="#37b34a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <?php foreach ($dots as $dt): ?><circle cx="<?= $dt[0] ?>" cy="<?= $dt[1] ?>" r="3.5" fill="#fff" stroke="#37b34a" stroke-width="2"/><?php endforeach; ?>
+      </svg>
+    </div>
+    <?php endif; ?>
+
+    <!-- Timeline table -->
+    <div class="dmg-scroll" style="margin-top:14px">
+    <table class="dmg" style="min-width:520px">
+      <thead><tr><th>Date</th><th>Score</th><th>Verdict</th><th>Findings (M / L / m)</th><th></th></tr></thead>
+      <tbody>
+        <?php $prev=null; foreach (array_reverse($hist) as $row): $s=$row['verdict']['status']; $col=CHECKA_RATINGS[$s]['colour']??'#15803d'; ?>
+          <tr>
+            <td class="mono"><?= esc($row['date']) ?></td>
+            <td><b><?= $row['score'] ?></b><?php if($prev!==null){ $dd=$row['score']-$prev; ?> <span style="font-size:11px;color:<?= $dd>0?'var(--ok)':($dd<0?'var(--major)':'var(--ink-3)') ?>"><?= $dd>0?'▲+'.$dd:($dd<0?'▼'.$dd:'') ?></span><?php } ?></td>
+            <td><span style="color:<?= $col ?>;font-weight:700;font-size:12.5px"><?= esc($row['verdict']['text']) ?></span></td>
+            <td class="mono" style="font-size:12px"><?= $row['counts']['major'] ?> / <?= $row['counts']['lesser'] ?> / <?= $row['counts']['minor'] ?></td>
+            <td><a class="btn ghost sm" href="<?= site_url('reports/'.$row['uid']) ?>">Open</a></td>
+          </tr>
+        <?php $prev=$row['score']; endforeach; ?>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- Tread wear -->
+    <?php if (! empty($sum['treadWear'])): ?>
+    <div class="bar" style="margin-top:16px"><h3>Tyre Tread Wear (mm)</h3></div>
+    <div class="dmg-scroll">
+    <table class="dmg" style="min-width:420px">
+      <thead><tr><th>Position</th><th>First (<?= esc($sum['spanFrom']) ?>)</th><th>Latest (<?= esc($sum['spanTo']) ?>)</th><th>Change</th></tr></thead>
+      <tbody>
+        <?php foreach ($sum['treadWear'] as $pos => $tw): ?>
+          <tr>
+            <td><?= esc($pos) ?></td>
+            <td class="mono"><?= $tw['first'] ?></td>
+            <td class="mono"><?= $tw['last'] ?></td>
+            <td class="mono" style="color:<?= $tw['delta']<0?'var(--major)':'var(--ink-2)' ?>;font-weight:700"><?= $tw['delta']>0?'+'.$tw['delta']:$tw['delta'] ?> mm</td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+    </div>
+    <?php endif; ?>
+  </div>
+</div>
+<?php endif; ?>
+
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 <script>
