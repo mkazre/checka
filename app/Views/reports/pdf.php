@@ -62,7 +62,10 @@
 
 <!-- ============================ PAGE 1 · VEHICLE PROFILE ============================ -->
 <table width="100%" style="border-bottom:2px solid #2d2d2d;padding-bottom:6px"><tr>
-  <td width="42%"><?php $logoFile = FCPATH . 'assets/img/logo.png'; if (is_file($logoFile)): ?><img src="<?= $logoFile ?>" style="height:52px"><?php else: ?><span class="pf-brand">CheckA+<br><span>by WheelsTurn</span></span><?php endif; ?></td>
+  <td width="42%"><?php
+    $brandRel = feature('whiteLabel') ? trim((string) setting('Brand.logoPath')) : '';
+    $logoFile = $brandRel !== '' ? FCPATH . $brandRel : FCPATH . 'assets/img/logo.png';
+    if (is_file($logoFile)): ?><img src="<?= $logoFile ?>" style="height:52px"><?php else: ?><span class="pf-brand"><?= esc(brand('name')) ?><br><span><?= esc(brand('tagline')) ?></span></span><?php endif; ?></td>
   <td width="30%" class="pf-title">VEHICLE<br>CONDITION PROFILE</td>
   <td width="28%" class="pf-rep">
     <table width="100%"><tr>

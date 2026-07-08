@@ -62,7 +62,7 @@
   <?php if (session()->getFlashdata('error')): ?><div class="flash err"><?= esc(session()->getFlashdata('error')) ?></div><?php endif; ?>
 
   <div class="card">
-    <div class="top"><img src="<?= base_url('assets/img/logo.png') ?>" alt="CheckA+"><small>Vehicle Inspection Report</small></div>
+    <div class="top"><img src="<?= esc(brand('logo')) ?>" alt="<?= esc(brand('name')) ?>"><small>Vehicle Inspection Report</small></div>
 
     <?php if (! $valid): ?>
       <div class="body"><p style="color:#6b7682">This report link is not available. It may not be finalised yet, or the link is incorrect.</p></div>
@@ -153,7 +153,23 @@
 
   <?php endif; ?>
 
-  <div style="text-align:center;color:#9aa7b4;font-size:11px;padding:6px 0 20px">Powered by CheckA+ by WheelsTurn</div>
+  <?php if (! empty($pay) && $pay['configured'] && ($pay['amount'] > 0 || $pay['status'] === 'paid')): ?>
+  <div class="card"><div class="body">
+    <?php if ($pay['status'] === 'paid'): ?>
+      <div class="statusbig approved">✓ Payment received — thank you</div>
+    <?php else: ?>
+      <h3>Payment</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span class="k">Amount due</span>
+        <b style="font-size:22px"><?= esc($pay['currency']) ?> <?= number_format($pay['amount'],2,'.',' ') ?></b>
+      </div>
+      <a class="btn green" style="display:block;text-align:center;margin-top:14px;text-decoration:none" href="<?= site_url('portal/'.$uid.'/pay') ?>">Pay now</a>
+      <p class="sub" style="font-size:11px;margin-top:8px;color:#888">Secure payment via Paystack.</p>
+    <?php endif; ?>
+  </div></div>
+  <?php endif; ?>
+
+  <div style="text-align:center;color:#9aa7b4;font-size:11px;padding:6px 0 20px">Powered by <?= esc(trim(brand('name').' '.brand('tagline'))) ?></div>
 </div>
 
 <script>

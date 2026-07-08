@@ -14,6 +14,9 @@
     --display:'Inter',system-ui,sans-serif;
     --body:'Inter',system-ui,sans-serif;
   }
+  <?php if (feature('whiteLabel')): ?>
+  :root{ --brand:<?= brand('primary') ?>; --brand-ink:<?= brand('primary') ?>; --ink:<?= brand('dark') ?>; --panel:<?= brand('dark') ?>; }
+  <?php endif; ?>
   *{box-sizing:border-box}
   html,body{margin:0;max-width:100%;overflow-x:hidden}
   *{box-sizing:border-box}
@@ -23,7 +26,7 @@
 
   /* App shell — light header carrying the CheckA+ logo */
   .topbar{background:#fff;color:var(--ink);position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(45,45,45,.05)}
-  .topbar .wrap{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:8px 20px}
+  .topbar .wrap{max-width:none;margin:0;display:flex;align-items:center;gap:18px;padding:8px 28px}
   .logo{display:flex;align-items:center}
   .logo img{height:var(--logo-h);width:auto;display:block}
   .nav{display:flex;gap:2px;margin-left:8px}
@@ -33,14 +36,16 @@
   .topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
   .who{text-align:right;font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.5}
   .who b{color:var(--ink);font-weight:600}
-  .btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:600;font-size:13.5px;
+  .btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:600;font-size:13.5px;white-space:nowrap;
        padding:9px 15px;border-radius:9px;border:1px solid transparent;cursor:pointer;background:var(--brand);color:#fff}
   .btn:hover{filter:brightness(1.07);text-decoration:none}
   .btn.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
   .btn.dark{background:var(--ink);color:#fff}
   .btn.sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
   .btn.danger{background:var(--major)}
-  .btn svg{width:15px;height:15px}
+  .btn svg{width:15px;height:15px;flex:none}
+  .nav a{white-space:nowrap}
+  .topnav .right{flex:none}
 
   .container{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
   .page-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}

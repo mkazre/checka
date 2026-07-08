@@ -45,7 +45,7 @@
 </head>
 <body>
   <div class="loginbox">
-    <img class="logo" src="<?= base_url('assets/img/logo.png') ?>" alt="CheckA+ by WheelsTurn">
+    <img class="logo" src="<?= esc(brand('logo')) ?>" alt="<?= esc(brand('name')) ?>">
     <h1>Welcome back</h1>
     <div class="sub">Sign in to the workshop portal</div>
 
@@ -77,7 +77,7 @@
       <button type="submit" class="btn">Sign in</button>
     </form>
 
-    <div class="foot">CheckA+ · by WheelsTurn</div>
+    <div class="foot"><?= esc(brand('name')) ?> · <?= esc(brand('tagline')) ?></div>
   </div>
 </body>
 </html>

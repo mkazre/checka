@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= esc($title ?? 'CheckA+') ?> · CheckA+ by WheelsTurn</title>
+<title><?= esc($title ?? brand('name')) ?> · <?= esc(trim(brand('name').' '.brand('tagline'))) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
 <header class="topbar" id="topbar">
   <div class="wrap">
     <a class="logo" href="<?= site_url('dashboard') ?>">
-      <img src="<?= base_url('assets/img/logo.png') ?>" alt="CheckA+ by WheelsTurn">
+      <img src="<?= esc(brand('logo')) ?>" alt="<?= esc(brand('name')) ?>">
     </a>
     <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>

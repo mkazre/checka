@@ -40,6 +40,19 @@ class Settings extends BaseController
                 'notifyWorkshop' => (bool) setting('Notify.notifyWorkshop'),
                 'workshopEmail'  => (string) setting('Notify.workshopEmail'),
             ],
+            'brand' => [
+                'brandName'    => (string) (setting('Brand.brandName') ?: 'CheckA+'),
+                'tagline'      => (string) (setting('Brand.tagline') ?? 'by WheelsTurn'),
+                'primaryColor' => (string) (setting('Brand.primaryColor') ?: '#37b34a'),
+                'darkColor'    => (string) (setting('Brand.darkColor') ?: '#2d2d2d'),
+                'logoPath'     => (string) setting('Brand.logoPath'),
+            ],
+            'pay' => [
+                'currency'       => (string) (setting('Pay.currency') ?: 'ZAR'),
+                'paystackPublic' => (string) setting('Pay.paystackPublic'),
+                'paystackSecret' => (string) setting('Pay.paystackSecret'),
+                'inspectionFee'  => (float) setting('Pay.inspectionFee'),
+            ],
             'ai'    => [
                 'provider'    => setting('Ai.provider') ?: 'claude',
                 'enabled'     => (bool) setting('Ai.enabled'),
@@ -75,6 +88,27 @@ class Settings extends BaseController
         }
         if (($wt = trim((string) $this->request->getPost('n_waToken'))) !== '') {
             setting()->set('Notify.waToken', $wt);
+        }
+
+        // White-label branding.
+        setting()->set('Brand.brandName', trim((string) $this->request->getPost('b_brandName')) ?: 'CheckA+');
+        setting()->set('Brand.tagline', trim((string) $this->request->getPost('b_tagline')));
+        setting()->set('Brand.primaryColor', trim((string) $this->request->getPost('b_primaryColor')) ?: '#37b34a');
+        setting()->set('Brand.darkColor', trim((string) $this->request->getPost('b_darkColor')) ?: '#2d2d2d');
+        $logo = $this->request->getFile('b_logo');
+        if ($logo !== null && $logo->isValid() && str_starts_with((string) $logo->getMimeType(), 'image/')) {
+            $name = 'brand-logo.' . ($logo->getExtension() ?: 'png');
+            $logo->move(FCPATH . 'assets/img', $name, true);
+            setting()->set('Brand.logoPath', 'assets/img/' . $name);
+        }
+
+        // Payments (Paystack). Secret keeps its stored value if left blank.
+        setting()->set('Pay.provider', 'paystack');
+        setting()->set('Pay.currency', trim((string) $this->request->getPost('p_currency')) ?: 'ZAR');
+        setting()->set('Pay.paystackPublic', trim((string) $this->request->getPost('p_paystackPublic')));
+        setting()->set('Pay.inspectionFee', (float) $this->request->getPost('p_inspectionFee'));
+        if (($psk = trim((string) $this->request->getPost('p_paystackSecret'))) !== '') {
+            setting()->set('Pay.paystackSecret', $psk);
         }
 
         setting()->set('Ai.provider', $this->request->getPost('provider') === 'openai' ? 'openai' : 'claude');

@@ -5,7 +5,7 @@
   <div><h1>Settings</h1><div class="sub">AI providers for auto-filling vehicle data.</div></div>
 </div>
 
-<form method="post" action="<?= site_url('settings') ?>" x-data="{ p: '<?= esc($ai['provider']) ?>' }">
+<form method="post" action="<?= site_url('settings') ?>" enctype="multipart/form-data" x-data="{ p: '<?= esc($ai['provider']) ?>' }">
   <?= csrf_field() ?>
 
   <div class="card" style="margin-bottom:16px">
@@ -141,6 +141,34 @@
           <label class="fld"><span>WhatsApp token</span><input type="password" name="n_waToken" autocomplete="off" placeholder="<?= $notify['waToken'] ? '•••••••• (leave blank to keep)' : 'EAAG…' ?>"></label>
           <label class="fld"><span>Phone number ID</span><input type="text" name="n_waPhoneId" value="<?= esc($notify['waPhoneId']) ?>" class="mono"></label>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-h"><h3>Branding (white-label)</h3></div>
+    <div class="card-b grid" style="gap:14px">
+      <p class="sub" style="font-size:11.5px;color:var(--ink-3);margin:0">Applies across the app, client portal and emails when the <b>White-label</b> feature is enabled.</p>
+      <div class="grid cols-2" style="gap:14px">
+        <label class="fld"><span>Brand name</span><input type="text" name="b_brandName" value="<?= esc($brand['brandName']) ?>"></label>
+        <label class="fld"><span>Tagline</span><input type="text" name="b_tagline" value="<?= esc($brand['tagline']) ?>"></label>
+        <label class="fld"><span>Primary colour</span><input type="color" name="b_primaryColor" value="<?= esc($brand['primaryColor']) ?>" style="height:44px;padding:4px"></label>
+        <label class="fld"><span>Dark / text colour</span><input type="color" name="b_darkColor" value="<?= esc($brand['darkColor']) ?>" style="height:44px;padding:4px"></label>
+      </div>
+      <label class="fld"><span>Logo <?= $brand['logoPath'] ? '(replace)' : '' ?></span><input type="file" name="b_logo" accept="image/*"></label>
+      <?php if ($brand['logoPath']): ?><div><img src="<?= base_url($brand['logoPath']) ?>" alt="logo" style="height:44px"></div><?php endif; ?>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-h"><h3>Payments (Paystack)</h3></div>
+    <div class="card-b grid" style="gap:14px">
+      <p class="sub" style="font-size:11.5px;color:var(--ink-3);margin:0">Lets clients pay from the portal when the <b>Payments</b> feature is on. Charges the approved repair total, or a flat inspection fee. Leave blank to keep it dormant.</p>
+      <div class="grid cols-2" style="gap:14px">
+        <label class="fld"><span>Public key</span><input type="text" name="p_paystackPublic" value="<?= esc($pay['paystackPublic']) ?>" class="mono" placeholder="pk_..."></label>
+        <label class="fld"><span>Secret key</span><input type="password" name="p_paystackSecret" autocomplete="off" placeholder="<?= $pay['paystackSecret'] ? '•••••••• (leave blank to keep)' : 'sk_...' ?>"></label>
+        <label class="fld"><span>Currency</span><input type="text" name="p_currency" value="<?= esc($pay['currency']) ?>" class="mono"></label>
+        <label class="fld"><span>Flat inspection fee (0 = off)</span><input type="number" step="0.01" name="p_inspectionFee" value="<?= esc($pay['inspectionFee']) ?>"></label>
       </div>
     </div>
   </div>

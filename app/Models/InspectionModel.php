@@ -17,6 +17,7 @@ class InspectionModel extends Model
         'verdict_status', 'verdict_text', 'meta', 'created_by',
         'client_status', 'client_name', 'client_signature', 'client_note', 'client_signed_at',
         'ai_summary',
+        'payment_status', 'payment_ref', 'payment_amount', 'paid_at',
     ];
 
     /**
