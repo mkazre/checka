@@ -9,6 +9,51 @@
   <?= csrf_field() ?>
 
   <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><h3>Features</h3></div>
+    <div class="card-b">
+      <p class="sub" style="font-size:12.5px;color:var(--ink-3);margin:0 0 4px">
+        Switch capabilities on or off individually. Some are live now; the rest are rolling out in phases — you can pre-enable them and they activate as each phase deploys.
+      </p>
+      <?php
+        $rows = [
+          ['offline', 'Offline capture (PWA)', 'Install to the home screen; capture with no signal and auto-sync when back online.', 'Phase'],
+          ['vinDecode', 'VIN auto-decode', 'Decode a VIN into make/model/body/engine via free NHTSA data.', 'Live'],
+          ['clientPortal', 'Client approval & e-sign', 'Customers view, sign and approve the report online.', 'Phase'],
+          ['quotes', 'Repair quote builder', 'Turn cost-to-approve items into a priced estimate PDF.', 'Phase'],
+          ['notifications', 'Automated report delivery', 'Auto-send the report link to the client on completion.', 'Phase', ['notifyEmail' => 'Email', 'notifyWhatsapp' => 'WhatsApp']],
+          ['history', 'Re-inspection history & trends', 'Track a vehicle across inspections with wear trends over time.', 'Phase'],
+          ['aiIntelligence', 'AI report intelligence', 'AI-written conclusions, finding triage and photo analysis.', 'Phase', ['aiConclusion' => 'Auto-write conclusion', 'aiPhotoAnalysis' => 'Analyze photos']],
+          ['annotation', 'Photo annotation', 'Draw arrows / circles / notes directly on damage photos.', 'Phase'],
+          ['analytics', 'Analytics dashboard', 'Workshop KPIs — common failures, scores, productivity.', 'Phase'],
+          ['whiteLabel', 'White-label & payments', 'Per-workshop branding and online payments.', 'Phase', ['payments' => 'Payments']],
+        ];
+        foreach ($rows as $r):
+          [$key, $title, $desc, $stage] = $r; $subs = $r[4] ?? [];
+      ?>
+        <div style="border-top:1px solid var(--line);padding:12px 0">
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" name="feat_<?= $key ?>" value="1" <?= $feat[$key]?'checked':'' ?> style="margin-top:3px">
+            <span style="flex:1">
+              <b style="font-size:14px"><?= esc($title) ?></b>
+              <span style="font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:1px 7px;border-radius:999px;margin-left:6px;<?= $stage==='Live'?'background:var(--ok-bg);color:#0f5f2e':'background:#eef1f3;color:var(--ink-3)' ?>"><?= $stage==='Live'?'LIVE':'ROLLING OUT' ?></span>
+              <span class="sub" style="display:block;font-size:12px;color:var(--ink-3);margin-top:2px"><?= esc($desc) ?></span>
+              <?php if ($subs): ?>
+                <span style="display:flex;gap:18px;flex-wrap:wrap;margin-top:7px">
+                  <?php foreach ($subs as $sk => $sl): ?>
+                    <label style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2)">
+                      <input type="checkbox" name="feat_<?= $sk ?>" value="1" <?= $feat[$sk]?'checked':'' ?>> <?= esc($sl) ?>
+                    </label>
+                  <?php endforeach; ?>
+                </span>
+              <?php endif; ?>
+            </span>
+          </label>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
     <div class="card-h"><h3>AI Assistant</h3></div>
     <div class="card-b grid" style="gap:16px">
       <label style="display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600">

@@ -50,6 +50,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->post('vehicles', 'Vehicles::create');
     $routes->get('vehicles/(:num)/profile', 'Vehicles::profile/$1');
     $routes->post('vehicles/(:num)/ai-fill', 'Vehicles::aiFill/$1');
+    $routes->post('vehicles/(:num)/vin-decode', 'Vehicles::vinDecode/$1');
     $routes->post('vehicles/(:num)/image', 'Vehicles::setImage/$1');
     $routes->post('vehicles/(:num)', 'Vehicles::update/$1');
     $routes->post('vehicles/(:num)/delete', 'Vehicles::delete/$1');

@@ -103,6 +103,26 @@ class Vehicles extends BaseController
         return $this->response->setJSON((new \App\Services\AiService())->enrichVehicle($known));
     }
 
+    /** AJAX: decode the vehicle's VIN into spec fields (free NHTSA vPIC). */
+    public function vinDecode(int $id)
+    {
+        if (! feature('vinDecode')) {
+            return $this->response->setStatusCode(403)->setJSON(['ok' => false, 'error' => 'VIN decode is disabled.']);
+        }
+
+        $vehicle = model(VehicleModel::class)->find($id);
+        if ($vehicle === null) {
+            return $this->response->setStatusCode(404)->setJSON(['ok' => false, 'error' => 'Vehicle not found']);
+        }
+
+        $vin = trim((string) ($this->request->getPost('vin') ?: $vehicle['vin']));
+        if ($vin === '') {
+            return $this->response->setJSON(['ok' => false, 'error' => 'Enter the VIN first, then decode.']);
+        }
+
+        return $this->response->setJSON((new \App\Services\VinService())->decode($vin));
+    }
+
     /**
      * AJAX: manually override the reference image.
      *  - action=url   + url=…    → set an explicit image URL

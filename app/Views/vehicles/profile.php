@@ -69,10 +69,18 @@
 <div class="page-head">
   <div><h1>Vehicle Profile</h1><div class="sub mono"><?= esc(trim(($v['year']?:'').' '.($v['make']?:'').' '.($v['model']?:'')) ?: 'Vehicle') ?></div></div>
   <div class="spacer"></div>
+  <?php if (feature('vinDecode')): ?>
+  <button type="button" class="btn ghost" id="vinFill">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 7v10M11 7v10M15 7v10"/></svg>
+    Decode VIN
+  </button>
+  <?php endif; ?>
+  <?php if (setting('Ai.enabled')): ?>
   <button type="button" class="btn ghost" id="aiFill">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></svg>
     AI Auto-fill
   </button>
+  <?php endif; ?>
   <a class="btn ghost" href="<?= site_url('vehicles/scan') ?>">Scan Disc</a>
   <?php if ($inspection): ?><a class="btn ghost" href="<?= site_url('reports/'.$inspection['report_uid']) ?>">Latest Report</a><?php endif; ?>
   <a class="btn" href="<?= site_url('inspections/new') ?>">New Inspection</a>
@@ -217,29 +225,29 @@
 <script>
   try { new QRCode(document.getElementById("pqr"), {text:"<?= esc($v['vin'] ?: site_url('vehicles/'.$v['id'].'/profile'), 'js') ?>", width:74, height:74, colorDark:"#2d2d2d", colorLight:"#fff"}); } catch(e){}
 
-  // ---- AI auto-fill of empty spec fields ----
+  // ---- Shared "fill empty spec fields" for AI + VIN decode ----
   (function(){
-    const btn = document.getElementById('aiFill'); if(!btn) return;
     const CSRF_HEADER = "<?= csrf_header() ?>", CSRF_HASH = "<?= csrf_hash() ?>";
-    const URL = "<?= site_url('vehicles/'.$v['id'].'/ai-fill') ?>";
-    btn.addEventListener('click', async () => {
+    async function fillFrom(btn, url, working){
       const original = btn.innerHTML;
-      btn.disabled = true; btn.textContent = 'Asking AI…';
+      btn.disabled = true; btn.textContent = working;
       try {
-        const res = await fetch(URL, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded', [CSRF_HEADER]:CSRF_HASH }, body: encodeURIComponent(CSRF_HEADER)+'='+encodeURIComponent(CSRF_HASH) });
+        const res = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded', [CSRF_HEADER]:CSRF_HASH }, body: encodeURIComponent(CSRF_HEADER)+'='+encodeURIComponent(CSRF_HASH) });
         const j = await res.json();
-        if (!j.ok) { alert(j.error || 'AI request failed.'); return; }
+        if (!j.ok) { alert(j.error || 'Request failed.'); btn.innerHTML = original; btn.disabled = false; return; }
         let filled = 0;
         Object.entries(j.fields || {}).forEach(([k, val]) => {
           const el = document.querySelector(`[name="${k}"]`);
           if (el && !el.value) { el.value = val; el.style.background = '#eafaf0'; filled++; }
         });
-        btn.textContent = filled ? `AI filled ${filled} field(s) — review & save` : 'AI found nothing new';
+        btn.textContent = filled ? `Filled ${filled} field(s) — review & save` : 'Nothing new to add';
         setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2600);
-        return;
-      } catch(e){ alert('AI request failed.'); }
-      btn.innerHTML = original; btn.disabled = false;
-    });
+      } catch(e){ alert('Request failed.'); btn.innerHTML = original; btn.disabled = false; }
+    }
+    const ai = document.getElementById('aiFill');
+    if (ai) ai.addEventListener('click', () => fillFrom(ai, "<?= site_url('vehicles/'.$v['id'].'/ai-fill') ?>", 'Asking AI…'));
+    const vin = document.getElementById('vinFill');
+    if (vin) vin.addEventListener('click', () => fillFrom(vin, "<?= site_url('vehicles/'.$v['id'].'/vin-decode') ?>", 'Decoding VIN…'));
   })();
 
   // ---- Reference image manual override ----
