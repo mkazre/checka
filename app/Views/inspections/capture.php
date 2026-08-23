@@ -60,6 +60,14 @@
   .ph.add{width:106px;height:80px;display:grid;place-items:center;align-content:center;cursor:pointer;color:var(--ink-3);border:1px dashed var(--line-strong);border-radius:8px;background:#fff}
   .ph.add svg{width:20px;height:20px}
   .ph.add small{font-size:9px;letter-spacing:.05em;text-transform:uppercase;margin-top:3px}
+  .pickwrap{position:relative;width:106px}
+  .pickbtn{font:inherit;margin:0;padding:0}
+  .pickmenu{position:absolute;bottom:calc(100% + 6px);left:0;z-index:10;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(16,23,29,.14);min-width:170px;overflow:hidden;display:none}
+  .pickmenu.open{display:block}
+  .pickmenu label{display:flex;align-items:center;gap:9px;padding:10px 12px;font-size:13px;cursor:pointer;color:var(--ink-2)}
+  .pickmenu label:hover{background:var(--ground)}
+  .pickmenu label:not(:last-child){border-bottom:1px solid var(--line)}
+  .pickmenu svg{width:16px;height:16px;flex:none}
   .savebar{position:sticky;bottom:0;background:#ffffffe8;backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
   .wizmsg{color:var(--major);font-size:12.5px;font-weight:500}
   canvas.sig{width:100%;max-width:420px;height:130px;border:1px dashed var(--line-strong);border-radius:10px;background:#fafbfc;touch-action:none}
@@ -203,16 +211,42 @@
                 <input type="text" class="cap" data-id="<?= $p['id'] ?>" value="<?= esc($p['caption']) ?>" placeholder="Caption…">
               </div>
             <?php endforeach; ?>
-            <label class="ph add" title="Take a photo now">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5L5 19"/></svg>
-              <small>Photo</small>
-              <input type="file" accept="image/*" capture="environment" hidden class="upl" data-kind="image">
-            </label>
-            <label class="ph add" title="Record a video now">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>
-              <small>Video</small>
-              <input type="file" accept="video/*" capture="environment" hidden class="upl" data-kind="video">
-            </label>
+            <div class="pickwrap">
+              <button type="button" class="ph add pickbtn" title="Add a photo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5L5 19"/></svg>
+                <small>Photo</small>
+              </button>
+              <div class="pickmenu">
+                <label>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/></svg>
+                  Take Photo
+                  <input type="file" accept="image/*" capture="environment" hidden class="upl" data-kind="image">
+                </label>
+                <label>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+                  Upload from Device
+                  <input type="file" accept="image/*" hidden class="upl" data-kind="image">
+                </label>
+              </div>
+            </div>
+            <div class="pickwrap">
+              <button type="button" class="ph add pickbtn" title="Add a video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>
+                <small>Video</small>
+              </button>
+              <div class="pickmenu">
+                <label>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>
+                  Record Video
+                  <input type="file" accept="video/*" capture="environment" hidden class="upl" data-kind="video">
+                </label>
+                <label>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+                  Upload from Device
+                  <input type="file" accept="video/*" hidden class="upl" data-kind="video">
+                </label>
+              </div>
+            </div>
           </div>
           <?php endif; ?>
         </div>
@@ -430,6 +464,23 @@ function tileInner(id, thumb, isVideo, caption){
        + `<input type="text" class="cap" data-id="${id}" value="${c}" placeholder="Caption…">`;
 }
 
+// ---- Capture/Upload picker menu ----
+function closeAllPickMenus(except){
+  document.querySelectorAll('.pickmenu.open').forEach(m => { if (m !== except) m.classList.remove('open'); });
+}
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.pickbtn');
+  if (btn) {
+    const menu = btn.nextElementSibling;
+    const willOpen = !menu.classList.contains('open');
+    closeAllPickMenus();
+    if (willOpen) menu.classList.add('open');
+    return;
+  }
+  if (e.target.closest('.pickmenu label')) { closeAllPickMenus(); return; }
+  if (!e.target.closest('.pickwrap')) closeAllPickMenus();
+});
+
 // ---- Photo / video capture (delegated) ----
 document.addEventListener('change', async (e) => {
   if (!e.target.classList.contains('upl')) return;
@@ -441,7 +492,7 @@ document.addEventListener('change', async (e) => {
 
   const tile=document.createElement('div'); tile.className='ph';
   tile.innerHTML=`<div class="media"><span class="prog">0%</span></div>`;
-  wrap.insertBefore(tile, wrap.querySelector('.add'));
+  wrap.insertBefore(tile, wrap.querySelector('.pickwrap'));
   const setProg=p=>{ const el=tile.querySelector('.prog'); if(el) el.textContent=(kind==='video'&&p>=100)?'Saving…':p+'%'; };
 
   // Build the request parts once so we can also queue them if offline.

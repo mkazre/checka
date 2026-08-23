@@ -232,20 +232,40 @@ class Templates extends BaseController
         return $this->done('Field deleted.', 'templates/' . $section['template_id'] . '/builder');
     }
 
-    /** Persist a new order for sections and fields (AJAX drag-drop). */
+    /**
+     * Persist a new order for sections and fields (AJAX drag-drop), then
+     * renumber section idx (1, 2, 3…) and field ref ("{sectionIdx}.{pos}")
+     * to match the new order.
+     *
+     * Expects the FULL new state for every section (in order) and every
+     * field within each section (in order), so numbering stays consistent
+     * even when a field is dragged into a different section.
+     */
     public function reorder()
     {
-        $sections = $this->request->getPost('sections') ?? [];
-        $fields   = $this->request->getPost('fields') ?? [];
+        $sections = $this->request->getPost('sections') ?? []; // [sort => sectionId]
+        $fields   = $this->request->getPost('fields') ?? [];   // [sectionId => [sort => fieldId]]
 
         $sectionModel = model(SectionModel::class);
-        foreach ($sections as $sort => $sectionId) {
-            $sectionModel->update((int) $sectionId, ['sort' => (int) $sort]);
+        $fieldModel   = model(FieldModel::class);
+
+        $idxBySection = [];
+        foreach (array_values($sections) as $pos => $sectionId) {
+            $sectionId = (int) $sectionId;
+            $idx       = $pos + 1;
+            $idxBySection[$sectionId] = $idx;
+            $sectionModel->update($sectionId, ['sort' => $pos, 'idx' => $idx]);
         }
-        $fieldModel = model(FieldModel::class);
+
         foreach ($fields as $sectionId => $ids) {
-            foreach ($ids as $sort => $fieldId) {
-                $fieldModel->update((int) $fieldId, ['section_id' => (int) $sectionId, 'sort' => (int) $sort]);
+            $sectionId = (int) $sectionId;
+            $idx       = $idxBySection[$sectionId] ?? (int) ($sectionModel->find($sectionId)['idx'] ?? 0);
+            foreach (array_values($ids) as $pos => $fieldId) {
+                $fieldModel->update((int) $fieldId, [
+                    'section_id' => $sectionId,
+                    'sort'       => $pos,
+                    'ref'        => $idx . '.' . ($pos + 1),
+                ]);
             }
         }
 

@@ -308,6 +308,11 @@
       <?php if (feature('notifyWhatsapp')): ?><input id="sendPhone" type="text" placeholder="+27 82 000 0000" value="<?= esc($veh['client_phone'] ?? '') ?>" style="flex:1;min-width:170px;border:1px solid var(--line);border-radius:9px;padding:10px 12px"><?php endif; ?>
       <button class="btn" id="sendBtn" type="button">Send report</button>
     </div>
+    <?php if (feature('notifyEmail')): ?>
+    <label style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);margin-top:10px">
+      <input type="checkbox" id="sendAttachPdf" checked> Attach the full PDF report to the email
+    </label>
+    <?php endif; ?>
     <span id="sendMsg" style="display:block;margin-top:8px;font-size:13px;font-weight:600"></span>
   </div>
   <?php endif; ?>
@@ -391,10 +396,11 @@
     btn.addEventListener('click', async () => {
       const email = (document.getElementById('sendEmail')||{}).value || '';
       const phone = (document.getElementById('sendPhone')||{}).value || '';
+      const attachPdf = (document.getElementById('sendAttachPdf')||{}).checked ? '1' : '';
       if(!email && !phone){ msg.style.color='#b42318'; msg.textContent='Enter an email or phone number.'; return; }
       btn.disabled=true; const orig=btn.textContent; btn.textContent='Sending…'; msg.textContent='';
       try{
-        const body = new URLSearchParams({ [CSRF_HEADER]:CSRF_HASH, email, phone });
+        const body = new URLSearchParams({ [CSRF_HEADER]:CSRF_HASH, email, phone, attach_pdf: attachPdf });
         const res = await fetch(URL, { method:'POST', headers:{ [CSRF_HEADER]:CSRF_HASH }, body });
         const j = await res.json();
         if(j.ok){ msg.style.color='#0f5f2e'; msg.textContent='Sent via '+(j.sent||[]).join(' & ')+(j.partial?(' — but: '+j.partial):' ✓'); }

@@ -24,10 +24,8 @@ class InspectionIntelligence
         return CHECKA_RATINGS[$status]['rank'] ?? 0;
     }
 
-    private function weight(string $status): int
-    {
-        return CHECKA_RATINGS[$status]['weight'] ?? 0;
-    }
+    /** Per-status condition points (higher = better), used by conditionScore(). */
+    private const SCORE_POINTS = ['ok' => 100, 'minor' => 85, 'lesser' => 55, 'major' => 0];
 
     /**
      * Flatten all rating-bearing items across sections.
@@ -70,20 +68,27 @@ class InspectionIntelligence
     }
 
     /**
-     * Condition score 0..100. Safety-critical sections weigh double.
+     * Condition score 0..100 — a weighted average of every rating item's
+     * condition points (not a cumulative deduction), so the score can't
+     * bottom out at 0 just because a template has a lot of checklist items.
+     * Safety-critical sections count double toward the average.
      */
     public function conditionScore(array $report): int
     {
-        $score = 100;
-        foreach ($this->ratingItems($report) as $item) {
-            $w = $this->weight($item['status'] ?? 'ok');
-            if (! empty($item['is_critical'])) {
-                $w *= 2;
-            }
-            $score -= $w;
+        $items = $this->ratingItems($report);
+        if (! $items) {
+            return 100;
         }
 
-        return max(0, min(100, $score));
+        $totalWeight = 0;
+        $totalPoints = 0;
+        foreach ($items as $item) {
+            $w = ! empty($item['is_critical']) ? 2 : 1;
+            $totalWeight += $w;
+            $totalPoints += $w * (self::SCORE_POINTS[$item['status'] ?? 'ok'] ?? 100);
+        }
+
+        return max(0, min(100, (int) round($totalPoints / $totalWeight)));
     }
 
     /**

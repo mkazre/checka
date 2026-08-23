@@ -15,6 +15,13 @@
     .field-row{flex-wrap:wrap}
     .field-row .nm{flex-basis:100%}
   }
+  .drag-handle{cursor:grab;color:var(--ink-3);font-size:15px;line-height:1;padding:2px 4px;flex:none;user-select:none;touch-action:none}
+  .drag-handle:hover{color:var(--ink)}
+  .tpl-section.dragging{opacity:.4}
+  .field-item.dragging{opacity:.4}
+  .field-item.drag-over-field{box-shadow:inset 0 2px 0 var(--brand)}
+  .fields-list.drag-over-empty{background:#f0f7f2}
+  #reorderMsg{font-size:12px;color:var(--ink-3);margin-left:10px}
 </style>
 <?= $this->endSection() ?>
 <?= $this->section('content') ?>
@@ -40,10 +47,17 @@
 
 <?php $types = $fieldTypes; $roles = $roles; ?>
 
+<div style="display:flex;align-items:center;margin-bottom:6px">
+  <span class="sub" style="font-size:12px;color:var(--ink-3)">Drag <span class="drag-handle" style="display:inline-block;vertical-align:middle">⠿</span> to reorder sections or fields — numbering updates automatically.</span>
+  <span id="reorderMsg"></span>
+</div>
+
 <!-- Sections -->
+<div id="sectionsList">
 <?php foreach ($template['sections'] as $section): ?>
-  <div class="card" style="margin-bottom:14px" x-data="{addField:false}">
+  <div class="card tpl-section" style="margin-bottom:14px" data-section-id="<?= $section['id'] ?>" x-data="{addField:false}">
     <div class="card-h" style="gap:12px">
+      <span class="drag-handle section-handle" title="Drag to reorder section">⠿</span>
       <span class="pill"><?= $section['idx'] ?></span>
       <form method="post" action="<?= site_url('sections/'.$section['id']) ?>" style="display:flex;gap:10px;align-items:center;flex:1">
         <?= csrf_field() ?>
@@ -56,9 +70,11 @@
       </form>
     </div>
 
+    <div class="fields-list" data-section-id="<?= $section['id'] ?>">
     <?php foreach ($section['fields'] as $field): ?>
-      <div x-data="{edit:false}">
+      <div class="field-item" data-field-id="<?= $field['id'] ?>" x-data="{edit:false}">
         <div class="field-row">
+          <span class="drag-handle field-handle" title="Drag to reorder / move field">⠿</span>
           <span class="ref"><?= esc($field['ref']) ?></span>
           <span class="nm"><?= esc($field['name']) ?><?php if($field['is_sub']): ?> <span style="color:var(--ink-3)">(sub)</span><?php endif; ?></span>
           <span class="badge"><?= esc($field['type']) ?></span>
@@ -88,6 +104,7 @@
         </div>
       </div>
     <?php endforeach; ?>
+    </div>
 
     <!-- Add field -->
     <div class="field-row" style="justify-content:flex-start">
@@ -111,6 +128,7 @@
     </div>
   </div>
 <?php endforeach; ?>
+</div>
 
 <!-- Add section -->
 <div class="card">
@@ -128,4 +146,114 @@
 <?= $this->section('scripts') ?>
 <style>[x-cloak]{display:none!important}</style>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+(function(){
+  const CSRF_HEADER = "<?= csrf_header() ?>";
+  const CSRF_HASH   = "<?= csrf_hash() ?>";
+  const REORDER_URL = "<?= site_url('templates/reorder') ?>";
+  const sectionsList = document.getElementById('sectionsList');
+  const msgEl = document.getElementById('reorderMsg');
+  if (!sectionsList) return;
+
+  let draggingSection = null;
+  let draggingField = null;
+
+  function afterElement(container, y, selector) {
+    const els = [...container.querySelectorAll(selector)];
+    return els.reduce((closest, el) => {
+      const box = el.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) return { offset, element: el };
+      return closest;
+    }, { offset: -Infinity, element: null }).element;
+  }
+
+  // ---- Sections: drag by .section-handle ----
+  sectionsList.querySelectorAll('.tpl-section').forEach(card => {
+    const handle = card.querySelector(':scope > .card-h .section-handle');
+    if (!handle) return;
+    handle.addEventListener('mousedown', () => card.setAttribute('draggable', 'true'));
+    handle.addEventListener('touchstart', () => card.setAttribute('draggable', 'true'), { passive: true });
+    card.addEventListener('dragstart', (e) => {
+      draggingSection = card;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      card.removeAttribute('draggable');
+      draggingSection = null;
+      persistOrder();
+    });
+  });
+  sectionsList.addEventListener('dragover', (e) => {
+    if (!draggingSection) return;
+    e.preventDefault();
+    const after = afterElement(sectionsList, e.clientY, '.tpl-section:not(.dragging)');
+    if (after == null) sectionsList.appendChild(draggingSection);
+    else sectionsList.insertBefore(draggingSection, after);
+  });
+
+  // ---- Fields: drag by .field-handle, can move between sections ----
+  function wireFieldItem(item) {
+    const handle = item.querySelector(':scope > .field-row .field-handle');
+    if (!handle) return;
+    handle.addEventListener('mousedown', () => item.setAttribute('draggable', 'true'));
+    handle.addEventListener('touchstart', () => item.setAttribute('draggable', 'true'), { passive: true });
+    item.addEventListener('dragstart', (e) => {
+      draggingField = item;
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation();
+      setTimeout(() => item.classList.add('dragging'), 0);
+    });
+    item.addEventListener('dragend', (e) => {
+      e.stopPropagation();
+      item.classList.remove('dragging');
+      item.removeAttribute('draggable');
+      draggingField = null;
+      persistOrder();
+    });
+  }
+  sectionsList.querySelectorAll('.field-item').forEach(wireFieldItem);
+
+  sectionsList.querySelectorAll('.fields-list').forEach(list => {
+    list.addEventListener('dragover', (e) => {
+      if (!draggingField) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const after = afterElement(list, e.clientY, '.field-item:not(.dragging)');
+      if (after == null) list.appendChild(draggingField);
+      else list.insertBefore(draggingField, after);
+    });
+  });
+
+  // ---- Persist full order (sections + fields) and renumber ----
+  let saving = false;
+  function persistOrder() {
+    if (saving) return;
+    saving = true;
+    if (msgEl) msgEl.textContent = 'Saving order…';
+
+    const fd = new FormData();
+    fd.append(CSRF_HEADER, CSRF_HASH);
+    sectionsList.querySelectorAll(':scope > .tpl-section').forEach(card => {
+      fd.append('sections[]', card.dataset.sectionId);
+    });
+    sectionsList.querySelectorAll('.fields-list').forEach(list => {
+      const sid = list.dataset.sectionId;
+      list.querySelectorAll(':scope > .field-item').forEach(item => {
+        fd.append('fields[' + sid + '][]', item.dataset.fieldId);
+      });
+    });
+
+    fetch(REORDER_URL, { method: 'POST', body: fd, headers: { [CSRF_HEADER]: CSRF_HASH, 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(res => res.json())
+      .then(j => {
+        if (j && j.ok) { location.reload(); }
+        else { saving = false; if (msgEl) msgEl.textContent = 'Could not save order.'; }
+      })
+      .catch(() => { saving = false; if (msgEl) msgEl.textContent = 'Could not save order — check your connection.'; });
+  }
+})();
+</script>
 <?= $this->endSection() ?>

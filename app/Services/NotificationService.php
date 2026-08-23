@@ -25,7 +25,7 @@ class NotificationService
      * @param array<string,mixed> $report assembled report
      * @return array<string,mixed> per-channel result
      */
-    public function sendReport(array $report, ?string $toEmail, ?string $toPhone): array
+    public function sendReport(array $report, ?string $toEmail, ?string $toPhone, bool $attachPdf = false): array
     {
         $ins     = $report['inspection'];
         $v       = $report['vehicle'] ?? [];
@@ -35,7 +35,7 @@ class NotificationService
         $out     = [];
 
         if (feature('notifyEmail') && $toEmail) {
-            $out['email'] = $this->sendEmail($toEmail, $vehicle, $link, $ins);
+            $out['email'] = $this->sendEmail($toEmail, $vehicle, $link, $ins, false, $attachPdf ? $report : null);
         }
         if (feature('notifyWhatsapp') && $toPhone) {
             $out['whatsapp'] = $this->sendWhatsApp($toPhone, $vehicle, $link);
@@ -43,14 +43,18 @@ class NotificationService
 
         // Optionally copy the workshop by email.
         if (feature('notifyEmail') && setting('Notify.notifyWorkshop') && trim((string) setting('Notify.workshopEmail')) !== '') {
-            $this->sendEmail((string) setting('Notify.workshopEmail'), $vehicle, $link, $ins, true);
+            $this->sendEmail((string) setting('Notify.workshopEmail'), $vehicle, $link, $ins, true, $attachPdf ? $report : null);
         }
 
         return $out;
     }
 
-    /** @return array{ok:bool,error?:string} */
-    private function sendEmail(string $to, string $vehicle, string $link, array $ins, bool $workshopCopy = false): array
+    /**
+     * @param array<string,mixed>|null $pdfReport when given, the full inspection PDF is attached
+     *
+     * @return array{ok:bool,error?:string}
+     */
+    private function sendEmail(string $to, string $vehicle, string $link, array $ins, bool $workshopCopy = false, ?array $pdfReport = null): array
     {
         if (! $this->emailConfigured()) {
             return ['ok' => false, 'error' => 'Email sender not configured in Settings.'];
@@ -76,9 +80,55 @@ class NotificationService
         $verdict = $ins['verdict_text'] ?? '';
         $subject = ($workshopCopy ? '[Copy] ' : '') . 'Vehicle inspection report — ' . $vehicle;
         $email->setSubject($subject);
-        $email->setMessage($this->emailHtml($vehicle, $link, (string) $score, (string) $verdict));
 
-        if ($email->send(false)) {
+        $tmpPdfPath = null;
+        $attached   = false;
+        if ($pdfReport !== null) {
+            try {
+                $pdf = service('reportPdf')->build($pdfReport);
+                // Same base dir PdfService already writes mPDF's own temp
+                // files into (writable/cache), so we know it's writable —
+                // writable/uploads/tmp was NOT reliably writable on this host.
+                $dir = WRITEPATH . 'cache/mail_attach';
+                if (! is_dir($dir) && ! @mkdir($dir, 0775, true) && ! is_dir($dir)) {
+                    throw new \RuntimeException("Could not create {$dir}");
+                }
+                $tmpPdfPath = $dir . '/' . bin2hex(random_bytes(8)) . '.pdf';
+                if (@file_put_contents($tmpPdfPath, $pdf['bytes']) === false) {
+                    throw new \RuntimeException("Could not write {$tmpPdfPath}");
+                }
+                if (filesize($tmpPdfPath) !== strlen($pdf['bytes'])) {
+                    throw new \RuntimeException("Short write to {$tmpPdfPath}");
+                }
+                // Let CI4 detect the mime type from the file itself (the
+                // path ends in .pdf) rather than forcing one — passing an
+                // explicit mime here previously produced a corrupt (~1KB)
+                // attachment on this host.
+                if ($email->attach($tmpPdfPath, '', $pdf['filename']) === false) {
+                    throw new \RuntimeException('Email::attach() returned false for ' . $tmpPdfPath);
+                }
+                $attached = true;
+                // Logged at 'error' level (not a real error) purely so it
+                // survives this app's threshold=4 log config for diagnosis.
+                log_message('error', 'DIAG: Report PDF attached OK: ' . $tmpPdfPath . ' (' . filesize($tmpPdfPath) . ' bytes)');
+            } catch (\Throwable $e) {
+                log_message('error', 'Report PDF attachment failed: ' . $e->getMessage());
+                if ($tmpPdfPath !== null && is_file($tmpPdfPath)) {
+                    @unlink($tmpPdfPath);
+                }
+                $tmpPdfPath = null;
+            }
+        }
+
+        $email->setMessage($this->emailHtml($vehicle, $link, (string) $score, (string) $verdict, $attached));
+
+        $sent = $email->send(false);
+
+        if ($tmpPdfPath !== null && is_file($tmpPdfPath)) {
+            @unlink($tmpPdfPath);
+        }
+
+        if ($sent) {
             return ['ok' => true];
         }
 
@@ -87,7 +137,7 @@ class NotificationService
         return ['ok' => false, 'error' => 'Email could not be sent (check SMTP/from settings).'];
     }
 
-    private function emailHtml(string $vehicle, string $link, string $score, string $verdict): string
+    private function emailHtml(string $vehicle, string $link, string $score, string $verdict, bool $pdfAttached = false): string
     {
         $logo = base_url('assets/img/logo.png');
 
@@ -97,7 +147,8 @@ class NotificationService
             . '<h2 style="margin:0 0 6px">Your inspection report is ready</h2>'
             . '<p style="color:#555;line-height:1.6">The inspection for <b>' . esc($vehicle) . '</b> has been completed'
             . ($verdict ? ' with a verdict of <b>' . esc($verdict) . '</b>' : '')
-            . ($score ? ' and a condition score of <b>' . esc($score) . '/100</b>' : '') . '.</p>'
+            . ($score ? ' and a condition score of <b>' . esc($score) . '/100</b>' : '') . '.'
+            . ($pdfAttached ? ' The full PDF report is attached to this email.' : '') . '</p>'
             . '<p style="text-align:center;margin:26px 0">'
             . '<a href="' . esc($link) . '" style="background:#37b34a;color:#fff;text-decoration:none;padding:13px 26px;border-radius:9px;font-weight:bold;display:inline-block">View &amp; approve your report</a></p>'
             . '<p style="color:#888;font-size:12px;line-height:1.5">Or open this link:<br>' . esc($link) . '</p>'

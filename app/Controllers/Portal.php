@@ -137,6 +137,26 @@ class Portal extends BaseController
         return redirect()->to('portal/' . $uid)->with('error', 'Payment was not completed.');
     }
 
+    /** Client-facing PDF download — only available once the client has signed. */
+    public function pdf(string $uid)
+    {
+        $this->guard();
+
+        $report = model(InspectionModel::class)->assembleReport($uid);
+        $ins    = $report['inspection'] ?? null;
+        $signed = $report !== null && ($ins['status'] ?? '') === 'completed' && ! empty($ins['client_signed_at']);
+        if (! $signed) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $pdf = service('reportPdf')->build($report);
+
+        return $this->response
+            ->setHeader('Content-Type', 'application/pdf')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $pdf['filename'] . '"')
+            ->setBody($pdf['bytes']);
+    }
+
     public function submit(string $uid)
     {
         $this->guard();

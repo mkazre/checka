@@ -102,8 +102,12 @@
         <div class="row"><span class="k">Date</span><b><?= esc($ins['client_signed_at']) ?></b></div>
         <?php if (! empty($ins['client_note'])): ?><div class="row" style="border-bottom:none"><span class="k">Note</span><b style="max-width:60%;text-align:right"><?= esc($ins['client_note']) ?></b></div><?php endif; ?>
         <?php if (! empty($ins['client_signature'])): ?><div style="text-align:center;margin-top:12px"><img src="<?= esc($ins['client_signature']) ?>" alt="signature" style="height:70px"></div><?php endif; ?>
+        <a class="btn green" style="display:block;text-align:center;margin-top:16px;text-decoration:none" href="<?= site_url('portal/'.$uid.'/pdf') ?>">⬇ Download Full PDF Report</a>
       </div></div>
     <?php else: ?>
+      <div class="card"><div class="body">
+        <p class="sub" style="font-size:12.5px;color:#6b7682;margin:0">You'll be able to download the full PDF report once you've filled in your details and signed below.</p>
+      </div></div>
       <form method="post" action="<?= site_url('portal/'.$uid) ?>" id="pform">
         <?= csrf_field() ?>
         <input type="hidden" name="decision" id="decision" value="approved">

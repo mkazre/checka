@@ -72,7 +72,8 @@ class Reports extends BaseController
             ], static fn ($x) => $x !== null));
         }
 
-        $results = (new \App\Services\NotificationService())->sendReport($report, $email ?: null, $phone ?: null);
+        $attachPdf = $this->request->getPost('attach_pdf') ? true : false;
+        $results   = (new \App\Services\NotificationService())->sendReport($report, $email ?: null, $phone ?: null, $attachPdf);
 
         $sent   = array_keys(array_filter($results, static fn ($r) => $r['ok'] ?? false));
         $errors = array_map(static fn ($r) => $r['error'] ?? '', array_filter($results, static fn ($r) => ! ($r['ok'] ?? false)));
@@ -93,27 +94,11 @@ class Reports extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
-        $imgSvc     = new \App\Services\VehicleImageService();
-        $stockImage = $imgSvc->dataUri($imgSvc->imageFor($report['vehicle'] ?? []));
-
-        $html = view('reports/pdf', [
-            'report'     => $report,
-            'compute'    => service('intelligence')->compute($report),
-            'ratings'    => CHECKA_RATINGS,
-            'uploadDir'  => WRITEPATH . 'uploads/',
-            'stockImage' => $stockImage,
-            'quote'      => feature('quotes') ? (new \App\Services\QuoteService())->build($report) : null,
-        ]);
-
-        $v        = $report['vehicle'] ?? [];
-        $filename = 'Checka-Report-' . trim(($v['make'] ?? '') . '-' . ($v['model'] ?? '') . '-' . substr($uid, 0, 8), '-') . '.pdf';
-        $filename = preg_replace('/\s+/', '-', $filename);
-
-        $bytes = service('pdf')->toString($html, 'Checka Inspection Report');
+        $pdf = service('reportPdf')->build($report);
 
         return $this->response
             ->setHeader('Content-Type', 'application/pdf')
-            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
-            ->setBody($bytes);
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $pdf['filename'] . '"')
+            ->setBody($pdf['bytes']);
     }
 }

@@ -4,6 +4,7 @@ namespace Config;
 
 use App\Services\InspectionIntelligence;
 use App\Services\PdfService;
+use App\Services\ReportPdfService;
 use CodeIgniter\Config\BaseService;
 
 /**
@@ -40,5 +41,19 @@ class Services extends BaseService
         }
 
         return new PdfService();
+    }
+
+    /**
+     * Builds the inspection report PDF from an assembled report array.
+     * Shared by the admin download, the client-portal download, and the
+     * emailed attachment.
+     */
+    public static function reportPdf(bool $getShared = true): ReportPdfService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('reportPdf');
+        }
+
+        return new ReportPdfService();
     }
 }

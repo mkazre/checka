@@ -22,6 +22,7 @@ $routes->get('portal/(:segment)', 'Portal::show/$1');
 $routes->post('portal/(:segment)', 'Portal::submit/$1');
 $routes->get('portal/(:segment)/pay', 'Portal::pay/$1');
 $routes->get('portal/(:segment)/paid', 'Portal::paid/$1');
+$routes->get('portal/(:segment)/pdf', 'Portal::pdf/$1');
 
 // ---------------------------------------------------------------------
 // Dashboard / app — requires a logged-in session
