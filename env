@@ -36,12 +36,12 @@ encryption.key =
 # SESSION
 #--------------------------------------------------------------------
 session.driver = 'CodeIgniter\Session\Handlers\FileHandler'
-session.savePath = null
+# session.savePath left unset — defaults to WRITEPATH . 'session' from app/Config/Session.php
 
 #--------------------------------------------------------------------
 # SECURITY (CSRF)
 #--------------------------------------------------------------------
-security.csrfProtection = 'cookie'
+security.csrfProtection = 'session'
 security.tokenRandomize = true
 
 #--------------------------------------------------------------------
