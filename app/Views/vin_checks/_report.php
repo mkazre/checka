@@ -90,3 +90,12 @@ foreach ($data['stolenStatus'] ?? [] as $s) {
   <?php endforeach; ?>
 </div>
 <?php endif; ?>
+
+<?php foreach ((array) ($data['raw'] ?? []) as $providerLabel => $providerRaw): if (empty($providerRaw)) continue; ?>
+<div class="vcr-section">
+  <details>
+    <summary><h4 style="display:inline">Full data — <?= esc($providerLabel) ?></h4></summary>
+    <div style="margin-top:10px"><?= vin_render_raw($providerRaw) ?></div>
+  </details>
+</div>
+<?php endforeach; ?>

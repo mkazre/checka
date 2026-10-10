@@ -34,6 +34,25 @@ class VinService
      */
     public function decode(string $vin): array
     {
+        $full = $this->decodeFull($vin);
+        if (! $full['ok']) {
+            return $full;
+        }
+
+        return ['ok' => true, 'fields' => $full['fields'], 'provider' => 'NHTSA vPIC'];
+    }
+
+    /**
+     * Same lookup as decode(), but also returns every non-blank field vPIC
+     * gave back (90+ of them — plant info, drive type, airbags, GVWR class,
+     * engine config, etc.), not just the handful mapped to our vehicle form
+     * columns. Used by the VIN Check report, which wants to show everything
+     * available rather than just what auto-fills the vehicle form.
+     *
+     * @return array{ok: bool, fields?: array<string,string>, raw?: array<string,string>, error?: string}
+     */
+    public function decodeFull(string $vin): array
+    {
         $vin = strtoupper(trim($vin));
         if (strlen($vin) < 11) {
             return ['ok' => false, 'error' => 'A full VIN (17 characters) is needed to decode.'];
@@ -54,11 +73,12 @@ class VinService
                 return ['ok' => false, 'error' => 'Could not decode that VIN.'];
             }
 
+            $isBlank = static fn ($v) => trim((string) $v) === '' || trim((string) $v) === '0' || stripos((string) $v, 'not applicable') !== false;
+
             $fields = [];
             foreach (self::MAP as $src => $col) {
                 $val = trim((string) ($row[$src] ?? ''));
-                // vPIC returns "0"/"Not Applicable" for blanks — skip those.
-                if ($val === '' || $val === '0' || stripos($val, 'not applicable') !== false) {
+                if ($isBlank($val)) {
                     continue;
                 }
                 // Don't overwrite an already-mapped column (first hit wins, e.g. Series before Trim).
@@ -76,7 +96,16 @@ class VinService
                 return ['ok' => false, 'error' => 'VIN decoded but returned no usable fields.'];
             }
 
-            return ['ok' => true, 'fields' => $fields, 'provider' => 'NHTSA vPIC'];
+            // Every other non-blank vPIC field, for a "show everything available" view.
+            $raw = [];
+            foreach ($row as $k => $v) {
+                if ($k === 'ErrorCode' || $k === 'ErrorText' || $k === 'SuggestedVIN' || $isBlank($v)) {
+                    continue;
+                }
+                $raw[$k] = trim((string) $v);
+            }
+
+            return ['ok' => true, 'fields' => $fields, 'raw' => $raw];
         } catch (\Throwable $e) {
             log_message('error', 'VinService decode failed: ' . $e->getMessage());
 

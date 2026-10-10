@@ -23,6 +23,12 @@ $badgeFg = $stolenFlag ? '#b42318' : (! empty($data['accidentHistory']) ? '#9a65
   .line{font-size:9.5pt;margin:3px 0}
   ul.list{margin:3px 0 0;padding-left:16px;font-size:9pt}
   .note{font-size:8pt;color:#6b7682;margin-top:5px}
+  .vrr-block{margin:1px 0}
+  .vrr-row{padding:2px 0 2px 8px;border-left:1.5px solid #d6dce1;margin:2px 0}
+  .vrr-k{font-size:7pt;letter-spacing:.04em;text-transform:uppercase;color:#6b7682}
+  .vrr-v{font-size:8.5pt}
+  .vrr-nested{margin-left:10px}
+  .vrr-empty{color:#6b7682;font-style:italic}
 </style>
 
 <table width="100%"><tr>
@@ -90,4 +96,10 @@ $badgeFg = $stolenFlag ? '#b42318' : (! empty($data['accidentHistory']) ? '#9a65
 
 <h3 class="sec">Sources Checked</h3>
 <p class="line"><?= esc($row['providers_used'] ?: '—') ?></p>
-<p class="note">Report generated <?= esc(date('Y-m-d H:i', strtotime($row['created_at']))) ?> by Checka+ by WheelsTurn. Verify online: <?= esc($shareUrl) ?></p>
+
+<?php foreach ((array) ($data['raw'] ?? []) as $providerLabel => $providerRaw): if (empty($providerRaw)) continue; ?>
+<h3 class="sec">Full Data — <?= esc($providerLabel) ?></h3>
+<?= vin_render_raw($providerRaw) ?>
+<?php endforeach; ?>
+
+<p class="note" style="margin-top:10px">Report generated <?= esc(date('Y-m-d H:i', strtotime($row['created_at']))) ?> by Checka+ by WheelsTurn. Verify online: <?= esc($shareUrl) ?></p>

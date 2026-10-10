@@ -18,6 +18,16 @@
   .vcr-line{font-size:13.5px;margin:4px 0}
   .vcr-list{margin:4px 0 0;padding-left:18px;font-size:13px}
   .vcr-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
+  details > summary{cursor:pointer;list-style:none}
+  details > summary::-webkit-details-marker{display:none}
+  details > summary::before{content:'▸ ';color:var(--ink-3)}
+  details[open] > summary::before{content:'▾ '}
+  .vrr-block{margin:2px 0}
+  .vrr-row{padding:4px 0 4px 10px;border-left:2px solid var(--line);margin:3px 0}
+  .vrr-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+  .vrr-v{font-size:12.5px;margin-top:1px;word-break:break-word}
+  .vrr-nested{margin-left:12px}
+  .vrr-empty{color:var(--ink-3);font-style:italic}
 </style>
 <?= $this->endSection() ?>
 <?= $this->section('content') ?>

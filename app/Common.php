@@ -56,3 +56,52 @@ if (! function_exists('brand')) {
         }
     }
 }
+
+if (! function_exists('vin_render_raw')) {
+    /**
+     * Renders ANY nested array (a VIN provider's raw response, whatever
+     * shape it happens to be) as nested HTML definition lists — so the VIN
+     * Check report can show "everything this provider returned" without
+     * needing bespoke UI per field for every current and future provider.
+     * Keys are turned into readable labels (camelCase / snake_case → Title
+     * Case); purely numeric/list arrays are rendered as a series of blocks
+     * rather than a key label.
+     */
+    function vin_render_raw($value, int $depth = 0): string
+    {
+        if ($depth > 6) {
+            return '<i>(too deeply nested to display)</i>';
+        }
+
+        if (is_array($value)) {
+            if ($value === []) {
+                return '<span class="vrr-empty">—</span>';
+            }
+
+            $isList = array_is_list($value);
+            $html   = '<div class="vrr-block' . ($depth > 0 ? ' vrr-nested' : '') . '">';
+            foreach ($value as $k => $v) {
+                $label = $isList ? ('#' . ((int) $k + 1)) : vin_label_key((string) $k);
+                if (is_array($v)) {
+                    $html .= '<div class="vrr-row vrr-group"><div class="vrr-k">' . esc($label) . '</div>' . vin_render_raw($v, $depth + 1) . '</div>';
+                } else {
+                    $html .= '<div class="vrr-row"><div class="vrr-k">' . esc($label) . '</div><div class="vrr-v">' . esc((string) $v) . '</div></div>';
+                }
+            }
+
+            return $html . '</div>';
+        }
+
+        return '<span class="vrr-v">' . esc((string) $value) . '</span>';
+    }
+}
+
+if (! function_exists('vin_label_key')) {
+    /** "VehicleObtainedDate" / "vehicle_obtained_date" → "Vehicle Obtained Date". */
+    function vin_label_key(string $key): string
+    {
+        $spaced = preg_replace('/(?<!^)([A-Z][a-z])/', ' $1', str_replace('_', ' ', $key));
+
+        return trim(preg_replace('/\s+/', ' ', ucwords((string) $spaced)));
+    }
+}

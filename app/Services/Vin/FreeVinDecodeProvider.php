@@ -29,7 +29,7 @@ class FreeVinDecodeProvider implements VinProviderInterface
 
     public function fetch(string $vin): array
     {
-        $res = (new VinService())->decode($vin);
+        $res = (new VinService())->decodeFull($vin);
 
         if (! ($res['ok'] ?? false)) {
             return [
@@ -43,8 +43,11 @@ class FreeVinDecodeProvider implements VinProviderInterface
         return [
             'ok'       => true,
             'provider' => $this->label(),
+            // 'specs' drives the summary grid (the handful mapped to vehicle-form
+            // columns); 'raw' carries every other non-blank vPIC field for the
+            // "full provider data" section.
             'fields'   => ['specs' => $res['fields']],
-            'raw'      => $res['fields'],
+            'raw'      => $res['raw'] ?? $res['fields'],
         ];
     }
 }
