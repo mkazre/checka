@@ -13,7 +13,7 @@ class Settings extends BaseController
         'offline', 'vinDecode', 'clientPortal', 'quotes',
         'notifications', 'notifyEmail', 'notifyWhatsapp',
         'history', 'aiIntelligence', 'aiConclusion', 'aiPhotoAnalysis',
-        'annotation', 'analytics', 'whiteLabel', 'payments',
+        'annotation', 'analytics', 'whiteLabel', 'payments', 'vinCheck',
     ];
 
     public function index()
@@ -53,6 +53,21 @@ class Settings extends BaseController
                 'paystackPublic' => (string) setting('Pay.paystackPublic'),
                 'paystackSecret' => (string) setting('Pay.paystackSecret'),
                 'inspectionFee'  => (float) setting('Pay.inspectionFee'),
+            ],
+            'vinProviders' => [
+                'freeEnabled' => (bool) (setting('VinProviders.freeEnabled') ?? true),
+                'p1Enabled'   => (bool) setting('VinProviders.p1Enabled'),
+                'p1Label'     => (string) (setting('VinProviders.p1Label') ?: 'VinAudit'),
+                'p1ApiKey'    => (string) setting('VinProviders.p1ApiKey'),
+                'p1BaseUrl'   => (string) (setting('VinProviders.p1BaseUrl') ?: 'https://api.vinaudit.com/v2/vinhistory'),
+                'p2Enabled'   => (bool) setting('VinProviders.p2Enabled'),
+                'p2Label'     => (string) (setting('VinProviders.p2Label') ?: 'CarsXE'),
+                'p2ApiKey'    => (string) setting('VinProviders.p2ApiKey'),
+                'p2BaseUrl'   => (string) (setting('VinProviders.p2BaseUrl') ?: 'https://api.carsxe.com/history'),
+                'p3Enabled'   => (bool) setting('VinProviders.p3Enabled'),
+                'p3Label'     => (string) (setting('VinProviders.p3Label') ?: 'Didit NATIS (South Africa)'),
+                'p3ApiKey'    => (string) setting('VinProviders.p3ApiKey'),
+                'p3BaseUrl'   => (string) (setting('VinProviders.p3BaseUrl') ?: 'https://verification.didit.me/v3/database-validation/'),
             ],
             'ai'    => [
                 'provider'    => setting('Ai.provider') ?: 'claude',
@@ -113,6 +128,22 @@ class Settings extends BaseController
         setting()->set('Pay.inspectionFee', (float) $this->request->getPost('p_inspectionFee'));
         if (($psk = trim((string) $this->request->getPost('p_paystackSecret'))) !== '') {
             setting()->set('Pay.paystackSecret', $psk);
+        }
+
+        // VIN History Check providers. Secrets keep their stored value if left blank.
+        $vinDefaultLabels = ['p1' => 'VinAudit', 'p2' => 'CarsXE', 'p3' => 'Didit NATIS (South Africa)'];
+        setting()->set('VinProviders.freeEnabled', $this->request->getPost('vin_freeEnabled') ? true : false);
+        foreach (['p1', 'p2', 'p3'] as $slot) {
+            setting()->set("VinProviders.{$slot}Enabled", $this->request->getPost("vin_{$slot}Enabled") ? true : false);
+            setting()->set("VinProviders.{$slot}Label", trim((string) $this->request->getPost("vin_{$slot}Label")) ?: $vinDefaultLabels[$slot]);
+            $url = trim((string) $this->request->getPost("vin_{$slot}BaseUrl"));
+            if ($url !== '') {
+                setting()->set("VinProviders.{$slot}BaseUrl", $url);
+            }
+            $key = trim((string) $this->request->getPost("vin_{$slot}ApiKey"));
+            if ($key !== '') {
+                setting()->set("VinProviders.{$slot}ApiKey", $key);
+            }
         }
 
         setting()->set('Ai.provider', $this->request->getPost('provider') === 'openai' ? 'openai' : 'claude');

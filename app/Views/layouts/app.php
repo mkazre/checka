@@ -38,6 +38,7 @@
       <nav class="nav">
         <a href="<?= site_url('dashboard') ?>" class="<?= str_starts_with($uri,'dashboard')?'active':'' ?>">Dashboard</a>
         <a href="<?= site_url('vehicles') ?>" class="<?= str_starts_with($uri,'vehicles')?'active':'' ?>">Vehicles</a>
+        <?php if (feature('vinCheck')): ?><a href="<?= site_url('vin-checks') ?>" class="<?= str_starts_with($uri,'vin-check')?'active':'' ?>">VIN Checks</a><?php endif; ?>
         <?php if ($isAdmin): ?>
           <a href="<?= site_url('templates') ?>" class="<?= str_starts_with($uri,'templates')?'active':'' ?>">Templates</a>
           <a href="<?= site_url('users') ?>" class="<?= str_starts_with($uri,'users')?'active':'' ?>">Users</a>

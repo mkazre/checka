@@ -26,6 +26,7 @@
           ['annotation', 'Photo annotation', 'Draw arrows / circles / notes directly on damage photos.', 'Phase'],
           ['analytics', 'Analytics dashboard', 'Workshop KPIs — common failures, scores, productivity.', 'Phase'],
           ['whiteLabel', 'White-label & payments', 'Per-workshop branding and online payments.', 'Phase', ['payments' => 'Payments']],
+          ['vinCheck', 'VIN History Check', 'Run a VIN against free decode + paid accident/stolen/service providers, archive it, and share by PDF/email/QR.', 'Live'],
         ];
         foreach ($rows as $r):
           [$key, $title, $desc, $stage] = $r; $subs = $r[4] ?? [];
@@ -172,6 +173,49 @@
         <label class="fld"><span>Currency</span><input type="text" name="p_currency" value="<?= esc($pay['currency']) ?>" class="mono"></label>
         <label class="fld"><span>Flat inspection fee (0 = off)</span><input type="number" step="0.01" name="p_inspectionFee" value="<?= esc($pay['inspectionFee']) ?>"></label>
       </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-h"><h3>VIN History Check — data sources</h3></div>
+    <div class="card-b grid" style="gap:16px">
+      <p class="sub" style="font-size:11.5px;color:var(--ink-3);margin:0">
+        Used when the <b>VIN History Check</b> feature is on. The FREE source decodes VIN specs at no cost.
+        Each PAID slot is a named, swappable provider for history data the free source can't give you (accident,
+        stolen status, title/registry). Enable any combination — a check runs every enabled provider and merges
+        the results into one report. Leave a slot's key blank to keep it dormant.
+      </p>
+
+      <label style="display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600;border-top:1px solid var(--line);padding-top:12px">
+        <input type="checkbox" name="vin_freeEnabled" value="1" <?= $vinProviders['freeEnabled']?'checked':'' ?>>
+        FREE — NHTSA vPIC VIN decode
+      </label>
+      <p class="sub" style="font-size:11.5px;color:var(--ink-3);margin:-8px 0 0">
+        No key needed. Decodes make/model/year/body/engine. US registry — strong for globally-shared VIN patterns,
+        thinner for SA-only derivatives. Never returns accident/stolen/service history.
+      </p>
+
+      <?php
+        $slots = [
+          ['p1', 'p1Label', 'VinAudit — accident, theft, title/salvage (US NMVTIS-backed)'],
+          ['p2', 'p2Label', 'CarsXE — history events, theft, specs'],
+          ['p3', 'p3Label', 'Didit NATIS (South Africa) — registry match for SA VINs; not an accident/theft report'],
+        ];
+        foreach ($slots as [$slot, $labelKey, $hint]):
+      ?>
+        <div style="border-top:1px solid var(--line);padding-top:12px">
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600">
+            <input type="checkbox" name="vin_<?= $slot ?>Enabled" value="1" <?= $vinProviders["{$slot}Enabled"]?'checked':'' ?>>
+            PAID — <?= esc($vinProviders[$labelKey]) ?>
+          </label>
+          <p class="sub" style="font-size:11.5px;color:var(--ink-3);margin:4px 0 8px"><?= esc($hint) ?></p>
+          <div class="grid cols-2" style="gap:14px">
+            <label class="fld"><span>Display name</span><input type="text" name="vin_<?= $slot ?>Label" value="<?= esc($vinProviders[$labelKey]) ?>"></label>
+            <label class="fld"><span>API key</span><input type="password" name="vin_<?= $slot ?>ApiKey" autocomplete="off" placeholder="<?= $vinProviders["{$slot}ApiKey"] ? '•••••••• (leave blank to keep)' : 'paste key...' ?>"></label>
+            <label class="fld" style="grid-column:1/-1"><span>API base URL</span><input type="text" name="vin_<?= $slot ?>BaseUrl" value="<?= esc($vinProviders["{$slot}BaseUrl"]) ?>" class="mono"></label>
+          </div>
+        </div>
+      <?php endforeach; ?>
     </div>
   </div>
 

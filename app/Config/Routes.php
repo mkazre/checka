@@ -17,6 +17,9 @@ service('auth')->routes($routes);
 $routes->get('/', 'Home::index');
 $routes->get('verify/(:segment)', 'Verify::show/$1');
 
+// Public, read-only VIN Check share landing (QR code / emailed link) — feature: vinCheck
+$routes->get('vin-check/(:segment)', 'VinChecks::publicView/$1');
+
 // Public client approval portal (feature: clientPortal)
 $routes->get('portal/(:segment)', 'Portal::show/$1');
 $routes->post('portal/(:segment)', 'Portal::submit/$1');
@@ -62,6 +65,15 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('reports/(:segment)/pdf', 'Reports::pdf/$1');
     $routes->post('reports/(:segment)/send', 'Reports::send/$1');
     $routes->post('reports/(:segment)/ai-insights', 'Reports::aiInsights/$1');
+
+    // VIN History Checks (feature: vinCheck)
+    $routes->get('vin-checks', 'VinChecks::index');
+    $routes->get('vin-checks/new', 'VinChecks::new');
+    $routes->post('vin-checks', 'VinChecks::create');
+    $routes->get('vin-checks/(:segment)', 'VinChecks::view/$1');
+    $routes->get('vin-checks/(:segment)/pdf', 'VinChecks::pdf/$1');
+    $routes->post('vin-checks/(:segment)/send', 'VinChecks::send/$1');
+    $routes->post('vin-checks/(:segment)/delete', 'VinChecks::delete/$1');
 
     // Vehicles
     $routes->get('vehicles', 'Vehicles::index');

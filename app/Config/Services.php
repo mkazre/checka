@@ -5,6 +5,8 @@ namespace Config;
 use App\Services\InspectionIntelligence;
 use App\Services\PdfService;
 use App\Services\ReportPdfService;
+use App\Services\VinCheckService;
+use App\Services\VinReportPdfService;
 use CodeIgniter\Config\BaseService;
 
 /**
@@ -55,5 +57,31 @@ class Services extends BaseService
         }
 
         return new ReportPdfService();
+    }
+
+    /**
+     * Runs a VIN through every enabled provider (free + paid) and merges
+     * the results into one combined VIN History Check report.
+     */
+    public static function vinCheck(bool $getShared = true): VinCheckService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('vinCheck');
+        }
+
+        return new VinCheckService();
+    }
+
+    /**
+     * Builds the VIN History Check PDF from a saved report. Shared by the
+     * admin download and the emailed attachment.
+     */
+    public static function vinReportPdf(bool $getShared = true): VinReportPdfService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('vinReportPdf');
+        }
+
+        return new VinReportPdfService();
     }
 }

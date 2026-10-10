@@ -47,4 +47,7 @@ class Features extends BaseConfig
     /** 10 · White-label branding & payments. */
     public bool $whiteLabel = false;
     public bool $payments   = false;
+
+    /** 11 · VIN History Check — archived reports combining free decode + paid accident/stolen/service providers. */
+    public bool $vinCheck = false;
 }

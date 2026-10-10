@@ -81,6 +81,9 @@
     AI Auto-fill
   </button>
   <?php endif; ?>
+  <?php if (feature('vinCheck') && ! empty($v['vin'])): ?>
+  <a class="btn ghost" href="<?= site_url('vin-checks/new?vehicle_id='.$v['id'].'&vin='.rawurlencode($v['vin'])) ?>">Run VIN Check</a>
+  <?php endif; ?>
   <a class="btn ghost" href="<?= site_url('vehicles/scan') ?>">Scan Disc</a>
   <?php if ($inspection): ?><a class="btn ghost" href="<?= site_url('reports/'.$inspection['report_uid']) ?>">Latest Report</a><?php endif; ?>
   <a class="btn" href="<?= site_url('inspections/new') ?>">New Inspection</a>
