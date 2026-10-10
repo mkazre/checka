@@ -3,13 +3,19 @@
 namespace App\Services\Vin;
 
 /**
- * Paid slot 2 — CarsXE (carsxe.com). Vehicle history + specs API: title
- * checks, theft records, event history. Self-serve API key from their site.
+ * Paid slot 2 — CarsXE (carsxe.com). GET https://api.carsxe.com/history
+ * with `key` + `vin` query params. Confirmed live against their real
+ * endpoint: it returns raw NMVTIS (US title registry) data — there is no
+ * simple "stolen: true/false" field, theft is inferred from brand/title
+ * records whose code or description mentions theft. Top-level keys:
+ * junkAndSalvageInformation, insuranceInformation, brandsInformation,
+ * currentTitleInformation, HistoricTitleAbstract, historyInformation,
+ * plus success/vin/vinChanged. An error or "no record for this VIN"
+ * response looks like {"success":false,"message":"..."}.
  *
- * As with VinAuditProvider, the exact field names below are a best-effort
- * mapping of their documented history endpoint (key + vin query params).
- * Verify against CarsXE's current docs when you wire up a real key; the raw
- * response is always kept on the report even if a field name has moved.
+ * Because it's NMVTIS-backed, it only has data for US-titled vehicles —
+ * a South African VIN will typically come back as "no record found",
+ * which is not an error, just no US history to report.
  */
 class CarsXeProvider extends AbstractHttpProvider implements VinProviderInterface
 {
@@ -27,7 +33,7 @@ class CarsXeProvider extends AbstractHttpProvider implements VinProviderInterfac
 
     public function capabilities(): array
     {
-        return ['accidentHistory', 'stolenStatus', 'specs'];
+        return ['accidentHistory', 'stolenStatus', 'titleStatus'];
     }
 
     public function fetch(string $vin): array
@@ -43,38 +49,84 @@ class CarsXeProvider extends AbstractHttpProvider implements VinProviderInterfac
         if ($res === null) {
             return ['ok' => false, 'provider' => $this->label(), 'fields' => [], 'error' => 'CarsXE is unreachable right now.'];
         }
-        if ($res['status'] >= 300 || ! is_array($res['json'])) {
+
+        $json = $res['json'];
+
+        // CarsXE answers both real errors and "nothing on file for this VIN"
+        // with {success:false, message:...} — HTTP status alone can't tell
+        // those apart (401 = bad key, 404 commonly = no US history record).
+        if (is_array($json) && ($json['success'] ?? null) === false) {
+            $msg = (string) ($json['message'] ?? 'No response message.');
+            if ($res['status'] === 404 || stripos($msg, 'not found') !== false || stripos($msg, 'no record') !== false) {
+                return [
+                    'ok'       => true,
+                    'provider' => $this->label(),
+                    'fields'   => ['stolenStatus' => 'No US title/history record found for this VIN (CarsXE is NMVTIS-backed — US vehicles only).'],
+                    'raw'      => $json,
+                ];
+            }
+
+            return ['ok' => false, 'provider' => $this->label(), 'fields' => [], 'error' => 'CarsXE: ' . $msg, 'raw' => $json];
+        }
+
+        if ($res['status'] >= 300 || ! is_array($json)) {
             return ['ok' => false, 'provider' => $this->label(), 'fields' => [], 'error' => 'CarsXE returned an error (HTTP ' . $res['status'] . ').', 'raw' => $res['body']];
         }
 
         return [
             'ok'       => true,
             'provider' => $this->label(),
-            'fields'   => $this->extractFields($res['json']),
-            'raw'      => $res['json'],
+            'fields'   => $this->extractFields($json),
+            'raw'      => $json,
         ];
     }
 
     private function extractFields(array $data): array
     {
-        $out  = [];
-        $body = $data['data'] ?? $data['result'] ?? $data;
+        $out = [];
 
-        $events = $body['history'] ?? $body['events'] ?? [];
-        if (! empty($events)) {
+        // Salvage/junk + insurance total-loss records are the closest thing
+        // NMVTIS gives to "damage/accident" history — individual at-fault
+        // collision claims aren't part of this data set.
+        $events = [];
+        foreach ((array) ($data['junkAndSalvageInformation'] ?? []) as $r) {
+            $events[] = [
+                'date'        => $r['VehicleObtainedDate'] ?? null,
+                'description' => trim('Junk/salvage — ' . ($r['ReportingEntityAbstract']['EntityName'] ?? '') . ' (' . ($r['VehicleDispositionText'] ?? '') . ')'),
+            ];
+        }
+        foreach ((array) ($data['insuranceInformation'] ?? []) as $r) {
+            $events[] = [
+                'date'        => $r['VehicleObtainedDate'] ?? ($r['Date'] ?? null),
+                'description' => trim('Insurance total-loss record — ' . ($r['ReportingEntityAbstract']['EntityName'] ?? $r['EntityName'] ?? '')),
+            ];
+        }
+        if ($events !== []) {
             $out['accidentHistory'] = $events;
         }
 
-        if (array_key_exists('theft', $body) || array_key_exists('stolen', $body)) {
-            $flag                = $body['theft'] ?? $body['stolen'];
-            $out['stolenStatus'] = (is_array($flag) ? ! empty($flag) : (bool) $flag)
-                ? 'Reported stolen on record'
-                : 'No theft records found';
+        // Theft is a brand code/description on title-brand records, not a flag.
+        $stolen = false;
+        $brandNotes = [];
+        foreach ((array) ($data['brandsInformation'] ?? []) as $b) {
+            $text = ($b['VehicleBrandCode'] ?? '') . ' ' . ($b['description'] ?? '');
+            if (stripos($text, 'theft') !== false || stripos($text, 'stolen') !== false) {
+                $stolen = true;
+                $brandNotes[] = trim($b['VehicleBrandCode'] ?? $b['description'] ?? '');
+            }
+        }
+        if (! empty($data['brandsInformation'])) {
+            $out['stolenStatus'] = $stolen
+                ? ('Theft-related title brand on record: ' . implode(', ', array_unique($brandNotes)))
+                : 'No theft-related title brand found';
         }
 
-        $specs = $body['specifications'] ?? $body['specs'] ?? null;
-        if (is_array($specs)) {
-            $out['specs'] = $specs;
+        $titleBits = [];
+        foreach ((array) ($data['currentTitleInformation'] ?? []) as $t) {
+            $titleBits[] = trim(($t['TitleIssuingAuthorityName'] ?? '') . ' — ' . ($t['TitleIssueDate'] ?? ''), ' —');
+        }
+        if ($titleBits !== []) {
+            $out['titleStatus'] = implode('; ', array_filter($titleBits));
         }
 
         return $out;
