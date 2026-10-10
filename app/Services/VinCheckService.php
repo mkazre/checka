@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\Vin\CarsXeProvider;
+use App\Services\Vin\CarVerticalProvider;
 use App\Services\Vin\DiditZaProvider;
 use App\Services\Vin\FreeVinDecodeProvider;
 use App\Services\Vin\MockProvider;
@@ -47,6 +48,13 @@ class VinCheckService
                 (string) setting('VinProviders.p3ApiKey'),
                 (string) (setting('VinProviders.p3BaseUrl') ?: 'https://verification.didit.me/v3/database-validation/'),
                 (string) (setting('VinProviders.p3Label') ?: 'Didit NATIS (South Africa)'),
+            );
+        }
+        if ((bool) setting('VinProviders.p4Enabled') && trim((string) setting('VinProviders.p4ApiKey')) !== '') {
+            $providers[] = new CarVerticalProvider(
+                (string) setting('VinProviders.p4ApiKey'),
+                (string) (setting('VinProviders.p4BaseUrl') ?: 'https://api.carvertical.com/v2/report'),
+                (string) (setting('VinProviders.p4Label') ?: 'carVertical'),
             );
         }
         if ((bool) setting('VinProviders.mockEnabled')) {

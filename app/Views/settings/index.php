@@ -200,6 +200,7 @@
           ['p1', 'p1Label', 'VinAudit — accident, theft, title/salvage (US NMVTIS-backed)'],
           ['p2', 'p2Label', 'CarsXE — history events, theft, specs'],
           ['p3', 'p3Label', 'Didit NATIS (South Africa) — registry match for SA VINs; not an accident/theft report'],
+          ['p4', 'p4Label', 'carVertical — accident/damage, odometer fraud, theft (strong EU coverage; sales-gated signup via carvertical.com/business/api)'],
         ];
         foreach ($slots as [$slot, $labelKey, $hint]):
       ?>

@@ -68,6 +68,10 @@ class Settings extends BaseController
                 'p3Label'     => (string) (setting('VinProviders.p3Label') ?: 'Didit NATIS (South Africa)'),
                 'p3ApiKey'    => (string) setting('VinProviders.p3ApiKey'),
                 'p3BaseUrl'   => (string) (setting('VinProviders.p3BaseUrl') ?: 'https://verification.didit.me/v3/database-validation/'),
+                'p4Enabled'   => (bool) setting('VinProviders.p4Enabled'),
+                'p4Label'     => (string) (setting('VinProviders.p4Label') ?: 'carVertical'),
+                'p4ApiKey'    => (string) setting('VinProviders.p4ApiKey'),
+                'p4BaseUrl'   => (string) (setting('VinProviders.p4BaseUrl') ?: 'https://api.carvertical.com/v2/report'),
                 'mockEnabled' => (bool) setting('VinProviders.mockEnabled'),
             ],
             'ai'    => [
@@ -132,9 +136,9 @@ class Settings extends BaseController
         }
 
         // VIN History Check providers. Secrets keep their stored value if left blank.
-        $vinDefaultLabels = ['p1' => 'VinAudit', 'p2' => 'CarsXE', 'p3' => 'Didit NATIS (South Africa)'];
+        $vinDefaultLabels = ['p1' => 'VinAudit', 'p2' => 'CarsXE', 'p3' => 'Didit NATIS (South Africa)', 'p4' => 'carVertical'];
         setting()->set('VinProviders.freeEnabled', $this->request->getPost('vin_freeEnabled') ? true : false);
-        foreach (['p1', 'p2', 'p3'] as $slot) {
+        foreach (['p1', 'p2', 'p3', 'p4'] as $slot) {
             setting()->set("VinProviders.{$slot}Enabled", $this->request->getPost("vin_{$slot}Enabled") ? true : false);
             setting()->set("VinProviders.{$slot}Label", trim((string) $this->request->getPost("vin_{$slot}Label")) ?: $vinDefaultLabels[$slot]);
             $url = trim((string) $this->request->getPost("vin_{$slot}BaseUrl"));

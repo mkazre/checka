@@ -66,6 +66,19 @@ class VinProviders extends BaseConfig
     public string $p3BaseUrl = 'https://verification.didit.me/v3/database-validation/';
 
     /**
+     * Paid slot 4 — carVertical (carvertical.com). Strong international
+     * coverage (Europe-heavy): accident/damage records, odometer fraud
+     * detection, theft flags. Sales-gated — no public self-serve signup;
+     * contact their business/API team for a key and their actual endpoint
+     * contract, then update app/Services/Vin/CarVerticalProvider.php to
+     * match it.
+     */
+    public bool   $p4Enabled = false;
+    public string $p4Label   = 'carVertical';
+    public string $p4ApiKey  = '';
+    public string $p4BaseUrl = 'https://api.carvertical.com/v2/report';
+
+    /**
      * Dev/testing only — fabricated accident/stolen/title data, no API key,
      * no network call. Lets the full report/PDF/email/QR flow be exercised
      * before a real paid provider key is available. Every field it returns
