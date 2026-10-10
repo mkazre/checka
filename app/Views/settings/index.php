@@ -216,6 +216,17 @@
           </div>
         </div>
       <?php endforeach; ?>
+
+      <div style="border-top:1px solid var(--line);padding-top:12px;background:#fdf3e2;margin:0 -18px -16px;padding:12px 18px 16px;border-radius:0 0 10px 10px">
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600">
+          <input type="checkbox" name="vin_mockEnabled" value="1" <?= $vinProviders['mockEnabled']?'checked':'' ?>>
+          DEV TEST — Mock provider (fabricated data, no key needed)
+        </label>
+        <p class="sub" style="font-size:11.5px;color:#9a6513;margin:4px 0 0">
+          Returns fake accident/stolen/title data (clearly labelled "(mock)") so you can test the full report/PDF/email/QR flow
+          before a real paid provider key is set up. Turn this off once a real provider is wired up.
+        </p>
+      </div>
     </div>
   </div>
 

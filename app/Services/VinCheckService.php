@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Services\Vin\CarsXeProvider;
 use App\Services\Vin\DiditZaProvider;
 use App\Services\Vin\FreeVinDecodeProvider;
+use App\Services\Vin\MockProvider;
 use App\Services\Vin\VinAuditProvider;
 use App\Services\Vin\VinProviderInterface;
 
@@ -47,6 +48,9 @@ class VinCheckService
                 (string) (setting('VinProviders.p3BaseUrl') ?: 'https://verification.didit.me/v3/database-validation/'),
                 (string) (setting('VinProviders.p3Label') ?: 'Didit NATIS (South Africa)'),
             );
+        }
+        if ((bool) setting('VinProviders.mockEnabled')) {
+            $providers[] = new MockProvider();
         }
 
         return $providers;

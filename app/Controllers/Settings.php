@@ -68,6 +68,7 @@ class Settings extends BaseController
                 'p3Label'     => (string) (setting('VinProviders.p3Label') ?: 'Didit NATIS (South Africa)'),
                 'p3ApiKey'    => (string) setting('VinProviders.p3ApiKey'),
                 'p3BaseUrl'   => (string) (setting('VinProviders.p3BaseUrl') ?: 'https://verification.didit.me/v3/database-validation/'),
+                'mockEnabled' => (bool) setting('VinProviders.mockEnabled'),
             ],
             'ai'    => [
                 'provider'    => setting('Ai.provider') ?: 'claude',
@@ -145,6 +146,8 @@ class Settings extends BaseController
                 setting()->set("VinProviders.{$slot}ApiKey", $key);
             }
         }
+
+        setting()->set('VinProviders.mockEnabled', $this->request->getPost('vin_mockEnabled') ? true : false);
 
         setting()->set('Ai.provider', $this->request->getPost('provider') === 'openai' ? 'openai' : 'claude');
         setting()->set('Ai.enabled', $this->request->getPost('enabled') ? true : false);

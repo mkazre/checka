@@ -64,4 +64,13 @@ class VinProviders extends BaseConfig
     public string $p3Label   = 'Didit NATIS (South Africa)';
     public string $p3ApiKey  = '';
     public string $p3BaseUrl = 'https://verification.didit.me/v3/database-validation/';
+
+    /**
+     * Dev/testing only — fabricated accident/stolen/title data, no API key,
+     * no network call. Lets the full report/PDF/email/QR flow be exercised
+     * before a real paid provider key is available. Every field it returns
+     * is labelled "(mock)". Off by default; turn it off again once a real
+     * paid provider is wired up so demo data can't reach a real report.
+     */
+    public bool $mockEnabled = false;
 }
