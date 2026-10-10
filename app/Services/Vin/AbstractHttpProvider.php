@@ -26,9 +26,14 @@ abstract class AbstractHttpProvider
     {
         try {
             $client = Services::curlrequest([
-                'timeout'     => 25,
-                'http_errors' => false,
-                'headers'     => array_merge(['User-Agent' => 'CheckaInspections/1.0'], $options['headers'] ?? []),
+                'timeout'         => 25,
+                'http_errors'     => false,
+                // CodeIgniter's CURLRequest does NOT follow redirects unless told to —
+                // without this, a provider's 301/302 (e.g. canonicalizing http->https
+                // or a trailing slash) comes straight back as an "error" instead of
+                // being followed to the real response.
+                'allow_redirects' => ['max' => 5, 'strict' => false, 'referer' => false, 'protocols' => ['http', 'https']],
+                'headers'         => array_merge(['User-Agent' => 'CheckaInspections/1.0'], $options['headers'] ?? []),
             ]);
 
             $res = strtoupper($method) === 'POST'
