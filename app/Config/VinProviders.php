@@ -33,6 +33,15 @@ class VinProviders extends BaseConfig
     public bool $freeEnabled = true;
 
     /**
+     * Free, unlimited, South-Africa-specific: this install's own past
+     * Checka inspections for the VIN (dates, inspector findings, severity,
+     * photos). No key, no external call — it's the platform's own data.
+     * The practical "build your own" SA vehicle history source: it grows
+     * automatically as more inspections are recorded. On by default.
+     */
+    public bool $chekaHistoryEnabled = true;
+
+    /**
      * Paid slot 1 — VinAudit (vinaudit.com). US NMVTIS-backed: title/salvage
      * status, reported theft, accident/damage records, odometer history.
      * Strong for US-market VINs; verify SA coverage before relying on it.

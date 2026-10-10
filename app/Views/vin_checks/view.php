@@ -18,6 +18,22 @@
   .vcr-line{font-size:13.5px;margin:4px 0}
   .vcr-list{margin:4px 0 0;padding-left:18px;font-size:13px}
   .vcr-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
+  .vcr-src{color:var(--ink-3);font-size:11.5px;font-weight:normal}
+  .vcr-summary .vcr-line{margin:6px 0}
+  .vcr-timeline{display:flex;flex-direction:column;gap:2px}
+  .vcr-tl-item{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+  .vcr-tl-item:first-child{border-top:none;padding-top:2px}
+  .vcr-tl-date{width:92px;flex:none;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);padding-top:2px}
+  .vcr-tl-body{flex:1;border-left:3px solid var(--line);padding-left:14px}
+  .vcr-tl-accident .vcr-tl-body{border-left-color:#b42318}
+  .vcr-tl-service .vcr-tl-body{border-left-color:#2f6fb0}
+  .vcr-tl-title{font-weight:600;font-size:13.5px}
+  .vcr-tl-detail{font-size:12.5px;color:var(--ink-2);margin-top:4px;white-space:pre-line}
+  .vcr-tl-src{font-size:11px;color:var(--ink-3);margin-top:6px}
+  .vcr-tl-src a{color:inherit}
+  .vcr-tl-photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .vcr-tl-photos img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+  .vcr-tl-photos-note{font-size:11px;color:var(--ink-3);margin-top:6px;font-style:italic}
   details > summary{cursor:pointer;list-style:none}
   details > summary::-webkit-details-marker{display:none}
   details > summary::before{content:'▸ ';color:var(--ink-3)}

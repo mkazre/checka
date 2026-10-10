@@ -6,8 +6,9 @@ foreach ($data['stolenStatus'] ?? [] as $s) {
         $stolenFlag = true;
     }
 }
-$badgeBg = $stolenFlag ? '#fbeae8' : (! empty($data['accidentHistory']) ? '#fdf3e2' : '#e4f6ea');
-$badgeFg = $stolenFlag ? '#b42318' : (! empty($data['accidentHistory']) ? '#9a6513' : '#0f5f2e');
+$badgeBg  = $stolenFlag ? '#fbeae8' : (! empty($data['accidentHistory']) ? '#fdf3e2' : '#e4f6ea');
+$badgeFg  = $stolenFlag ? '#b42318' : (! empty($data['accidentHistory']) ? '#9a6513' : '#0f5f2e');
+$timeline = service('vinCheck')->timeline($data);
 ?>
 <style>
   body{font-family:sans-serif;font-size:9.5pt;color:#12171d}
@@ -23,6 +24,13 @@ $badgeFg = $stolenFlag ? '#b42318' : (! empty($data['accidentHistory']) ? '#9a65
   .line{font-size:9.5pt;margin:3px 0}
   ul.list{margin:3px 0 0;padding-left:16px;font-size:9pt}
   .note{font-size:8pt;color:#6b7682;margin-top:5px}
+  table.tl{width:100%;border-collapse:collapse;margin-top:4px}
+  table.tl td{border-bottom:1px solid #eef1f3;padding:6px 4px;vertical-align:top}
+  table.tl .tl-date{width:16%;font-size:8pt;color:#6b7682}
+  table.tl .tl-title{font-weight:bold;font-size:9pt}
+  table.tl .tl-detail{font-size:8.5pt;color:#3d4753;margin-top:2px}
+  table.tl .tl-src{font-size:7.5pt;color:#6b7682;margin-top:2px}
+  table.tl .tl-photos img{width:46px;height:46px;margin:2px 3px 0 0;border:1px solid #d6dce1}
   .vrr-block{margin:1px 0}
   .vrr-row{padding:2px 0 2px 8px;border-left:1.5px solid #d6dce1;margin:2px 0}
   .vrr-k{font-size:7pt;letter-spacing:.04em;text-transform:uppercase;color:#6b7682}
@@ -50,6 +58,45 @@ $badgeFg = $stolenFlag ? '#b42318' : (! empty($data['accidentHistory']) ? '#9a65
   </td>
 </tr></table>
 
+<?php if (! empty($data['stolenStatus']) || ! empty($data['titleStatus']) || ! empty($data['registryMatch'])): ?>
+<h3 class="sec">Status Summary</h3>
+<?php foreach ($data['stolenStatus'] as $s): ?>
+  <p class="line"><b>Theft/title brand</b> — <?= esc($s['status']) ?> (<?= esc($s['provider']) ?>)</p>
+<?php endforeach; ?>
+<?php foreach ($data['titleStatus'] as $s): ?>
+  <p class="line"><b>Title</b> — <?= esc($s['status']) ?> (<?= esc($s['provider']) ?>)</p>
+<?php endforeach; ?>
+<?php foreach ($data['registryMatch'] as $m): ?>
+  <p class="line"><b>SA Registry (NATIS)</b> — <?= esc(is_array($m['data']) ? ($m['data']['status'] ?? json_encode($m['data'])) : (string) $m['data']) ?> (<?= esc($m['provider']) ?>)</p>
+<?php endforeach; ?>
+<?php if (! empty($data['registryMatch'])): ?>
+  <p class="note">A registry match confirms this VIN is genuine and registered — it is not an accident or stolen-vehicle history check.</p>
+<?php endif; ?>
+<?php endif; ?>
+
+<?php if ($timeline !== []): ?>
+<h3 class="sec">Activity Timeline</h3>
+<table class="tl">
+  <?php foreach ($timeline as $t): ?>
+  <tr>
+    <td class="tl-date"><?= esc($t['date'] ? date('Y-m-d', strtotime($t['date'])) : 'Undated') ?></td>
+    <td>
+      <div class="tl-title"><?= esc($t['title']) ?></div>
+      <?php if ($t['detail'] !== ''): ?><div class="tl-detail"><?= nl2br(esc($t['detail'])) ?></div><?php endif; ?>
+      <div class="tl-src">Source: <?= esc($t['provider']) ?></div>
+      <?php if (! empty($t['photos'])): ?>
+        <div class="tl-photos">
+          <?php foreach ($t['photos'] as $p): if (! is_file($p['localThumb'] ?? '')) continue; ?>
+            <img src="<?= $p['localThumb'] ?>">
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </td>
+  </tr>
+  <?php endforeach; ?>
+</table>
+<?php endif; ?>
+
 <?php if (! empty($data['specs'])): ?>
 <h3 class="sec">Vehicle Specifications</h3>
 <table class="detail"><tr>
@@ -58,40 +105,6 @@ $badgeFg = $stolenFlag ? '#b42318' : (! empty($data['accidentHistory']) ? '#9a65
   <?php $i++; if ($i % 3 === 0): ?></tr><tr><?php endif; ?>
 <?php endforeach; ?>
 </tr></table>
-<?php endif; ?>
-
-<?php if (! empty($data['stolenStatus'])): ?>
-<h3 class="sec">Stolen / Theft Status</h3>
-<?php foreach ($data['stolenStatus'] as $s): ?>
-  <p class="line"><b><?= esc($s['provider']) ?>:</b> <?= esc($s['status']) ?></p>
-<?php endforeach; ?>
-<?php endif; ?>
-
-<?php if (! empty($data['accidentHistory'])): ?>
-<h3 class="sec">Accident History</h3>
-<?php foreach ($data['accidentHistory'] as $group): ?>
-  <p class="line"><b><?= esc($group['provider']) ?></b></p>
-  <ul class="list">
-    <?php foreach ((array) $group['events'] as $ev): ?>
-      <li><?= esc(is_array($ev) ? (($ev['date'] ?? '') . ' — ' . ($ev['description'] ?? $ev['type'] ?? json_encode($ev))) : (string) $ev) ?></li>
-    <?php endforeach; ?>
-  </ul>
-<?php endforeach; ?>
-<?php endif; ?>
-
-<?php if (! empty($data['titleStatus'])): ?>
-<h3 class="sec">Title Status</h3>
-<?php foreach ($data['titleStatus'] as $s): ?>
-  <p class="line"><b><?= esc($s['provider']) ?>:</b> <?= esc($s['status']) ?></p>
-<?php endforeach; ?>
-<?php endif; ?>
-
-<?php if (! empty($data['registryMatch'])): ?>
-<h3 class="sec">Registry Match (South Africa — NATIS)</h3>
-<?php foreach ($data['registryMatch'] as $m): ?>
-  <p class="line"><b><?= esc($m['provider']) ?>:</b> <?= esc(is_array($m['data']) ? ($m['data']['status'] ?? json_encode($m['data'])) : (string) $m['data']) ?></p>
-<?php endforeach; ?>
-<p class="note">A registry match confirms this VIN is genuine and registered — it is not an accident or stolen-vehicle history check.</p>
 <?php endif; ?>
 
 <h3 class="sec">Sources Checked</h3>

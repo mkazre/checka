@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Services\Vin\CarsXeProvider;
 use App\Services\Vin\CarVerticalProvider;
+use App\Services\Vin\ChekaHistoryProvider;
 use App\Services\Vin\DiditZaProvider;
 use App\Services\Vin\FreeVinDecodeProvider;
 use App\Services\Vin\MockProvider;
@@ -28,6 +29,9 @@ class VinCheckService
 
         if ((bool) setting('VinProviders.freeEnabled')) {
             $providers[] = new FreeVinDecodeProvider();
+        }
+        if ((bool) setting('VinProviders.chekaHistoryEnabled')) {
+            $providers[] = new ChekaHistoryProvider();
         }
         if ((bool) setting('VinProviders.p1Enabled') && trim((string) setting('VinProviders.p1ApiKey')) !== '') {
             $providers[] = new VinAuditProvider(
@@ -83,6 +87,7 @@ class VinCheckService
             'providersFailed'  => [],
             'specs'            => [],
             'accidentHistory'  => [],
+            'serviceHistory'   => [],
             'stolenStatus'     => [],
             'titleStatus'      => [],
             'registryMatch'    => [],
@@ -116,6 +121,9 @@ class VinCheckService
             if (! empty($fields['accidentHistory'])) {
                 $out['accidentHistory'][] = ['provider' => $provider->label(), 'events' => $fields['accidentHistory']];
             }
+            if (! empty($fields['serviceHistory'])) {
+                $out['serviceHistory'][] = ['provider' => $provider->label(), 'entries' => $fields['serviceHistory']];
+            }
             if (isset($fields['stolenStatus'])) {
                 $out['stolenStatus'][] = ['provider' => $provider->label(), 'status' => (string) $fields['stolenStatus']];
             }
@@ -143,7 +151,16 @@ class VinCheckService
         if (! empty($report['accidentHistory'])) {
             return 'Accident history on record';
         }
-        if (! empty($report['registryMatch']) || ! empty($report['stolenStatus']) || ! empty($report['titleStatus'])) {
+        foreach ($report['serviceHistory'] ?? [] as $group) {
+            foreach ($group['entries'] as $entry) {
+                foreach ($entry['findings'] ?? [] as $f) {
+                    if (($f['severity'] ?? '') === 'major') {
+                        return 'Major issues in Checka inspection history';
+                    }
+                }
+            }
+        }
+        if (! empty($report['registryMatch']) || ! empty($report['stolenStatus']) || ! empty($report['titleStatus']) || ! empty($report['serviceHistory'])) {
             return 'Clean — no adverse records found';
         }
         if (! empty($report['specs'])) {
@@ -151,5 +168,84 @@ class VinCheckService
         }
 
         return 'No data returned';
+    }
+
+    /**
+     * Merges every dated event (accident records from paid providers,
+     * Checka's own past inspections for this VIN) into one chronological
+     * list — the "Activity Timeline" the report leads with, instead of
+     * making the reader piece a story together from separate provider
+     * buckets.
+     *
+     * @return list<array{date:?string, type:string, title:string, detail:string, provider:string, photos:array}>
+     */
+    public function timeline(array $report): array
+    {
+        $items = [];
+
+        foreach ($report['accidentHistory'] ?? [] as $group) {
+            foreach ((array) $group['events'] as $ev) {
+                if (is_array($ev)) {
+                    $items[] = [
+                        'date'    => $ev['date'] ?? null,
+                        'type'    => 'accident',
+                        'title'   => 'Accident / damage record',
+                        'detail'  => (string) ($ev['description'] ?? $ev['type'] ?? ''),
+                        'provider' => $group['provider'],
+                        'photos'  => [],
+                    ];
+                } else {
+                    $items[] = ['date' => null, 'type' => 'accident', 'title' => 'Accident / damage record', 'detail' => (string) $ev, 'provider' => $group['provider'], 'photos' => []];
+                }
+            }
+        }
+
+        foreach ($report['serviceHistory'] ?? [] as $group) {
+            foreach ((array) $group['entries'] as $entry) {
+                $sevLabel = 'Inspected — no issues';
+                $worst    = null;
+                foreach ($entry['findings'] ?? [] as $f) {
+                    $rank = ['minor' => 1, 'lesser' => 2, 'major' => 3][$f['severity']] ?? 0;
+                    if ($worst === null || $rank > $worst['rank']) {
+                        $worst = ['rank' => $rank, 'severity' => $f['severity']];
+                    }
+                }
+                $count = count($entry['findings'] ?? []);
+                if ($count > 0) {
+                    $sevLabel = $count . ' issue' . ($count === 1 ? '' : 's') . ' found (worst: ' . ucfirst((string) ($worst['severity'] ?? '')) . ')';
+                }
+                $findingLines = array_map(
+                    static fn ($f) => '[' . ucfirst((string) $f['severity']) . '] ' . $f['name'] . ($f['comment'] ? ' — ' . $f['comment'] : ''),
+                    $entry['findings'] ?? [],
+                );
+
+                $items[] = [
+                    'date'     => $entry['date'],
+                    'type'     => 'service',
+                    'title'    => 'Checka inspection — ' . $sevLabel . ($entry['score'] !== null && $entry['score'] !== '' ? ' (score ' . $entry['score'] . '/100)' : ''),
+                    'detail'   => implode("\n", $findingLines),
+                    'provider' => $group['provider'],
+                    'photos'   => $entry['photos'] ?? [],
+                    'reportUid' => $entry['report_uid'] ?? null,
+                ];
+            }
+        }
+
+        usort($items, static function ($a, $b) {
+            // Dated items newest-first; undated items sink to the bottom.
+            if ($a['date'] === null && $b['date'] === null) {
+                return 0;
+            }
+            if ($a['date'] === null) {
+                return 1;
+            }
+            if ($b['date'] === null) {
+                return -1;
+            }
+
+            return strcmp((string) $b['date'], (string) $a['date']);
+        });
+
+        return $items;
     }
 }

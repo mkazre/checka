@@ -63,31 +63,44 @@ class VinChecks extends BaseController
             return redirect()->back()->withInput()->with('error', 'Enter a full VIN (17 characters) to run a check.');
         }
 
-        $data = Services::vinCheck()->run($vin);
-        if (! $data['ok']) {
-            $errs = array_map(static fn ($f) => $f['provider'] . ': ' . $f['error'], $data['providersFailed']);
+        // Several providers run synchronously, one after another — on
+        // shared hosting the default execution time limit can be too tight
+        // for that plus saving the report, which previously surfaced as a
+        // generic "something went wrong" page even though the check itself
+        // had actually completed.
+        @set_time_limit(90);
 
-            return redirect()->back()->withInput()->with('error', 'No provider returned data. ' . implode(' ', $errs));
+        try {
+            $data = Services::vinCheck()->run($vin);
+            if (! $data['ok']) {
+                $errs = array_map(static fn ($f) => $f['provider'] . ': ' . $f['error'], $data['providersFailed']);
+
+                return redirect()->back()->withInput()->with('error', 'No provider returned data. ' . implode(' ', $errs));
+            }
+
+            $vehicleId = (int) $this->request->getPost('vehicle_id') ?: null;
+            $uid       = bin2hex(random_bytes(10));
+
+            model(VinReportModel::class)->insert([
+                'report_uid'       => $uid,
+                'vin'              => $vin,
+                'vehicle_id'       => $vehicleId,
+                'requested_by'     => auth()->id(),
+                'headline'         => Services::vinCheck()->headline($data),
+                'make'             => $data['specs']['make'] ?? null,
+                'model'            => $data['specs']['model'] ?? null,
+                'year'             => $data['specs']['year'] ?? null,
+                'providers_used'   => implode(', ', $data['providersUsed']),
+                'providers_failed' => json_encode($data['providersFailed']),
+                'data_json'        => json_encode($data),
+            ], true);
+
+            return redirect()->to('vin-checks/' . $uid);
+        } catch (\Throwable $e) {
+            log_message('error', 'VIN check create() failed: ' . $e->getMessage());
+
+            return redirect()->back()->withInput()->with('error', 'The check could not be completed — please try again. If this keeps happening, check writable/logs for details.');
         }
-
-        $vehicleId = (int) $this->request->getPost('vehicle_id') ?: null;
-        $uid       = bin2hex(random_bytes(10));
-
-        model(VinReportModel::class)->insert([
-            'report_uid'       => $uid,
-            'vin'              => $vin,
-            'vehicle_id'       => $vehicleId,
-            'requested_by'     => auth()->id(),
-            'headline'         => Services::vinCheck()->headline($data),
-            'make'             => $data['specs']['make'] ?? null,
-            'model'            => $data['specs']['model'] ?? null,
-            'year'             => $data['specs']['year'] ?? null,
-            'providers_used'   => implode(', ', $data['providersUsed']),
-            'providers_failed' => json_encode($data['providersFailed']),
-            'data_json'        => json_encode($data),
-        ], true);
-
-        return redirect()->to('vin-checks/' . $uid);
     }
 
     /** Full report view (logged-in). */
@@ -100,10 +113,11 @@ class VinChecks extends BaseController
         }
 
         return view('vin_checks/view', [
-            'title'    => 'VIN Check — ' . $row['vin'],
-            'row'      => $row,
-            'data'     => model(VinReportModel::class)->payload($row),
-            'shareUrl' => site_url('vin-check/' . $uid),
+            'title'      => 'VIN Check — ' . $row['vin'],
+            'row'        => $row,
+            'data'       => model(VinReportModel::class)->payload($row),
+            'shareUrl'   => site_url('vin-check/' . $uid),
+            'showPhotos' => true,
         ]);
     }
 
@@ -116,9 +130,10 @@ class VinChecks extends BaseController
         }
 
         return view('vin_checks/share', [
-            'title' => 'VIN Check — ' . $row['vin'],
-            'row'   => $row,
-            'data'  => model(VinReportModel::class)->payload($row),
+            'title'      => 'VIN Check — ' . $row['vin'],
+            'row'        => $row,
+            'data'       => model(VinReportModel::class)->payload($row),
+            'showPhotos' => false,
         ]);
     }
 

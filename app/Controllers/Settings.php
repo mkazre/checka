@@ -56,6 +56,7 @@ class Settings extends BaseController
             ],
             'vinProviders' => [
                 'freeEnabled' => (bool) (setting('VinProviders.freeEnabled') ?? true),
+                'chekaHistoryEnabled' => (bool) (setting('VinProviders.chekaHistoryEnabled') ?? true),
                 'p1Enabled'   => (bool) setting('VinProviders.p1Enabled'),
                 'p1Label'     => (string) (setting('VinProviders.p1Label') ?: 'VinAudit'),
                 'p1ApiKey'    => (string) setting('VinProviders.p1ApiKey'),
@@ -138,6 +139,7 @@ class Settings extends BaseController
         // VIN History Check providers. Secrets keep their stored value if left blank.
         $vinDefaultLabels = ['p1' => 'VinAudit', 'p2' => 'CarsXE', 'p3' => 'Didit NATIS (South Africa)', 'p4' => 'carVertical'];
         setting()->set('VinProviders.freeEnabled', $this->request->getPost('vin_freeEnabled') ? true : false);
+        setting()->set('VinProviders.chekaHistoryEnabled', $this->request->getPost('vin_chekaHistoryEnabled') ? true : false);
         foreach (['p1', 'p2', 'p3', 'p4'] as $slot) {
             setting()->set("VinProviders.{$slot}Enabled", $this->request->getPost("vin_{$slot}Enabled") ? true : false);
             setting()->set("VinProviders.{$slot}Label", trim((string) $this->request->getPost("vin_{$slot}Label")) ?: $vinDefaultLabels[$slot]);

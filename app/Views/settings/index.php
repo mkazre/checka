@@ -195,6 +195,16 @@
         thinner for SA-only derivatives. Never returns accident/stolen/service history.
       </p>
 
+      <label style="display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600;border-top:1px solid var(--line);padding-top:12px">
+        <input type="checkbox" name="vin_chekaHistoryEnabled" value="1" <?= $vinProviders['chekaHistoryEnabled']?'checked':'' ?>>
+        FREE — Checka's own inspection history for this VIN
+      </label>
+      <p class="sub" style="font-size:11.5px;color:var(--ink-3);margin:-8px 0 0">
+        No key, no external call, no rate limit — pulls every past completed inspection this install has ever
+        recorded for the VIN (dates, inspector findings with severity, photos). This is the real "own data source"
+        for South Africa: it costs nothing and gets more useful as more inspections are captured over time.
+      </p>
+
       <?php
         $slots = [
           ['p1', 'p1Label', 'VinAudit — accident, theft, title/salvage (US NMVTIS-backed)'],

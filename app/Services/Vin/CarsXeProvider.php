@@ -5,17 +5,23 @@ namespace App\Services\Vin;
 /**
  * Paid slot 2 — CarsXE (carsxe.com). GET https://api.carsxe.com/history
  * with `key` + `vin` query params. Confirmed live against their real
- * endpoint: it returns raw NMVTIS (US title registry) data — there is no
- * simple "stolen: true/false" field, theft is inferred from brand/title
- * records whose code or description mentions theft. Top-level keys:
- * junkAndSalvageInformation, insuranceInformation, brandsInformation,
- * currentTitleInformation, HistoricTitleAbstract, historyInformation,
- * plus success/vin/vinChanged. An error or "no record for this VIN"
- * response looks like {"success":false,"message":"..."}.
+ * endpoint. Response shape (verified, not guessed):
  *
- * Because it's NMVTIS-backed, it only has data for US-titled vehicles —
- * a South African VIN will typically come back as "no record found",
- * which is not an error, just no US history to report.
+ *  - junkAndSalvageInformation[], insuranceInformation[] — actual dated
+ *    events for this VIN (salvage/junk yard records, insurance total-loss
+ *    records). Closest thing NMVTIS gives to "damage/accident" history.
+ *  - currentTitleInformation[] (each with a nested HistoricTitleAbstract[])
+ *    — actual title records for this VIN: issuing state, date, odometer.
+ *  - brandsInformation[] — THIS IS NOT VEHICLE-SPECIFIC. It's the full
+ *    ~67-entry NMVTIS title-brand code glossary (code/name/description)
+ *    bundled into every response as a reference table. The ONLY entries
+ *    that actually apply to this VIN are the ones carrying an extra
+ *    nested `record` object (ReportingEntityAbstract, VehicleBrandCode,
+ *    VehicleBrandDate) — everything else in that array is noise and must
+ *    be filtered out, both from the summary and from the raw dump, or a
+ *    clean vehicle (with zero real brand events) looks like it has ~67
+ *    findings.
+ *  - success:false + message on error or "nothing on file for this VIN".
  */
 class CarsXeProvider extends AbstractHttpProvider implements VinProviderInterface
 {
@@ -77,8 +83,17 @@ class CarsXeProvider extends AbstractHttpProvider implements VinProviderInterfac
             'ok'       => true,
             'provider' => $this->label(),
             'fields'   => $this->extractFields($json),
-            'raw'      => $json,
+            // Strip the brand-code glossary noise out of what gets shown in
+            // the "full data" dump — keep only entries that actually apply
+            // to this VIN, same filter used by extractFields() below.
+            'raw'      => array_merge($json, ['brandsInformation' => $this->applicableBrands($json)]),
         ];
+    }
+
+    /** Only brandsInformation[] entries with a nested `record` — the rest is the static code glossary, not vehicle data. */
+    private function applicableBrands(array $data): array
+    {
+        return array_values(array_filter((array) ($data['brandsInformation'] ?? []), static fn ($b) => is_array($b) && isset($b['record'])));
     }
 
     private function extractFields(array $data): array
@@ -105,25 +120,35 @@ class CarsXeProvider extends AbstractHttpProvider implements VinProviderInterfac
             $out['accidentHistory'] = $events;
         }
 
-        // Theft is a brand code/description on title-brand records, not a flag.
-        $stolen = false;
-        $brandNotes = [];
-        foreach ((array) ($data['brandsInformation'] ?? []) as $b) {
-            $text = ($b['VehicleBrandCode'] ?? '') . ' ' . ($b['description'] ?? '');
+        // Real, vehicle-specific brand events only (see applicableBrands()).
+        $applicable = $this->applicableBrands($data);
+        $stolen     = false;
+        $brandLines = [];
+        foreach ($applicable as $b) {
+            $text = ($b['name'] ?? '') . ' ' . ($b['description'] ?? '');
             if (stripos($text, 'theft') !== false || stripos($text, 'stolen') !== false) {
                 $stolen = true;
-                $brandNotes[] = trim($b['VehicleBrandCode'] ?? $b['description'] ?? '');
             }
+            $date  = $b['record']['VehicleBrandDate']['Date'] ?? null;
+            $state = $b['record']['ReportingEntityAbstract']['EntityName'] ?? '';
+            $brandLines[] = trim(($b['name'] ?? 'Brand') . ($date ? ' (' . substr((string) $date, 0, 10) . ')' : '') . ($state ? ' — ' . $state : ''));
         }
-        if (! empty($data['brandsInformation'])) {
+        if ($applicable !== []) {
             $out['stolenStatus'] = $stolen
-                ? ('Theft-related title brand on record: ' . implode(', ', array_unique($brandNotes)))
-                : 'No theft-related title brand found';
+                ? ('Theft-related title brand on record: ' . implode(', ', $brandLines))
+                : ('Title brand(s) on record (not theft-related): ' . implode(', ', $brandLines));
+        } elseif (array_key_exists('brandsInformation', $data)) {
+            $out['stolenStatus'] = 'No title brands on record';
         }
 
         $titleBits = [];
         foreach ((array) ($data['currentTitleInformation'] ?? []) as $t) {
-            $titleBits[] = trim(($t['TitleIssuingAuthorityName'] ?? '') . ' — ' . ($t['TitleIssueDate'] ?? ''), ' —');
+            $odo = trim((string) ($t['VehicleOdometerReadingMeasure'] ?? ''), '0') ?: ($t['VehicleOdometerReadingMeasure'] ?? '');
+            $titleBits[] = trim(
+                ($t['TitleIssuingAuthorityName'] ?? '') . ' — ' . ($t['TitleIssueDate']['Date'] ?? '')
+                . ($odo !== '' ? ' — odometer ' . $odo . ' ' . ($t['VehicleOdometerReadingUnitCode'] ?? '') : ''),
+                ' —',
+            );
         }
         if ($titleBits !== []) {
             $out['titleStatus'] = implode('; ', array_filter($titleBits));
