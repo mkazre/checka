@@ -173,4 +173,41 @@ class Settings extends BaseController
 
         return redirect()->to('settings')->with('message', 'Settings saved.');
     }
+
+    /**
+     * Send a test email through the saved Notify.* settings — the same
+     * path invoices and statements use, including a small PDF attachment —
+     * and show the mail server's own reply if it fails.
+     */
+    public function testEmail()
+    {
+        $to = trim((string) $this->request->getPost('test_to'));
+        if (! filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->to('settings#email-test')->with('error', 'Enter a valid email address to send the test to.');
+        }
+
+        $attachments = [];
+        if ($this->request->getPost('test_attach')) {
+            try {
+                $attachments['Checka-test.pdf'] = service('pdf')->toString('<h2>Checka test attachment</h2><p>If you can open this, PDF attachments work.</p>', 'Test');
+            } catch (\Throwable $e) {
+                return redirect()->to('settings#email-test')->with('error', 'Could not build the test PDF: ' . $e->getMessage());
+            }
+        }
+
+        $html = \App\Services\Mailer::layout(
+            'Test email',
+            '<p>This is a test from ' . esc((string) billing('companyName')) . '. If you\'re reading it, invoice and statement emails will send too.</p>'
+            . '<p style="color:#7a7a7a;font-size:12px">Sent via ' . esc((string) (setting('Notify.protocol') ?: 'mail')) . ' at ' . date('Y-m-d H:i:s') . '</p>'
+        );
+        $res = (new \App\Services\Mailer())->send($to, 'Checka test email', $html, $attachments);
+
+        if ($res['ok']) {
+            return redirect()->to('settings#email-test')->with('message', 'Test email sent to ' . $to . ' — check the inbox (and spam folder).');
+        }
+
+        return redirect()->to('settings#email-test')
+            ->with('error', $res['error'])
+            ->with('mailDebug', $res['debug'] ?? '');
+    }
 }

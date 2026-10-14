@@ -250,6 +250,27 @@
   </p>
 </form>
 
+<div class="card" id="email-test" style="margin-top:22px">
+  <div class="card-h"><h3>Test email delivery</h3></div>
+  <div class="card-b">
+    <p class="sub" style="font-size:12.5px;color:var(--ink-3);margin:0 0 10px">
+      Sends through the <b>saved</b> Notifications settings above — the same way invoices and statements are sent. Save any changes first.
+    </p>
+    <form method="post" action="<?= site_url('settings/test-email') ?>" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <?= csrf_field() ?>
+      <input type="email" name="test_to" required placeholder="you@yourdomain.co.za" value="<?= esc((string) (auth()->user()->email ?? '')) ?>" style="flex:1;min-width:240px">
+      <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" name="test_attach" value="1" checked> Include a PDF attachment</label>
+      <button class="btn">Send test email</button>
+    </form>
+    <?php if ($dbg = session()->getFlashdata('mailDebug')): ?>
+      <details open style="margin-top:12px">
+        <summary style="cursor:pointer;font-weight:600;font-size:13px">Mail server conversation</summary>
+        <pre class="mono" style="white-space:pre-wrap;font-size:11.5px;background:#f4f5f6;border-radius:8px;padding:10px;margin-top:8px;max-height:320px;overflow:auto"><?= esc($dbg) ?></pre>
+      </details>
+    <?php endif; ?>
+  </div>
+</div>
+
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>

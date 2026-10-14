@@ -75,11 +75,42 @@ class Mailer
         }
         if (! $sent) {
             log_message('error', 'Mailer send failed: ' . $email->printDebugger(['headers']));
+            $debug  = $email->printDebugger([]);
+            $reason = self::serverReason($debug);
 
-            return ['ok' => false, 'error' => 'Email could not be sent (check the SMTP settings).'];
+            return [
+                'ok'     => false,
+                'error'  => 'Email could not be sent' . ($reason !== '' ? ' — the mail server said: ' . $reason : ' (check the SMTP settings).'),
+                'reason' => $reason,
+                // The SMTP conversation (server replies only — CodeIgniter doesn't log the credentials).
+                'debug'  => trim(html_entity_decode(strip_tags(str_replace(['<br>', '</pre>'], "\n", $debug)), ENT_QUOTES)),
+            ];
         }
 
         return ['ok' => true];
+    }
+
+    /**
+     * Pull the useful part out of CodeIgniter's debug output — the SMTP
+     * server's own error reply (e.g. "535 Authentication failed") or the
+     * library's connection error — so the person sending sees why, instead
+     * of a generic "check your settings".
+     */
+    public static function serverReason(string $debug): string
+    {
+        $text  = html_entity_decode(strip_tags(str_replace(['<br>', '<br />', '</pre>'], "\n", $debug)), ENT_QUOTES);
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $text)), static fn ($l) => $l !== ''));
+
+        $picked = [];
+        foreach ($lines as $l) {
+            // SMTP replies with a 4xx/5xx code, or connection/auth failures from the library.
+            if (preg_match('/\b[45]\d\d[\s-]/', $l) || preg_match('/unable to|failed|could not|refused|timed out|authenticat|certificate|ssl|tls/i', $l)) {
+                $picked[] = $l;
+            }
+        }
+        $picked = array_values(array_unique($picked));
+
+        return mb_substr(implode(' | ', array_slice($picked, -3)), 0, 400);
     }
 
     /**

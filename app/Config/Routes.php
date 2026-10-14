@@ -149,6 +149,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
 
         $routes->get('settings', 'Settings::index');
         $routes->post('settings', 'Settings::save');
+        $routes->post('settings/test-email', 'Settings::testEmail');
 
         $routes->get('analytics', 'Analytics::index');
 
