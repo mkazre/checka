@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Config\Services;
+use App\Libraries\CheckaEmail;
 
 /**
  * Outbound email using the SMTP/sendmail settings under Notify.*, with
@@ -30,18 +30,7 @@ class Mailer
             return ['ok' => false, 'error' => 'Invalid recipient email address.'];
         }
 
-        $email = Services::email(null, false);
-        $email->initialize([
-            'protocol'   => (string) (setting('Notify.protocol') ?: 'mail'),
-            'mailType'   => 'html',
-            'charset'    => 'UTF-8',
-            'wordWrap'   => true,
-            'SMTPHost'   => (string) setting('Notify.smtpHost'),
-            'SMTPUser'   => (string) setting('Notify.smtpUser'),
-            'SMTPPass'   => (string) setting('Notify.smtpPass'),
-            'SMTPPort'   => (int) (setting('Notify.smtpPort') ?: 587),
-            'SMTPCrypto' => (string) setting('Notify.smtpCrypto'),
-        ]);
+        $email = self::newEmail();
         $email->setFrom((string) setting('Notify.fromEmail'), (string) (billing('companyName') ?: setting('Notify.fromName')));
         $replyTo = trim((string) setting('Billing.companyEmail'));
         if ($replyTo !== '' && filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
@@ -88,6 +77,40 @@ class Mailer
         }
 
         return ['ok' => true];
+    }
+
+    /**
+     * A fresh email instance configured from Notify.*. Every outgoing
+     * email in the app (reports, invoices, statements, VIN checks) is
+     * built here so they all behave identically.
+     */
+    public static function newEmail(): CheckaEmail
+    {
+        $port   = (int) (setting('Notify.smtpPort') ?: 587);
+        $crypto = (string) setting('Notify.smtpCrypto');
+        // Port 465 is already encrypted from the first byte; adding STARTTLS
+        // ("TLS") on top of it breaks the handshake. 587 is the other way round.
+        if ($port === 465) {
+            $crypto = 'ssl';
+        } elseif ($port === 587 && $crypto === 'ssl') {
+            $crypto = 'tls';
+        }
+
+        $email = new CheckaEmail(config(\Config\Email::class));
+        $email->initialize([
+            'protocol'    => (string) (setting('Notify.protocol') ?: 'mail'),
+            'mailType'    => 'html',
+            'charset'     => 'UTF-8',
+            'wordWrap'    => true,
+            'SMTPHost'    => (string) setting('Notify.smtpHost'),
+            'SMTPUser'    => (string) setting('Notify.smtpUser'),
+            'SMTPPass'    => (string) setting('Notify.smtpPass'),
+            'SMTPPort'    => $port,
+            'SMTPCrypto'  => $crypto,
+            'SMTPTimeout' => 10,
+        ]);
+
+        return $email;
     }
 
     /**

@@ -174,18 +174,7 @@ class VinChecks extends BaseController
         $shareUrl = site_url('vin-check/' . $uid);
         $pdf      = Services::vinReportPdf()->build($row, model(VinReportModel::class)->payload($row));
 
-        $email = Services::email();
-        $email->initialize([
-            'protocol'   => (string) (setting('Notify.protocol') ?: 'mail'),
-            'mailType'   => 'html',
-            'charset'    => 'UTF-8',
-            'wordWrap'   => true,
-            'SMTPHost'   => (string) setting('Notify.smtpHost'),
-            'SMTPUser'   => (string) setting('Notify.smtpUser'),
-            'SMTPPass'   => (string) setting('Notify.smtpPass'),
-            'SMTPPort'   => (int) (setting('Notify.smtpPort') ?: 587),
-            'SMTPCrypto' => (string) setting('Notify.smtpCrypto'),
-        ]);
+        $email = \App\Services\Mailer::newEmail();
         $email->setFrom((string) setting('Notify.fromEmail'), (string) (setting('Notify.fromName') ?: 'CheckA+'));
         $email->setTo($to);
         $email->setSubject('VIN History Check — ' . $row['vin']);

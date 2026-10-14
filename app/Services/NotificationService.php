@@ -60,19 +60,7 @@ class NotificationService
             return ['ok' => false, 'error' => 'Email sender not configured in Settings.'];
         }
 
-        $email  = Services::email();
-        $config = [
-            'protocol'    => setting('Notify.protocol') ?: 'mail',
-            'mailType'    => 'html',
-            'charset'     => 'UTF-8',
-            'wordWrap'    => true,
-            'SMTPHost'    => (string) setting('Notify.smtpHost'),
-            'SMTPUser'    => (string) setting('Notify.smtpUser'),
-            'SMTPPass'    => (string) setting('Notify.smtpPass'),
-            'SMTPPort'    => (int) (setting('Notify.smtpPort') ?: 587),
-            'SMTPCrypto'  => (string) setting('Notify.smtpCrypto'),
-        ];
-        $email->initialize($config);
+        $email = Mailer::newEmail();
         $email->setFrom((string) setting('Notify.fromEmail'), (string) (setting('Notify.fromName') ?: 'CheckA+'));
         $email->setTo($to);
 
