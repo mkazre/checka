@@ -57,6 +57,45 @@ if (! function_exists('brand')) {
     }
 }
 
+if (! function_exists('money')) {
+    /** 1234.5 → "R 1 234.50" (symbol from Pay.currency; ZAR → R). */
+    function money($amount, bool $symbol = true): string
+    {
+        $n = number_format((float) $amount, 2, '.', ' ');
+        if (! $symbol) {
+            return $n;
+        }
+        $cur = strtoupper((string) (setting('Pay.currency') ?: 'ZAR'));
+        $sym = ['ZAR' => 'R', 'USD' => '$', 'EUR' => '€', 'GBP' => '£', 'NGN' => '₦', 'KES' => 'KSh', 'GHS' => 'GH₵'][$cur] ?? $cur;
+
+        return $sym . ' ' . $n;
+    }
+}
+
+if (! function_exists('billing')) {
+    /** Billing setting with the Config\Billing default as fallback: billing('bankName'). */
+    function billing(string $key)
+    {
+        $v = setting('Billing.' . $key);
+        if ($key === 'companyName' && trim((string) $v) === '') {
+            return brand('name');
+        }
+
+        return $v;
+    }
+}
+
+if (! function_exists('invoice_badge')) {
+    /** Status chip for an invoice row (Draft / Due / Overdue / Part paid / Paid / Void). */
+    function invoice_badge(array $inv): string
+    {
+        $s = \App\Models\InvoiceModel::isOverdue($inv) ? 'overdue' : $inv['status'];
+        $l = ['draft' => 'Draft', 'sent' => 'Due', 'partial' => 'Part paid', 'paid' => 'Paid', 'void' => 'Void', 'overdue' => 'Overdue'][$s] ?? $s;
+
+        return '<span class="badge-s s-' . esc($s, 'attr') . '">' . esc($l) . '</span>';
+    }
+}
+
 if (! function_exists('vin_render_raw')) {
     /**
      * Renders ANY nested array (a VIN provider's raw response, whatever

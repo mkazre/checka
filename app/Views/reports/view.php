@@ -298,18 +298,85 @@
   </div>
   <?php endif; ?>
 
-  <?php if (feature('notifications') && (feature('notifyEmail') || feature('notifyWhatsapp'))): $veh = $report['vehicle'] ?? []; ?>
-  <!-- Send to client (feature: notifications) -->
+  <?php
+    $client      = $report['client'] ?? null;
+    $billingOn   = feature('billing');
+    $completed   = $ins['status'] === 'completed';
+    $notifyOn    = feature('notifications') && (feature('notifyEmail') || feature('notifyWhatsapp'));
+  ?>
+  <?php if ($billingOn): ?>
+  <!-- Client & billing (feature: billing) -->
+  <div class="rsection">
+    <div class="rsection-head"><span class="idx">R</span><h3>Client &amp; Billing</h3></div>
+    <?php if ($client === null): ?>
+      <form method="post" action="<?= site_url('inspections/'.$uid.'/client') ?>" style="max-width:520px">
+        <?= csrf_field() ?>
+        <p class="sub" style="color:var(--major);font-size:13px;margin:0 0 8px;font-weight:600">This inspection isn't linked to a client yet — link one to invoice it.</p>
+        <?php $pre = model(\App\Models\ClientModel::class)->findByUid((string) service('request')->getGet('client')); ?>
+        <?= view('partials/client_picker', ['clients' => model(\App\Models\ClientModel::class)->search('', 5000), 'selectedId' => (int) ($pre['id'] ?? 0), 'returnTo' => 'reports/'.$uid], ['saveData' => false]) ?>
+        <button class="btn sm" style="margin-top:10px">Link client</button>
+      </form>
+    <?php else: ?>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+        <div style="min-width:220px">
+          <div class="sub" style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)">Client</div>
+          <a href="<?= site_url('clients/'.$client['uid']) ?>"><b><?= esc($client['name']) ?></b></a>
+          <div class="sub" style="font-size:12.5px;color:var(--ink-3)"><?= esc(trim(implode(' · ', array_filter([$client['contact_person'], $client['phone'], $client['email']])))) ?></div>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <?php if ($invoice): ?>
+            <div class="sub" style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)">Invoice</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <a class="mono" href="<?= site_url('invoices/'.$invoice['uid']) ?>"><b><?= esc($invoice['invoice_no']) ?></b></a>
+              <?= invoice_badge($invoice) ?>
+              <span><?= esc(money($invoice['total'])) ?></span>
+              <?php if (! in_array($invoice['status'], ['draft', 'paid'], true)): ?><span class="sub" style="color:var(--ink-3)">· <?= esc(money(\App\Models\InvoiceModel::balance($invoice))) ?> outstanding</span><?php endif; ?>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <a class="btn ghost sm" href="<?= site_url('invoices/'.$invoice['uid']) ?>">Open invoice</a>
+              <a class="btn ghost sm" target="_blank" href="<?= site_url('invoices/'.$invoice['uid'].'/pdf') ?>">Invoice PDF</a>
+            </div>
+          <?php elseif ($completed): ?>
+            <form method="post" action="<?= site_url('invoices/from-inspection/'.$uid) ?>" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+              <?= csrf_field() ?>
+              <label class="fld" style="flex:2;min-width:200px"><span>Charge description</span>
+                <input type="text" name="charge_description" value="<?= esc($ins['charge_description'] ?: setting('Billing.defaultChargeDescription')) ?>">
+              </label>
+              <label class="fld" style="flex:1;min-width:120px"><span>Amount<?= setting('Billing.vatRegistered') ? ' (excl. VAT)' : '' ?></span>
+                <input type="number" step="0.01" min="0" name="charge_amount" value="<?= esc(number_format((float) ($ins['charge_amount'] ?? setting('Billing.defaultInspectionFee')), 2, '.', '')) ?>">
+              </label>
+              <button class="btn">Generate invoice</button>
+            </form>
+          <?php else: ?>
+            <div class="sub" style="font-size:13px;color:var(--ink-3)">Charge: <b style="color:var(--ink)"><?= $ins['charge_amount'] !== null ? esc(money($ins['charge_amount'])) : 'not set' ?></b> — the invoice can be generated once the inspection is completed.</div>
+          <?php endif; ?>
+        </div>
+      </div>
+    <?php endif; ?>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($completed && ($notifyOn || ($billingOn && $client !== null))): $veh = $report['vehicle'] ?? []; $defEmail = $client ? \App\Models\ClientModel::invoiceEmail($client) : ($veh['client_email'] ?? ''); ?>
+  <!-- Send to client -->
   <div class="rsection">
     <div class="rsection-head"><span class="idx">✉</span><h3>Send to Client</h3></div>
-    <p class="sub" style="color:var(--ink-3);font-size:13px;margin:0 0 10px">Deliver the report link to the client<?= feature('notifyEmail')?' by email':'' ?><?= feature('notifyEmail')&&feature('notifyWhatsapp')?' or':'' ?><?= feature('notifyWhatsapp')?' by WhatsApp':'' ?>.</p>
+    <?php if ($billingOn && $client !== null): ?>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="sendInclude">
+        <?php if ($notifyOn): ?><label class="btn ghost sm" style="cursor:pointer"><input type="radio" name="include" value="report"> Report only</label><?php endif; ?>
+        <label class="btn ghost sm" style="cursor:pointer"><input type="radio" name="include" value="invoice"> Invoice only</label>
+        <label class="btn ghost sm" style="cursor:pointer"><input type="radio" name="include" value="both" checked> Report + Invoice</label>
+      </div>
+      <p class="sub" style="color:var(--ink-3);font-size:12.5px;margin:0 0 10px">Invoice emails include the invoice PDF, a Pay Now button and your bank details<?= $invoice ? '' : ' — the invoice is created from the inspection charge if it doesn\'t exist yet' ?>.</p>
+    <?php else: ?>
+      <p class="sub" style="color:var(--ink-3);font-size:13px;margin:0 0 10px">Deliver the report link to the client<?= feature('notifyEmail')?' by email':'' ?><?= feature('notifyEmail')&&feature('notifyWhatsapp')?' or':'' ?><?= feature('notifyWhatsapp')?' by WhatsApp':'' ?>.</p>
+    <?php endif; ?>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <?php if (feature('notifyEmail')): ?><input id="sendEmail" type="email" placeholder="client@email.com" value="<?= esc($veh['client_email'] ?? '') ?>" style="flex:1;min-width:200px;border:1px solid var(--line);border-radius:9px;padding:10px 12px"><?php endif; ?>
-      <?php if (feature('notifyWhatsapp')): ?><input id="sendPhone" type="text" placeholder="+27 82 000 0000" value="<?= esc($veh['client_phone'] ?? '') ?>" style="flex:1;min-width:170px;border:1px solid var(--line);border-radius:9px;padding:10px 12px"><?php endif; ?>
-      <button class="btn" id="sendBtn" type="button">Send report</button>
+      <?php if (feature('notifyEmail') || $billingOn): ?><input id="sendEmail" type="email" placeholder="client@email.com" value="<?= esc($defEmail) ?>" style="flex:1;min-width:200px;border:1px solid var(--line);border-radius:9px;padding:10px 12px"><?php endif; ?>
+      <?php if ($notifyOn && feature('notifyWhatsapp')): ?><input id="sendPhone" type="text" placeholder="+27 82 000 0000" value="<?= esc($client['phone'] ?? $veh['client_phone'] ?? '') ?>" style="flex:1;min-width:170px;border:1px solid var(--line);border-radius:9px;padding:10px 12px"><?php endif; ?>
+      <button class="btn" id="sendBtn" type="button">Send</button>
     </div>
-    <?php if (feature('notifyEmail')): ?>
-    <label style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);margin-top:10px">
+    <?php if ($notifyOn && feature('notifyEmail')): ?>
+    <label style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);margin-top:10px" id="attachRow">
       <input type="checkbox" id="sendAttachPdf" checked> Attach the full PDF report to the email
     </label>
     <?php endif; ?>
@@ -349,6 +416,7 @@
 
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
+<?php if (feature('billing') && empty($report['client'])): ?><script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script><?php endif; ?>
 <script>
   try { new QRCode(document.getElementById("qr"), {text:"<?= esc($report['verifyUrl'], 'js') ?>", width:104, height:104, colorDark:"#12171d", colorLight:"#fff"}); } catch(e){}
 
@@ -397,13 +465,20 @@
       const email = (document.getElementById('sendEmail')||{}).value || '';
       const phone = (document.getElementById('sendPhone')||{}).value || '';
       const attachPdf = (document.getElementById('sendAttachPdf')||{}).checked ? '1' : '';
+      const incEl = document.querySelector('#sendInclude input[name=include]:checked');
+      const include = incEl ? incEl.value : 'report';
+      if(include !== 'report' && !email){ msg.style.color='#b42318'; msg.textContent='Invoices are sent by email — enter an email address.'; return; }
       if(!email && !phone){ msg.style.color='#b42318'; msg.textContent='Enter an email or phone number.'; return; }
       btn.disabled=true; const orig=btn.textContent; btn.textContent='Sending…'; msg.textContent='';
       try{
-        const body = new URLSearchParams({ [CSRF_HEADER]:CSRF_HASH, email, phone, attach_pdf: attachPdf });
+        const body = new URLSearchParams({ [CSRF_HEADER]:CSRF_HASH, email, phone, attach_pdf: attachPdf, include });
         const res = await fetch(URL, { method:'POST', headers:{ [CSRF_HEADER]:CSRF_HASH }, body });
         const j = await res.json();
-        if(j.ok){ msg.style.color='#0f5f2e'; msg.textContent='Sent via '+(j.sent||[]).join(' & ')+(j.partial?(' — but: '+j.partial):' ✓'); }
+        if(j.ok){
+          msg.style.color='#0f5f2e';
+          msg.textContent='Sent via '+(j.sent||[]).join(' & ')+(j.partial?(' — but: '+j.partial):' ✓');
+          if(j.invoice){ const a=document.createElement('a'); a.href=j.invoice.url; a.textContent=' Open invoice '+j.invoice.no+' →'; msg.appendChild(a); }
+        }
         else { msg.style.color='#b42318'; msg.textContent=j.error||'Could not send.'; }
       }catch(e){ msg.style.color='#b42318'; msg.textContent='Request failed.'; }
       btn.disabled=false; btn.textContent=orig;

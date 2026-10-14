@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\ClientModel;
 use App\Models\InspectionModel;
 use App\Models\InspectionValueModel;
 use App\Models\PhotoModel;
@@ -16,23 +17,35 @@ class Inspections extends BaseController
         return redirect()->to('dashboard');
     }
 
-    /** Step 1: choose a template + vehicle. */
+    /** Step 1: choose the client, a template + vehicle, and the charge. */
     public function new()
     {
+        $preselect = null;
+        if ($cu = (string) $this->request->getGet('client')) {
+            $preselect = model(ClientModel::class)->findByUid($cu);
+        }
+
         return view('inspections/new', [
             'title'     => 'New Inspection',
             'templates' => model(TemplateModel::class)->where('is_active', 1)->findAll(),
             'vehicles'  => model(VehicleModel::class)->orderBy('created_at', 'DESC')->findAll(),
+            'clients'   => model(ClientModel::class)->search('', 5000),
+            'clientId'  => (int) (old('client_id') ?: ($preselect['id'] ?? 0)),
         ]);
     }
 
     /** Step 2: create the inspection + snapshot the template into value rows. */
     public function create()
     {
+        $client = model(ClientModel::class)->find((int) $this->request->getPost('client_id'));
+        if ($client === null) {
+            return redirect()->back()->withInput()->with('error', 'Choose the client this inspection is for. New client? Add them under Clients first.');
+        }
+
         $templateId = (int) $this->request->getPost('template_id');
         $template   = model(TemplateModel::class)->withTree($templateId);
         if ($template === null) {
-            return redirect()->back()->with('error', 'Please choose a valid template.');
+            return redirect()->back()->withInput()->with('error', 'Please choose a valid template.');
         }
 
         // Vehicle: either an existing one, or a new quick-capture.
@@ -51,12 +64,24 @@ class Inspections extends BaseController
             ], true);
         }
 
-        $uid = bin2hex(random_bytes(8));
+        // The report, portal and "send to client" all read the client from the
+        // vehicle record — keep it in step with whoever this inspection is for.
+        model(VehicleModel::class)->update($vehicleId, array_filter([
+            'client'       => $client['name'],
+            'client_email' => $client['email'] ?: null,
+            'client_phone' => $client['phone'] ?: null,
+        ], static fn ($v) => $v !== null));
+
+        $chargeRaw = trim((string) $this->request->getPost('charge_amount'));
+        $uid       = bin2hex(random_bytes(8));
 
         $inspectionId = model(InspectionModel::class)->insert([
             'report_uid'      => $uid,
             'template_id'     => $templateId,
             'vehicle_id'      => $vehicleId,
+            'client_id'       => (int) $client['id'],
+            'charge_description' => trim((string) $this->request->getPost('charge_description')) ?: null,
+            'charge_amount'   => $chargeRaw !== '' ? round(max(0, (float) $chargeRaw), 2) : null,
             'mechanic_id'     => auth()->id(),
             'status'          => 'draft',
             'inspection_date' => $this->request->getPost('inspection_date') ?: date('Y-m-d'),
@@ -424,6 +449,31 @@ class Inspections extends BaseController
         $this->recompute($uid);
 
         return redirect()->to('reports/' . $uid)->with('message', 'Inspection completed.');
+    }
+
+    /** Link (or change) the client on an existing inspection — for inspections made before Clients existed. */
+    public function setClient(string $uid)
+    {
+        $model      = model(InspectionModel::class);
+        $inspection = $model->findByUid($uid);
+        $client     = model(ClientModel::class)->find((int) $this->request->getPost('client_id'));
+        if ($inspection === null) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+        if ($client === null) {
+            return redirect()->back()->with('error', 'Choose a client.');
+        }
+
+        $model->update($inspection['id'], ['client_id' => $client['id']]);
+        if ($inspection['vehicle_id']) {
+            model(VehicleModel::class)->update($inspection['vehicle_id'], array_filter([
+                'client'       => $client['name'],
+                'client_email' => $client['email'] ?: null,
+                'client_phone' => $client['phone'] ?: null,
+            ], static fn ($v) => $v !== null));
+        }
+
+        return redirect()->to('reports/' . $uid)->with('message', 'Linked to ' . $client['name'] . '.');
     }
 
     public function delete(string $uid)

@@ -50,4 +50,7 @@ class Features extends BaseConfig
 
     /** 11 · VIN History Check — archived reports combining free decode + paid accident/stolen/service providers. */
     public bool $vinCheck = false;
+
+    /** 12 · Invoicing, payments, client statements & monthly statement runs. */
+    public bool $billing = false;
 }

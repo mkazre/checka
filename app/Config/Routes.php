@@ -20,6 +20,16 @@ $routes->get('verify/(:segment)', 'Verify::show/$1');
 // Public, read-only VIN Check share landing (QR code / emailed link) — feature: vinCheck
 $routes->get('vin-check/(:segment)', 'VinChecks::publicView/$1');
 
+// Public "Pay Now" pages linked from invoices/statements (feature: billing)
+$routes->get('pay/account/(:segment)', 'Pay::account/$1');
+$routes->get('pay/account/(:segment)/pdf', 'Pay::accountPdf/$1');
+$routes->get('pay/account/(:segment)/card', 'Pay::accountCard/$1');
+$routes->get('pay/account/(:segment)/done', 'Pay::accountDone/$1');
+$routes->get('pay/(:segment)', 'Pay::invoice/$1');
+$routes->get('pay/(:segment)/pdf', 'Pay::invoicePdf/$1');
+$routes->get('pay/(:segment)/card', 'Pay::invoiceCard/$1');
+$routes->get('pay/(:segment)/done', 'Pay::invoiceDone/$1');
+
 // Public client approval portal (feature: clientPortal)
 $routes->get('portal/(:segment)', 'Portal::show/$1');
 $routes->post('portal/(:segment)', 'Portal::submit/$1');
@@ -58,6 +68,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->post('photos/(:num)/annotate', 'Inspections::annotatePhoto/$1');
     $routes->post('photos/(:num)/delete', 'Inspections::deletePhoto/$1');
     $routes->post('inspections/(:segment)/complete', 'Inspections::complete/$1');
+    $routes->post('inspections/(:segment)/client', 'Inspections::setClient/$1');
     $routes->post('inspections/(:segment)/delete', 'Inspections::delete/$1');
 
     // Report view + PDF
@@ -65,6 +76,34 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('reports/(:segment)/pdf', 'Reports::pdf/$1');
     $routes->post('reports/(:segment)/send', 'Reports::send/$1');
     $routes->post('reports/(:segment)/ai-insights', 'Reports::aiInsights/$1');
+
+    // Clients
+    $routes->get('clients', 'Clients::index');
+    $routes->get('clients/new', 'Clients::new');
+    $routes->post('clients', 'Clients::create');
+    $routes->get('clients/(:segment)', 'Clients::show/$1');
+    $routes->get('clients/(:segment)/edit', 'Clients::edit/$1');
+    $routes->post('clients/(:segment)', 'Clients::update/$1');
+    $routes->get('clients/(:segment)/statement', 'Clients::statementPdf/$1');
+    $routes->post('clients/(:segment)/statement', 'Clients::statementSend/$1');
+
+    // Invoices & payments (feature: billing). Fixed paths before the (:segment) catch-alls.
+    $routes->get('invoices/settings', 'Invoices::settings', ['filter' => 'group:admin']);
+    $routes->post('invoices/settings', 'Invoices::saveSettings', ['filter' => 'group:admin']);
+    $routes->post('invoices/statements/run', 'Invoices::runStatements', ['filter' => 'group:admin']);
+    $routes->get('invoices', 'Invoices::index');
+    $routes->get('invoices/new', 'Invoices::new');
+    $routes->post('invoices', 'Invoices::create');
+    $routes->get('invoices/payments', 'Invoices::payments');
+    $routes->post('invoices/payments', 'Invoices::recordPayment');
+    $routes->post('invoices/from-inspection/(:segment)', 'Invoices::fromInspection/$1');
+    $routes->get('invoices/(:segment)', 'Invoices::show/$1');
+    $routes->get('invoices/(:segment)/edit', 'Invoices::edit/$1');
+    $routes->post('invoices/(:segment)', 'Invoices::update/$1');
+    $routes->get('invoices/(:segment)/pdf', 'Invoices::pdf/$1');
+    $routes->post('invoices/(:segment)/send', 'Invoices::send/$1');
+    $routes->post('invoices/(:segment)/issue', 'Invoices::issue/$1');
+    $routes->post('invoices/(:segment)/void', 'Invoices::void/$1');
 
     // VIN History Checks (feature: vinCheck)
     $routes->get('vin-checks', 'VinChecks::index');
@@ -112,6 +151,10 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
         $routes->post('settings', 'Settings::save');
 
         $routes->get('analytics', 'Analytics::index');
+
+        $routes->post('clients/(:segment)/delete', 'Clients::delete/$1');
+        $routes->post('invoices/(:segment)/delete', 'Invoices::delete/$1');
+        $routes->post('payments/(:num)/delete', 'Invoices::deletePayment/$1');
     });
 });
 

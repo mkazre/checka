@@ -85,6 +85,16 @@
   .pill.draft{color:var(--lesser);background:var(--lesser-bg);border-color:var(--lesser-line)}
   .pill.completed{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-line)}
 
+  /* invoice status badges */
+  .badge-s{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
+  .s-draft{color:#6b7682;border-color:#d6dce1;background:#f4f5f6}
+  .s-sent{color:#1f4e79;border-color:#bcd0e6;background:#e6eef6}
+  .s-partial{color:#b45309;border-color:#f1d2a8;background:#fbeee0}
+  .s-paid{color:#15803d;border-color:#b7e2c4;background:#e7f6ec}
+  .s-void{color:#6b7682;border-color:#d6dce1;background:#fff;text-decoration:line-through}
+  .s-overdue{color:#b42318;border-color:#f1bdb7;background:#fbeae8}
+  [x-cloak]{display:none!important}
+
   /* tables */
   table.tbl{width:100%;border-collapse:collapse}
   table.tbl th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:700;padding:10px 14px;border-bottom:1px solid var(--line)}

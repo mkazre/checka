@@ -37,7 +37,9 @@
     <div class="topnav" id="topnav">
       <nav class="nav">
         <a href="<?= site_url('dashboard') ?>" class="<?= str_starts_with($uri,'dashboard')?'active':'' ?>">Dashboard</a>
+        <a href="<?= site_url('clients') ?>" class="<?= str_starts_with($uri,'clients')?'active':'' ?>">Clients</a>
         <a href="<?= site_url('vehicles') ?>" class="<?= str_starts_with($uri,'vehicles')?'active':'' ?>">Vehicles</a>
+        <?php if (feature('billing')): ?><a href="<?= site_url('invoices') ?>" class="<?= str_starts_with($uri,'invoices')?'active':'' ?>">Invoices</a><?php endif; ?>
         <?php if (feature('vinCheck')): ?><a href="<?= site_url('vin-checks') ?>" class="<?= str_starts_with($uri,'vin-check')?'active':'' ?>">VIN Checks</a><?php endif; ?>
         <?php if ($isAdmin): ?>
           <a href="<?= site_url('templates') ?>" class="<?= str_starts_with($uri,'templates')?'active':'' ?>">Templates</a>

@@ -18,6 +18,7 @@ class InspectionModel extends Model
         'client_status', 'client_name', 'client_signature', 'client_note', 'client_signed_at',
         'ai_summary',
         'payment_status', 'payment_ref', 'payment_amount', 'paid_at',
+        'client_id', 'charge_description', 'charge_amount',
     ];
 
     /**
@@ -124,9 +125,14 @@ class InspectionModel extends Model
             $meta    = is_array($decoded) ? $decoded : [];
         }
 
+        $client = ! empty($inspection['client_id'])
+            ? model(ClientModel::class)->withDeleted()->find($inspection['client_id'])
+            : null;
+
         return [
             'inspection' => $inspection,
             'vehicle'    => $vehicle,
+            'client'     => $client,
             'meta'       => $meta,
             'sections'   => array_values($sections),
             'verifyUrl'  => site_url('verify/' . $inspection['report_uid']),
