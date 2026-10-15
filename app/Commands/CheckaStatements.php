@@ -36,9 +36,9 @@ class CheckaStatements extends BaseCommand
             return EXIT_SUCCESS;
         }
 
-        $dry    = CLI::getOption('dry-run') !== null || array_key_exists('dry-run', $params);
-        $force  = CLI::getOption('force') !== null || array_key_exists('force', $params);
-        $client = CLI::getOption('client');
+        $dry    = CheckaImportInspection::flag('dry-run');
+        $force  = CheckaImportInspection::flag('force');
+        $client = CheckaImportInspection::opt('client');
 
         $res = (new StatementRunner())->run($force, $client !== null ? (int) $client : null, $dry);
 
