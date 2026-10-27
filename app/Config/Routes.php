@@ -105,6 +105,26 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->post('invoices/(:segment)/issue', 'Invoices::issue/$1');
     $routes->post('invoices/(:segment)/void', 'Invoices::void/$1');
 
+    // Vendors & purchase orders (feature: purchasing). Fixed paths before (:segment).
+    $routes->get('vendors', 'Vendors::index');
+    $routes->get('vendors/new', 'Vendors::new');
+    $routes->post('vendors', 'Vendors::create');
+    $routes->get('vendors/(:segment)', 'Vendors::show/$1');
+    $routes->get('vendors/(:segment)/edit', 'Vendors::edit/$1');
+    $routes->post('vendors/(:segment)', 'Vendors::update/$1');
+    $routes->get('purchase-orders', 'PurchaseOrders::index');
+    $routes->get('purchase-orders/new', 'PurchaseOrders::new');
+    $routes->get('purchase-orders/summary', 'PurchaseOrders::summary');
+    $routes->post('purchase-orders', 'PurchaseOrders::create');
+    $routes->get('purchase-orders/(:segment)', 'PurchaseOrders::show/$1');
+    $routes->get('purchase-orders/(:segment)/edit', 'PurchaseOrders::edit/$1');
+    $routes->post('purchase-orders/(:segment)', 'PurchaseOrders::update/$1');
+    $routes->get('purchase-orders/(:segment)/pdf', 'PurchaseOrders::pdf/$1');
+    $routes->post('purchase-orders/(:segment)/send', 'PurchaseOrders::send/$1');
+    $routes->post('purchase-orders/(:segment)/status', 'PurchaseOrders::status/$1');
+    $routes->post('purchase-orders/(:segment)/clear-prices', 'PurchaseOrders::clearPrices/$1');
+    $routes->post('purchase-orders/(:segment)/toggle/(:segment)', 'PurchaseOrders::toggle/$1/$2');
+
     // VIN History Checks (feature: vinCheck)
     $routes->get('vin-checks', 'VinChecks::index');
     $routes->get('vin-checks/new', 'VinChecks::new');
@@ -156,6 +176,8 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
         $routes->post('clients/(:segment)/delete', 'Clients::delete/$1');
         $routes->post('invoices/(:segment)/delete', 'Invoices::delete/$1');
         $routes->post('payments/(:num)/delete', 'Invoices::deletePayment/$1');
+        $routes->post('vendors/(:segment)/delete', 'Vendors::delete/$1');
+        $routes->post('purchase-orders/(:segment)/delete', 'PurchaseOrders::delete/$1');
     });
 });
 

@@ -27,6 +27,7 @@
           ['analytics', 'Analytics dashboard', 'Workshop KPIs — common failures, scores, productivity.', 'Phase'],
           ['whiteLabel', 'White-label & payments', 'Per-workshop branding and online payments.', 'Phase', ['payments' => 'Payments']],
           ['billing', 'Invoicing, payments & statements', 'Bill clients for inspections, record payments, Pay Now links, client statements and monthly statement emails. Configure under Invoices → Billing Settings.', 'Live'],
+          ['purchasing', 'Vendors & purchase orders', 'Supplier register and purchase orders (optional pricing and vehicle details), with a date-range summary.', 'Live'],
           ['vinCheck', 'VIN History Check', 'Run a VIN against free decode + paid accident/stolen/service providers, archive it, and share by PDF/email/QR.', 'Live'],
         ];
         foreach ($rows as $r):

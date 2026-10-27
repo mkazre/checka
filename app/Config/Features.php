@@ -53,4 +53,7 @@ class Features extends BaseConfig
 
     /** 12 · Invoicing, payments, client statements & monthly statement runs. */
     public bool $billing = false;
+
+    /** 13 · Vendors (suppliers) and purchase orders. */
+    public bool $purchasing = false;
 }

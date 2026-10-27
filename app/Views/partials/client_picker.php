@@ -13,15 +13,17 @@
 $name     ??= 'client_id';
 $required ??= true;
 $returnTo ??= '';
+$noun     ??= 'client';
+$addUrl   ??= site_url('clients/new' . ($returnTo !== '' ? '?return=' . rawurlencode($returnTo) : ''));
 $pid  = 'cp' . bin2hex(random_bytes(3));
 $list = array_map(static fn ($c) => [
     'id'      => (int) $c['id'],
     'name'    => $c['name'],
-    'type'    => $c['type'],
-    'contact' => (string) $c['contact_person'],
-    'email'   => (string) $c['email'],
-    'phone'   => (string) $c['phone'],
-    'vat'     => (string) $c['vat_number'],
+    'type'    => (string) ($c['type'] ?? ''),
+    'contact' => (string) ($c['contact_person'] ?? ''),
+    'email'   => (string) ($c['email'] ?? ''),
+    'phone'   => (string) ($c['phone'] ?? ''),
+    'vat'     => (string) ($c['vat_number'] ?? ''),
 ], $clients);
 ?>
 <script type="application/json" id="<?= $pid ?>-data"><?= json_encode($list, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
@@ -31,27 +33,27 @@ $list = array_map(static fn ($c) => [
     <template x-if="selected">
       <span class="cp-sel">
         <b x-text="selected.name"></b>
-        <span class="cp-tag" x-text="selected.type === 'individual' ? 'Individual' : 'Business'"></span>
+        <span class="cp-tag" x-show="selected.type" x-text="selected.type === 'individual' ? 'Individual' : 'Business'"></span>
         <span class="cp-meta" x-text="[selected.contact, selected.phone, selected.email].filter(Boolean).join(' · ')"></span>
       </span>
     </template>
-    <template x-if="!selected"><span class="cp-ph">Search or scroll to choose a client…</span></template>
+    <template x-if="!selected"><span class="cp-ph">Search or scroll to choose a <?= esc($noun) ?>…</span></template>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
   </button>
-  <div class="cp-err" x-show="err" x-cloak>Choose a client — every inspection and invoice must belong to a client.</div>
+  <div class="cp-err" x-show="err" x-cloak>Choose a <?= esc($noun) ?> to continue.</div>
   <div class="cp-drop" x-show="open" x-cloak>
     <input x-ref="q" type="text" x-model="q" @input="hi=0" placeholder="Type a name, contact, email, phone or VAT no…"
            @keydown.arrow-down.prevent="move(1)" @keydown.arrow-up.prevent="move(-1)" @keydown.enter.prevent="filtered[hi] && pick(filtered[hi])">
     <div class="cp-list" x-ref="list">
       <template x-for="(c, i) in filtered" :key="c.id">
         <div class="cp-opt" :class="{active: i === hi, chosen: selected && selected.id === c.id}" @click="pick(c)" @mouseenter="hi = i">
-          <div><b x-text="c.name"></b> <span class="cp-tag" x-text="c.type === 'individual' ? 'Individual' : 'Business'"></span></div>
+          <div><b x-text="c.name"></b> <span class="cp-tag" x-show="c.type" x-text="c.type === 'individual' ? 'Individual' : 'Business'"></span></div>
           <div class="cp-meta" x-text="[c.contact, c.phone, c.email, c.vat ? 'VAT ' + c.vat : ''].filter(Boolean).join(' · ')"></div>
         </div>
       </template>
-      <div class="cp-empty" x-show="!filtered.length">No client matches “<span x-text="q"></span>”.</div>
+      <div class="cp-empty" x-show="!filtered.length">No <?= esc($noun) ?> matches “<span x-text="q"></span>”.</div>
     </div>
-    <a class="cp-add" href="<?= site_url('clients/new' . ($returnTo !== '' ? '?return=' . rawurlencode($returnTo) : '')) ?>">+ Add a new client</a>
+    <a class="cp-add" href="<?= esc($addUrl) ?>">+ Add a new <?= esc($noun) ?></a>
   </div>
 </div>
 

@@ -13,7 +13,7 @@ class Settings extends BaseController
         'offline', 'vinDecode', 'clientPortal', 'quotes',
         'notifications', 'notifyEmail', 'notifyWhatsapp',
         'history', 'aiIntelligence', 'aiConclusion', 'aiPhotoAnalysis',
-        'annotation', 'analytics', 'whiteLabel', 'payments', 'vinCheck', 'billing',
+        'annotation', 'analytics', 'whiteLabel', 'payments', 'vinCheck', 'billing', 'purchasing',
     ];
 
     public function index()
