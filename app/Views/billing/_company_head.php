@@ -5,9 +5,12 @@
  * @var array<string,string> $meta  label => value, printed top-right
  * @var string|null $stamp  optional status stamp text
  * @var string|null $stampColour
+ * @var string|null $logoFile  optional override (purchase orders pass po_logo('file'))
  */
-$brandRel = feature('whiteLabel') ? trim((string) setting('Brand.logoPath')) : '';
-$logoFile = $brandRel !== '' ? FCPATH . $brandRel : FCPATH . 'assets/img/logo.png';
+if (empty($logoFile)) {
+    $brandRel = feature('whiteLabel') ? trim((string) setting('Brand.logoPath')) : '';
+    $logoFile = $brandRel !== '' ? FCPATH . $brandRel : FCPATH . 'assets/img/logo.png';
+}
 $coLines  = array_filter([
     nl2br(esc((string) setting('Billing.companyAddress'))),
     trim(implode(' · ', array_filter([esc((string) setting('Billing.companyPhone')), esc((string) setting('Billing.companyEmail'))]))),
@@ -19,7 +22,7 @@ $coLines  = array_filter([
 ?>
 <table width="100%"><tr>
   <td width="55%" style="vertical-align:top">
-    <?php if (is_file($logoFile)): ?><img src="<?= $logoFile ?>" style="height:46px"><br><?php endif; ?>
+    <?php if (is_file($logoFile)): ?><img src="<?= $logoFile ?>" style="height:<?= (int) ($logoHeight ?? 46) ?>px"><br><?php endif; ?>
     <div class="co-name" style="margin-top:6px"><?= esc((string) billing('companyName')) ?></div>
     <div class="small muted" style="line-height:1.5"><?= implode('<br>', $coLines) ?></div>
   </td>

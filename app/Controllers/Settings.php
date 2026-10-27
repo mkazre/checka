@@ -127,6 +127,23 @@ class Settings extends BaseController
             setting()->set('Brand.logoPath', 'assets/img/' . $name);
         }
 
+        // Purchase-order-only logo (PNG/JPG/GIF — formats the PDF engine renders reliably).
+        $poLogo = $this->request->getFile('po_logo');
+        if ($poLogo !== null && $poLogo->isValid() && in_array(strtolower((string) $poLogo->getExtension()), ['png', 'jpg', 'jpeg', 'gif'], true)) {
+            foreach (glob(FCPATH . 'assets/img/po-logo.*') ?: [] as $old) {
+                @unlink($old);
+            }
+            $name = 'po-logo.' . strtolower($poLogo->getExtension());
+            $poLogo->move(FCPATH . 'assets/img', $name, true);
+            @chmod(FCPATH . 'assets/img/' . $name, 0644);
+            setting()->set('Purchasing.logoPath', 'assets/img/' . $name);
+        } elseif ($this->request->getPost('po_logo_remove')) {
+            foreach (glob(FCPATH . 'assets/img/po-logo.*') ?: [] as $old) {
+                @unlink($old);
+            }
+            setting()->set('Purchasing.logoPath', '');
+        }
+
         // Payments (Paystack). Secret keeps its stored value if left blank.
         setting()->set('Pay.provider', 'paystack');
         setting()->set('Pay.currency', trim((string) $this->request->getPost('p_currency')) ?: 'ZAR');

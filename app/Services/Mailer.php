@@ -141,7 +141,7 @@ class Mailer
      *
      * @param list<array{label:string,url:string}> $buttons
      */
-    public static function layout(string $heading, string $bodyHtml, array $buttons = [], string $footerHtml = ''): string
+    public static function layout(string $heading, string $bodyHtml, array $buttons = [], string $footerHtml = '', ?string $logoUrl = null): string
     {
         $primary = brand('primary');
         $btns    = '';
@@ -154,7 +154,7 @@ class Mailer
 
         return '<div style="background:#f4f5f6;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">'
             . '<div style="max-width:560px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e4e6;color:#2d2d2d">'
-            . '<div style="text-align:center;border-bottom:3px solid ' . $primary . ';padding:18px"><img src="' . esc(brand('logo')) . '" alt="' . esc(billing('companyName')) . '" style="height:46px"></div>'
+            . '<div style="text-align:center;border-bottom:3px solid ' . $primary . ';padding:18px"><img src="' . esc($logoUrl ?? brand('logo')) . '" alt="' . esc(billing('companyName')) . '" style="height:46px"></div>'
             . '<div style="padding:24px 24px 8px">'
             . '<h2 style="margin:0 0 10px;font-size:20px">' . esc($heading) . '</h2>'
             . '<div style="color:#4a4a4a;line-height:1.6;font-size:14px">' . $bodyHtml . '</div>'

@@ -164,7 +164,7 @@ class PurchaseOrders extends BaseController
             . '<p>Please find attached purchase order <b>' . esc($po['po_no']) . '</b>'
             . (trim((string) $po['description']) !== '' ? ' — ' . esc($po['description']) : '') . '.</p>'
             . '<p>Kindly quote <b>' . esc($po['po_no']) . '</b> on your invoice and delivery note.</p>';
-        $res = (new Mailer())->send($to, 'Purchase order ' . $po['po_no'] . ' from ' . billing('companyName'), Mailer::layout('Purchase order ' . $po['po_no'], $body), [$pdf['filename'] => $pdf['bytes']]);
+        $res = (new Mailer())->send($to, 'Purchase order ' . $po['po_no'] . ' from ' . billing('companyName'), Mailer::layout('Purchase order ' . $po['po_no'], $body, [], '', po_logo()), [$pdf['filename'] => $pdf['bytes']]);
 
         if ($res['ok']) {
             model(PurchaseOrderModel::class)->update($po['id'], ['sent_at' => date('Y-m-d H:i:s')] + ($po['status'] === 'draft' ? ['status' => 'sent'] : []));

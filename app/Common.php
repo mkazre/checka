@@ -85,6 +85,28 @@ if (! function_exists('billing')) {
     }
 }
 
+if (! function_exists('po_logo')) {
+    /**
+     * Logo for purchase orders only (Settings → Purchase order logo).
+     * 'url' for web pages/emails, 'file' for PDFs. Falls back to the
+     * system logo when no PO logo is uploaded.
+     */
+    function po_logo(string $as = 'url'): string
+    {
+        $rel = trim((string) setting('Purchasing.logoPath'));
+        if ($rel !== '' && is_file(FCPATH . $rel)) {
+            return $as === 'file' ? FCPATH . $rel : base_url($rel) . '?v=' . filemtime(FCPATH . $rel);
+        }
+        if ($as === 'file') {
+            $brandRel = feature('whiteLabel') ? trim((string) setting('Brand.logoPath')) : '';
+
+            return $brandRel !== '' ? FCPATH . $brandRel : FCPATH . 'assets/img/logo.png';
+        }
+
+        return brand('logo');
+    }
+}
+
 if (! function_exists('invoice_badge')) {
     /** Status chip for an invoice row (Draft / Due / Overdue / Part paid / Paid / Void). */
     function invoice_badge(array $inv): string

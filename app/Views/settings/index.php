@@ -165,6 +165,22 @@
     </div>
   </div>
 
+  <?php $poLogoSet = trim((string) setting('Purchasing.logoPath')) !== ''; ?>
+  <div class="card" style="margin-top:16px">
+    <div class="card-h"><h3>Purchase order logo</h3></div>
+    <div class="card-b grid" style="gap:12px">
+      <p class="sub" style="font-size:12px;color:var(--ink-3);margin:0">Used <b>only</b> on purchase orders — the PO page, PO PDFs, the PO summary and emails to vendors. The rest of the system keeps the logo above. PNG or JPG; a wide logo works best.</p>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <div style="border:1px solid var(--line);border-radius:9px;padding:10px 14px;background:#fff">
+          <img src="<?= esc(po_logo()) ?>" alt="PO logo" style="height:52px;display:block">
+        </div>
+        <span class="sub" style="font-size:12.5px;color:var(--ink-3)"><?= $poLogoSet ? 'Custom PO logo in use.' : 'No PO logo uploaded — POs currently use the system logo.' ?></span>
+      </div>
+      <label class="fld"><span><?= $poLogoSet ? 'Replace PO logo' : 'Upload PO logo' ?></span><input type="file" name="po_logo" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif"></label>
+      <?php if ($poLogoSet): ?><label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" name="po_logo_remove" value="1"> Remove the PO logo (go back to the system logo on POs)</label><?php endif; ?>
+    </div>
+  </div>
+
   <div class="card" style="margin-top:16px">
     <div class="card-h"><h3>Payments (Paystack)</h3></div>
     <div class="card-b grid" style="gap:14px">

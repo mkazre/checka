@@ -44,7 +44,7 @@
   <div class="paper">
     <div class="top">
       <div>
-        <img src="<?= esc(brand('logo')) ?>" alt="" style="height:40px"><br>
+        <img src="<?= esc(po_logo()) ?>" alt="" style="height:60px"><br>
         <b style="font-size:15px"><?= esc((string) billing('companyName')) ?></b>
         <div class="sub" style="font-size:12px;color:var(--ink-3);line-height:1.5"><?= nl2br(esc((string) setting('Billing.companyAddress'))) ?></div>
       </div>

@@ -5,6 +5,8 @@ $fmt = static fn ($d) => date('j M Y', strtotime($d));
 <?= view('billing/_pdf_styles', [], ['saveData' => false]) ?>
 <?= view('billing/_company_head', [
     'docTitle'    => 'PURCHASE SUMMARY',
+    'logoFile'    => po_logo('file'),
+    'logoHeight'  => 72,
     'meta'        => array_filter([
         'Period'  => $fmt($f['from']) . ' – ' . $fmt($f['to']),
         'Vendor'  => $vendor['name'] ?? 'All vendors',

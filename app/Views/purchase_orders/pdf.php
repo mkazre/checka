@@ -15,6 +15,8 @@ $stamp   = ['cancelled' => ['CANCELLED', '#b42318'], 'received' => ['RECEIVED', 
 
 <?= view('billing/_company_head', [
     'docTitle'    => 'PURCHASE ORDER',
+    'logoFile'    => po_logo('file'),
+    'logoHeight'  => 72,
     'meta'        => array_filter([
         'PO no'        => $po['po_no'],
         'Order date'   => date('j M Y', strtotime($po['order_date'])),
