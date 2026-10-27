@@ -45,8 +45,8 @@
     <div class="top">
       <div>
         <img src="<?= esc(po_logo()) ?>" alt="" style="height:60px"><br>
-        <b style="font-size:15px"><?= esc((string) billing('companyName')) ?></b>
-        <div class="sub" style="font-size:12px;color:var(--ink-3);line-height:1.5"><?= nl2br(esc((string) setting('Billing.companyAddress'))) ?></div>
+        <?php $pc = po_company(); ?><b style="font-size:15px"><?= esc($pc['name']) ?></b>
+        <div class="sub" style="font-size:12px;color:var(--ink-3);line-height:1.5"><?= nl2br(esc($pc['address'])) ?><?= $pc['phone'] !== '' || $pc['email'] !== '' ? '<br>' . esc(trim(implode(' · ', array_filter([$pc['phone'], $pc['email']])))) : '' ?><?= $pc['vatNo'] !== '' ? '<br>VAT ' . esc($pc['vatNo']) : '' ?></div>
       </div>
       <div>
         <div class="title">PURCHASE ORDER</div>

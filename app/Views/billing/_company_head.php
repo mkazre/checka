@@ -6,24 +6,33 @@
  * @var string|null $stamp  optional status stamp text
  * @var string|null $stampColour
  * @var string|null $logoFile  optional override (purchase orders pass po_logo('file'))
+ * @var array|null  $company   optional override (purchase orders pass po_company())
  */
 if (empty($logoFile)) {
     $brandRel = feature('whiteLabel') ? trim((string) setting('Brand.logoPath')) : '';
     $logoFile = $brandRel !== '' ? FCPATH . $brandRel : FCPATH . 'assets/img/logo.png';
 }
-$coLines  = array_filter([
-    nl2br(esc((string) setting('Billing.companyAddress'))),
-    trim(implode(' · ', array_filter([esc((string) setting('Billing.companyPhone')), esc((string) setting('Billing.companyEmail'))]))),
+$co = $company ?? [
+    'name'    => (string) billing('companyName'),
+    'address' => (string) setting('Billing.companyAddress'),
+    'phone'   => (string) setting('Billing.companyPhone'),
+    'email'   => (string) setting('Billing.companyEmail'),
+    'regNo'   => (string) setting('Billing.companyRegNo'),
+    'vatNo'   => (string) setting('Billing.companyVatNo'),
+];
+$coLines = array_filter([
+    nl2br(esc($co['address'])),
+    trim(implode(' · ', array_filter([esc($co['phone']), esc($co['email'])]))),
     trim(implode(' · ', array_filter([
-        setting('Billing.companyRegNo') ? 'Reg ' . esc((string) setting('Billing.companyRegNo')) : '',
-        setting('Billing.companyVatNo') ? 'VAT ' . esc((string) setting('Billing.companyVatNo')) : '',
+        $co['regNo'] !== '' ? 'Reg ' . esc($co['regNo']) : '',
+        $co['vatNo'] !== '' ? 'VAT ' . esc($co['vatNo']) : '',
     ]))),
 ]);
 ?>
 <table width="100%"><tr>
   <td width="55%" style="vertical-align:top">
     <?php if (is_file($logoFile)): ?><img src="<?= $logoFile ?>" style="height:<?= (int) ($logoHeight ?? 46) ?>px"><br><?php endif; ?>
-    <div class="co-name" style="margin-top:6px"><?= esc((string) billing('companyName')) ?></div>
+    <div class="co-name" style="margin-top:6px"><?= esc($co['name']) ?></div>
     <div class="small muted" style="line-height:1.5"><?= implode('<br>', $coLines) ?></div>
   </td>
   <td width="45%" style="vertical-align:top;text-align:right">

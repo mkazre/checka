@@ -21,7 +21,7 @@ class Mailer
      * @param array<string,string> $attachments filename => raw bytes
      * @return array{ok:bool,error?:string}
      */
-    public function send(string $to, string $subject, string $html, array $attachments = [], ?string $cc = null): array
+    public function send(string $to, string $subject, string $html, array $attachments = [], ?string $cc = null, ?array $company = null): array
     {
         if (! $this->configured()) {
             return ['ok' => false, 'error' => 'Email sender is not configured (Settings → Notifications).'];
@@ -31,8 +31,8 @@ class Mailer
         }
 
         $email = self::newEmail();
-        $email->setFrom((string) setting('Notify.fromEmail'), (string) (billing('companyName') ?: setting('Notify.fromName')));
-        $replyTo = trim((string) setting('Billing.companyEmail'));
+        $email->setFrom((string) setting('Notify.fromEmail'), (string) (($company['name'] ?? '') ?: billing('companyName') ?: setting('Notify.fromName')));
+        $replyTo = trim((string) (($company['email'] ?? '') ?: setting('Billing.companyEmail')));
         if ($replyTo !== '' && filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
             $email->setReplyTo($replyTo);
         }
@@ -141,9 +141,14 @@ class Mailer
      *
      * @param list<array{label:string,url:string}> $buttons
      */
-    public static function layout(string $heading, string $bodyHtml, array $buttons = [], string $footerHtml = '', ?string $logoUrl = null): string
+    public static function layout(string $heading, string $bodyHtml, array $buttons = [], string $footerHtml = '', ?string $logoUrl = null, ?array $company = null): string
     {
         $primary = brand('primary');
+        $co      = $company ?? [
+            'name'  => (string) billing('companyName'),
+            'phone' => trim((string) setting('Billing.companyPhone')),
+            'email' => trim((string) setting('Billing.companyEmail')),
+        ];
         $btns    = '';
         foreach ($buttons as $i => $b) {
             $style = $i === 0
@@ -154,7 +159,7 @@ class Mailer
 
         return '<div style="background:#f4f5f6;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">'
             . '<div style="max-width:560px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e4e6;color:#2d2d2d">'
-            . '<div style="text-align:center;border-bottom:3px solid ' . $primary . ';padding:18px"><img src="' . esc($logoUrl ?? brand('logo')) . '" alt="' . esc(billing('companyName')) . '" style="height:46px"></div>'
+            . '<div style="text-align:center;border-bottom:3px solid ' . $primary . ';padding:18px"><img src="' . esc($logoUrl ?? brand('logo')) . '" alt="' . esc($co['name']) . '" style="height:46px"></div>'
             . '<div style="padding:24px 24px 8px">'
             . '<h2 style="margin:0 0 10px;font-size:20px">' . esc($heading) . '</h2>'
             . '<div style="color:#4a4a4a;line-height:1.6;font-size:14px">' . $bodyHtml . '</div>'
@@ -162,9 +167,9 @@ class Mailer
             . '</div>'
             . ($footerHtml !== '' ? '<div style="padding:8px 24px 18px;color:#555;font-size:12.5px;line-height:1.55">' . $footerHtml . '</div>' : '')
             . '<div style="text-align:center;color:#9aa0a6;font-size:11px;padding:14px;border-top:1px solid #eef0f2">'
-            . esc(billing('companyName'))
-            . (trim((string) setting('Billing.companyPhone')) !== '' ? ' · ' . esc(setting('Billing.companyPhone')) : '')
-            . (trim((string) setting('Billing.companyEmail')) !== '' ? ' · ' . esc(setting('Billing.companyEmail')) : '')
+            . esc($co['name'])
+            . ($co['phone'] !== '' ? ' · ' . esc($co['phone']) : '')
+            . ($co['email'] !== '' ? ' · ' . esc($co['email']) : '')
             . '</div></div></div>';
     }
 

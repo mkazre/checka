@@ -167,7 +167,7 @@
 
   <?php $poLogoSet = trim((string) setting('Purchasing.logoPath')) !== ''; ?>
   <div class="card" style="margin-top:16px">
-    <div class="card-h"><h3>Purchase order logo</h3></div>
+    <div class="card-h"><h3>Purchase orders — logo &amp; company details</h3></div>
     <div class="card-b grid" style="gap:12px">
       <p class="sub" style="font-size:12px;color:var(--ink-3);margin:0">Used <b>only</b> on purchase orders — the PO page, PO PDFs, the PO summary and emails to vendors. The rest of the system keeps the logo above. PNG or JPG; a wide logo works best.</p>
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
@@ -178,6 +178,23 @@
       </div>
       <label class="fld"><span><?= $poLogoSet ? 'Replace PO logo' : 'Upload PO logo' ?></span><input type="file" name="po_logo" accept=".png,.jpg,.jpeg,.gif,image/png,image/jpeg,image/gif"></label>
       <?php if ($poLogoSet): ?><label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" name="po_logo_remove" value="1"> Remove the PO logo (go back to the system logo on POs)</label><?php endif; ?>
+
+      <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:4px">
+        <b style="font-size:14px">Purchase order company details</b>
+        <p class="sub" style="font-size:12px;color:var(--ink-3);margin:4px 0 12px">Printed on purchase orders, the PO summary and emails to vendors — <b>only</b>. Invoices, statements and the rest of the system keep the details in <a href="<?= site_url('invoices/settings') ?>">Billing Settings</a>. Leave a field blank to use that one instead.</p>
+        <div class="grid cols-2" style="gap:12px">
+          <?php foreach ([
+              'companyName'    => ['Company / trading name', 'e.g. Wheelsturn Fleet Solutions (PTY) LTD'],
+              'companyPhone'   => ['Phone', ''],
+              'companyEmail'   => ['Email (vendors reply to this)', 'e.g. orders@wheelsturn.co.za'],
+              'companyRegNo'   => ['Company reg. no', ''],
+              'companyVatNo'   => ['VAT no', ''],
+          ] as $k => [$label, $ph]): ?>
+            <label class="fld"><span><?= esc($label) ?></span><input type="<?= $k === 'companyEmail' ? 'email' : 'text' ?>" name="po_<?= $k ?>" value="<?= esc((string) setting('Purchasing.' . $k)) ?>" placeholder="<?= esc($ph ?: (string) setting('Billing.' . $k)) ?>" class="<?= in_array($k, ['companyRegNo', 'companyVatNo'], true) ? 'mono' : '' ?>"></label>
+          <?php endforeach; ?>
+          <label class="fld" style="grid-column:1/-1"><span>Address</span><textarea name="po_companyAddress" rows="3" placeholder="<?= esc((string) setting('Billing.companyAddress')) ?>"><?= esc((string) setting('Purchasing.companyAddress')) ?></textarea></label>
+        </div>
+      </div>
     </div>
   </div>
 

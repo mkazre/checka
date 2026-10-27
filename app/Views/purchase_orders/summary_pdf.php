@@ -6,6 +6,7 @@ $fmt = static fn ($d) => date('j M Y', strtotime($d));
 <?= view('billing/_company_head', [
     'docTitle'    => 'PURCHASE SUMMARY',
     'logoFile'    => po_logo('file'),
+    'company'     => po_company(),
     'logoHeight'  => 72,
     'meta'        => array_filter([
         'Period'  => $fmt($f['from']) . ' – ' . $fmt($f['to']),
@@ -59,4 +60,4 @@ $fmt = static fn ($d) => date('j M Y', strtotime($d));
 </table>
 <?php if (! empty($byStatus['cancelled'])): ?><div class="small muted" style="margin-top:6px">Cancelled orders (greyed) are listed but not included in the totals.</div><?php endif; ?>
 
-<div class="foot"><?= esc((string) billing('companyName')) ?> · Purchase order summary <?= esc($fmt($f['from'])) ?> – <?= esc($fmt($f['to'])) ?></div>
+<div class="foot"><?= esc(po_company()['name']) ?> · Purchase order summary <?= esc($fmt($f['from'])) ?> – <?= esc($fmt($f['to'])) ?></div>

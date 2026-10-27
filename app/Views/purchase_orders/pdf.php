@@ -16,6 +16,7 @@ $stamp   = ['cancelled' => ['CANCELLED', '#b42318'], 'received' => ['RECEIVED', 
 <?= view('billing/_company_head', [
     'docTitle'    => 'PURCHASE ORDER',
     'logoFile'    => po_logo('file'),
+    'company'     => po_company(),
     'logoHeight'  => 72,
     'meta'        => array_filter([
         'PO no'        => $po['po_no'],
@@ -114,4 +115,4 @@ $stamp   = ['cancelled' => ['CANCELLED', '#b42318'], 'received' => ['RECEIVED', 
   <div class="notes"><?= nl2br(esc($po['notes'])) ?></div>
 <?php endif; ?>
 
-<div class="foot">Please quote <b><?= esc($po['po_no']) ?></b> on your invoice and delivery note. Queries: <?= esc((string) billing('companyName')) ?><?= setting('Billing.companyEmail') ? ' · ' . esc((string) setting('Billing.companyEmail')) : '' ?><?= setting('Billing.companyPhone') ? ' · ' . esc((string) setting('Billing.companyPhone')) : '' ?></div>
+<div class="foot">Please quote <b><?= esc($po['po_no']) ?></b> on your invoice and delivery note. Queries: <?php $pc = po_company(); ?><?= esc($pc['name']) ?><?= $pc['email'] !== '' ? ' · ' . esc($pc['email']) : '' ?><?= $pc['phone'] !== '' ? ' · ' . esc($pc['phone']) : '' ?></div>

@@ -107,6 +107,28 @@ if (! function_exists('po_logo')) {
     }
 }
 
+if (! function_exists('po_company')) {
+    /**
+     * Company details printed on purchase orders (Settings → Purchase order
+     * company details). Each blank field falls back to the main company
+     * details in Billing Settings.
+     *
+     * @return array{name:string,address:string,phone:string,email:string,regNo:string,vatNo:string}
+     */
+    function po_company(): array
+    {
+        $map = ['name' => 'companyName', 'address' => 'companyAddress', 'phone' => 'companyPhone',
+            'email' => 'companyEmail', 'regNo' => 'companyRegNo', 'vatNo' => 'companyVatNo'];
+        $out = [];
+        foreach ($map as $k => $key) {
+            $v       = trim((string) setting('Purchasing.' . $key));
+            $out[$k] = $v !== '' ? $v : trim((string) ($key === 'companyName' ? billing('companyName') : setting('Billing.' . $key)));
+        }
+
+        return $out;
+    }
+}
+
 if (! function_exists('invoice_badge')) {
     /** Status chip for an invoice row (Draft / Due / Overdue / Part paid / Paid / Void). */
     function invoice_badge(array $inv): string

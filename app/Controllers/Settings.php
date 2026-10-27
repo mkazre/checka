@@ -127,6 +127,11 @@ class Settings extends BaseController
             setting()->set('Brand.logoPath', 'assets/img/' . $name);
         }
 
+        // Purchase-order-only company details (blank = fall back to Billing Settings).
+        foreach (['companyName', 'companyAddress', 'companyPhone', 'companyEmail', 'companyRegNo', 'companyVatNo'] as $k) {
+            setting()->set('Purchasing.' . $k, trim((string) $this->request->getPost('po_' . $k)));
+        }
+
         // Purchase-order-only logo (PNG/JPG/GIF — formats the PDF engine renders reliably).
         $poLogo = $this->request->getFile('po_logo');
         if ($poLogo !== null && $poLogo->isValid() && in_array(strtolower((string) $poLogo->getExtension()), ['png', 'jpg', 'jpeg', 'gif'], true)) {
