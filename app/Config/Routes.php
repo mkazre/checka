@@ -112,6 +112,13 @@ $routes->group('', ['filter' => 'session'], static function ($routes): void {
     $routes->get('vendors/(:segment)', 'Vendors::show/$1');
     $routes->get('vendors/(:segment)/edit', 'Vendors::edit/$1');
     $routes->post('vendors/(:segment)', 'Vendors::update/$1');
+    $routes->get('items', 'CatalogItems::index');
+    $routes->get('items/suggest', 'CatalogItems::suggest');
+    $routes->get('items/new', 'CatalogItems::new');
+    $routes->post('items', 'CatalogItems::create');
+    $routes->get('items/(:num)/edit', 'CatalogItems::edit/$1');
+    $routes->post('items/(:num)', 'CatalogItems::update/$1');
+    $routes->post('items/(:num)/delete', 'CatalogItems::delete/$1');
     $routes->get('purchase-orders', 'PurchaseOrders::index');
     $routes->get('purchase-orders/new', 'PurchaseOrders::new');
     $routes->get('purchase-orders/summary', 'PurchaseOrders::summary');

@@ -31,7 +31,9 @@ class PurchaseOrderService
     /** @param list<array{description:string,part_no?:?string,qty:mixed,unit_price:mixed}> $items */
     public function replaceItems(int $poId, array $items): void
     {
-        $m = model(PurchaseOrderItemModel::class);
+        $m       = model(PurchaseOrderItemModel::class);
+        $catalog = model(\App\Models\CatalogItemModel::class);
+        $already = array_map(static fn ($r) => mb_strtolower(trim($r['description'])), $m->forPo($poId));
         $m->where('po_id', $poId)->delete();
         $sort = 0;
         foreach ($items as $it) {
@@ -48,6 +50,7 @@ class PurchaseOrderService
                 'unit_price'  => ($price === null || $price === '') ? null : round((float) $price, 2),
                 'sort'        => $sort++,
             ]);
+            $catalog->remember($desc, $it['part_no'] ?? null, $price, ! in_array(mb_strtolower($desc), $already, true));
         }
         $this->recalc($poId);
     }

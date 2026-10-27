@@ -1,4 +1,13 @@
 <?= $this->extend('layouts/app') ?>
+<?= $this->section('head') ?>
+<style>
+  .sg{position:absolute;z-index:40;left:10px;right:10px;top:calc(100% - 4px);background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(16,23,29,.14);padding:6px;max-height:280px;overflow-y:auto}
+  .sg-opt{padding:8px 10px;border-radius:7px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+  .sg-opt.on{background:#2d2d2d0d}
+  .sg-meta{font-size:12px;color:var(--ink-3)}
+  .sg-new{padding:9px 10px;font-size:12.5px;color:var(--ink-3)}
+</style>
+<?= $this->endSection() ?>
 <?= $this->section('content') ?>
 <?php
   use App\Models\PurchaseOrderModel;
@@ -84,7 +93,7 @@
       <h3>Items</h3>
       <label style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600"><input type="checkbox" name="show_pricing" value="1" x-model="pricing"> Include pricing</label>
     </div>
-    <div class="tbl-scroll">
+    <div style="overflow:visible">
     <table class="tbl">
       <thead><tr>
         <th style="width:44%">Description</th><th style="width:14%">Part no</th><th style="width:9%">Qty</th>
@@ -93,7 +102,23 @@
       <tbody>
         <template x-for="(r, i) in rows" :key="i">
           <tr>
-            <td><input type="text" name="item_description[]" x-model="r.description" placeholder="e.g. Front bumper cover" required></td>
+            <td style="position:relative" @click.outside="r.open=false">
+              <input type="text" name="item_description[]" x-model="r.description" placeholder="Type 3+ letters to search saved items…" required autocomplete="off"
+                     @input.debounce.250ms="lookup(r)" @focus="r.description.length >= 3 && lookup(r)"
+                     @keydown.arrow-down.prevent="r.open && (r.hi = Math.min(r.hi + 1, r.sugg.length - 1))"
+                     @keydown.arrow-up.prevent="r.open && (r.hi = Math.max(r.hi - 1, 0))"
+                     @keydown.enter="if (r.open && r.sugg[r.hi]) { $event.preventDefault(); pick(r, r.sugg[r.hi]); }"
+                     @keydown.escape="r.open=false">
+              <div class="sg" x-show="r.open" x-cloak>
+                <template x-for="(s, si) in r.sugg" :key="s.id">
+                  <div class="sg-opt" :class="{on: si === r.hi}" @mouseenter="r.hi = si" @click="pick(r, s)">
+                    <b x-text="s.name"></b>
+                    <span class="sg-meta" x-text="[s.part_no ? 'Part ' + s.part_no : '', s.price !== '' ? fmt(+s.price) + ' excl.' : 'no price', 'used ' + s.used + '×'].filter(Boolean).join(' · ')"></span>
+                  </div>
+                </template>
+                <div class="sg-new" x-show="!r.sugg.length">New item — it'll be saved to Items when you save this PO.</div>
+              </div>
+            </td>
             <td><input type="text" name="item_part[]" x-model="r.part_no" class="mono"></td>
             <td><input type="number" name="item_qty[]" x-model.number="r.qty" step="0.01" min="0"></td>
             <td x-show="pricing"><input type="number" name="item_price[]" x-model="r.unit_price" step="0.01" placeholder="TBA"></td>
@@ -105,7 +130,7 @@
     </table>
     </div>
     <div class="card-b" style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;border-top:1px solid var(--line)">
-      <button type="button" class="btn ghost sm" @click="rows.push({description:'', part_no:'', qty:1, unit_price:''})">+ Add item</button>
+      <button type="button" class="btn ghost sm" @click="rows.push(blank())">+ Add item</button>
       <table style="min-width:280px;font-size:14px" x-show="pricing">
         <tr><td style="color:var(--ink-3);padding:3px 14px 3px 0">Nett total</td><td style="text-align:right" x-text="fmt(nett)"></td></tr>
         <tr><td style="color:var(--ink-3);padding:3px 14px 3px 0">VAT @ <input type="number" name="vat_rate" x-model.number="vat" step="0.01" min="0" max="100" style="width:70px;padding:3px 6px;font-size:13px">%</td><td style="text-align:right" x-text="fmt(vatAmt)"></td></tr>
@@ -127,8 +152,26 @@
 <?= $this->section('scripts') ?>
 <script>
   function poForm(rows, vat, pricing, veh, vehicles) {
+    const blank = () => ({description: '', part_no: '', qty: 1, unit_price: '', sugg: [], open: false, hi: 0});
     return {
-      rows, vat, pricing, veh, vehicles, vehicleId: '<?= esc((string) $val('vehicle_id'), 'js') ?>',
+      rows: rows.map(r => Object.assign(blank(), r)), blank, vat, pricing, veh, vehicles, vehicleId: '<?= esc((string) $val('vehicle_id'), 'js') ?>',
+      async lookup(r) {
+        const q = (r.description || '').trim();
+        if (q.length < 3) { r.open = false; r.sugg = []; return; }
+        try {
+          const res = await fetch('<?= site_url('items/suggest') ?>?q=' + encodeURIComponent(q), {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+          r.sugg = await res.json();
+        } catch (e) { r.sugg = []; }
+        // Hide the list once the typed text exactly matches a saved item.
+        r.open = !(r.sugg.length === 1 && r.sugg[0].name.toLowerCase() === q.toLowerCase());
+        r.hi = 0;
+      },
+      pick(r, s) {
+        r.description = s.name;
+        if (s.part_no) r.part_no = s.part_no;
+        if (s.price !== '') r.unit_price = s.price;   // still editable on the line
+        r.open = false;
+      },
       ex(r) { return r.unit_price === '' || r.unit_price === null ? 0 : Math.round((+r.qty || 0) * (+r.unit_price || 0) * 100) / 100; },
       incl(r) { return Math.round(this.ex(r) * (1 + (+this.vat || 0) / 100) * 100) / 100; },
       get nett() { return Math.round(this.rows.reduce((s, r) => s + this.ex(r), 0) * 100) / 100; },

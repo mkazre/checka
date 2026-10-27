@@ -5,6 +5,7 @@
   <div><h1>Purchase Orders</h1><div class="sub">Orders you send to vendors for parts and services.</div></div>
   <div class="spacer"></div>
   <a class="btn ghost" href="<?= site_url('vendors') ?>">Vendors</a>
+  <a class="btn ghost" href="<?= site_url('items') ?>">Items</a>
   <a class="btn ghost" href="<?= site_url('purchase-orders/summary') ?>">Summary</a>
   <a class="btn" href="<?= site_url('purchase-orders/new') ?>">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> New Purchase Order
