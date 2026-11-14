@@ -78,7 +78,7 @@ class Filters extends BaseFilters
         'before' => [
             // 'honeypot',
             'tenant',
-            'csrf' => ['except' => ['api/*']],
+            'csrf' => ['except' => ['api/*', 'signup', 'find-workspace', 'webhooks/*', 'pay/*/return/*']],
             // 'invalidchars',
         ],
         'after' => [

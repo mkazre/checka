@@ -29,6 +29,12 @@ class TenantGuard implements FilterInterface
         $first = strtolower(explode('/', $path)[0] ?? '');
         $t     = Tenant::get();
 
+        if (Tenant::status() === 'pending_payment') {
+            $inv = db_connect('platform')->table('invoices')->where('tenant_id', (int) ($t['id'] ?? 0))->where('status', 'unpaid')->orderBy('id')->get(1)->getRowArray();
+
+            return service('response')->setStatusCode(402)->setBody(view('saas/awaiting', ['tenant' => $t, 'payUrl' => $inv ? \Platform\Services\Billing::payUrl($inv) : null]));
+        }
+
         if (Tenant::status() === 'provisioning') {
             return service('response')->setStatusCode(503)->setHeader('Retry-After', '15')->setBody(view('saas/provisioning', ['tenant' => $t]));
         }

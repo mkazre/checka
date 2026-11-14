@@ -16,10 +16,12 @@ class TenantModel extends Model
         'slug', 'company_name', 'contact_name', 'email', 'phone', 'vat_number', 'package_id',
         'billing_cycle', 'status', 'trial_ends_at', 'current_period_end', 'db_mode', 'db_prefix',
         'extra_modules', 'limit_overrides', 'pending_admin', 'provisioned_at', 'provision_error',
-        'suspended_at', 'cancelled_at', 'notes',
+        'suspended_at', 'cancelled_at', 'notes', 'next_package_id', 'next_cycle', 'cancel_at_period_end',
+        'paystack_auth', 'paystack_email', 'card_label', 'signup_token',
     ];
 
     public const STATUSES = [
+        'pending_payment' => 'Awaiting payment',
         'provisioning' => 'Setting up',
         'trial'        => 'Trial',
         'active'       => 'Active',

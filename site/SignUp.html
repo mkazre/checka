@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start your free trial — CheckA+</title>
+<meta name="description" content="Start your free CheckA+ trial. Choose a package, set up your workspace and get going in minutes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#f4f5f6}a:hover{text-decoration:underline}
+input:focus,select:focus{outline:2px solid #37b34a55;outline-offset:1px;border-color:#37b34a}
+.pay-opt{display:flex;align-items:flex-start;gap:12px;border:1px solid #e2e4e6;border-radius:12px;padding:16px;cursor:pointer}
+.pay-opt.on{border:2px solid #37b34a;background:#37b34a0d}
+.cyc{font-weight:600;font-size:13px;padding:8px 14px;border-radius:999px;border:none;cursor:pointer;background:transparent;color:#4a4a4a;font-family:inherit}
+.cyc.on{background:#2d2d2d;color:#fff}
+@media(max-width:560px){#step2 .grid2{grid-template-columns:1fr !important}}</style>
+</head>
+<body style="font-family:'Inter',system-ui,sans-serif;color:#2d2d2d;max-width:100%;overflow-x:hidden">
+<header style="background:#fff;border-bottom:1px solid #e2e4e6">
+  <div style="max-width:1000px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <a href="Home.html"><img src="assets/logo.png" alt="CheckA+" style="height:30px;width:auto;display:block"></a>
+    <a href="Login.html" style="font-weight:600;font-size:13.5px;color:#4a4a4a;text-decoration:none">Already have a workspace? Log in</a>
+  </div>
+</header>
+
+<div style="max-width:720px;margin:0 auto;padding:40px 24px 80px">
+  <div id="stepper" style="display:flex;align-items:center;gap:8px;margin-bottom:36px"></div>
+
+  <div id="step1" style="background:#fff;border:1px solid #e2e4e6;border-radius:16px;padding:32px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div><h1 style="font-size:22px;font-weight:800;margin:0 0 6px">Choose your package</h1>
+      <p style="font-size:13.5px;color:#4a4a4a;margin:0 0 24px">You can change plans at any time once you're in.</p></div>
+      <div style="display:inline-flex;gap:4px;background:#fff;border:1px solid #e2e4e6;border-radius:999px;padding:3px">
+        <button type="button" class="cyc on" data-cycle="monthly">Monthly</button><button type="button" class="cyc" data-cycle="annual">Annual</button>
+      </div>
+    </div>
+    <div id="planOptions" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px"><div style="color:#7a7a7a;font-size:13.5px">Loading packages…</div></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:28px">
+      <button type="button" id="toStep2" style="font-weight:700;font-size:14.5px;color:#fff;background:#37b34a;border:none;padding:13px 26px;border-radius:9px;cursor:pointer">Continue</button>
+    </div>
+  </div>
+
+  <div id="step2" style="display:none;background:#fff;border:1px solid #e2e4e6;border-radius:16px;padding:32px">
+    <h1 style="font-size:22px;font-weight:800;margin:0 0 6px">Your company details</h1>
+    <p style="font-size:13.5px;color:#4a4a4a;margin:0 0 24px">We'll use this to set up your workspace.</p>
+    <div id="step2Err" style="display:none;background:#fde8e6;color:#9b1c13;border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:13.5px"></div>
+    <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:#7a7a7a;text-transform:uppercase">Company name</span>
+        <input type="text" id="companyName" placeholder="AutoHub Motors" autocomplete="organization" style="border:1px solid #e2e4e6;border-radius:9px;padding:11px 13px;font-size:14px;font-family:inherit">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:#7a7a7a;text-transform:uppercase">Your name</span>
+        <input type="text" id="yourName" placeholder="Thabo Mokoena" autocomplete="name" style="border:1px solid #e2e4e6;border-radius:9px;padding:11px 13px;font-size:14px;font-family:inherit">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:#7a7a7a;text-transform:uppercase">Mobile number</span>
+        <input type="tel" id="mobile" placeholder="082 000 0000" autocomplete="tel" style="border:1px solid #e2e4e6;border-radius:9px;padding:11px 13px;font-size:14px;font-family:inherit">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:#7a7a7a;text-transform:uppercase">Email address</span>
+        <input type="email" id="email" placeholder="you@company.co.za" autocomplete="email" style="border:1px solid #e2e4e6;border-radius:9px;padding:11px 13px;font-size:14px;font-family:inherit">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:#7a7a7a;text-transform:uppercase">Password</span>
+        <input type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password" style="border:1px solid #e2e4e6;border-radius:9px;padding:11px 13px;font-size:14px;font-family:inherit">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:#7a7a7a;text-transform:uppercase">Your workspace address</span>
+        <div style="display:flex;align-items:stretch;border:1px solid #e2e4e6;border-radius:9px;overflow:hidden">
+          <input type="text" id="workspace" placeholder="yourcompany" autocomplete="off" style="border:none;outline:none;flex:1;min-width:0;padding:11px 0 11px 13px;font-size:14px;font-family:inherit">
+          <span class="ws-suffix" style="padding:11px 13px 11px 2px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#7a7a7a;white-space:nowrap">.checkaplus.co.za</span>
+        </div>
+        <span id="availability" style="font-size:11.5px;font-family:'JetBrains Mono',monospace"></span>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;color:#7a7a7a;text-transform:uppercase">VAT number (optional)</span>
+        <input type="text" id="vat" placeholder="4000000000" style="border:1px solid #e2e4e6;border-radius:9px;padding:11px 13px;font-size:14px;font-family:inherit">
+      </label>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:28px">
+      <button type="button" id="backStep1" style="font-weight:600;font-size:14.5px;color:#2d2d2d;background:#fff;border:1px solid #d6dce1;padding:13px 22px;border-radius:9px;cursor:pointer">Back</button>
+      <button type="button" id="toStep3" style="font-weight:700;font-size:14.5px;color:#fff;background:#37b34a;border:none;padding:13px 26px;border-radius:9px;cursor:pointer">Continue</button>
+    </div>
+  </div>
+
+  <form id="step3" action="https://app.checkaplus.co.za/signup" method="post" style="display:none;background:#fff;border:1px solid #e2e4e6;border-radius:16px;padding:32px">
+    <input type="hidden" name="plan" id="f_plan">
+    <input type="hidden" name="billing_cycle" id="f_cycle" value="monthly">
+    <input type="hidden" name="company_name" id="f_company">
+    <input type="hidden" name="contact_name" id="f_name">
+    <input type="hidden" name="email" id="f_email">
+    <input type="hidden" name="mobile" id="f_mobile">
+    <input type="hidden" name="password" id="f_password">
+    <input type="hidden" name="workspace" id="f_workspace">
+    <input type="hidden" name="vat_number" id="f_vat">
+    <input type="hidden" name="billing_option" id="f_billing" value="trial">
+    <div style="position:absolute;left:-5000px" aria-hidden="true"><input type="text" name="website_url" tabindex="-1" autocomplete="off"></div>
+    <h1 id="step3Title" style="font-size:22px;font-weight:800;margin:0 0 6px">Start your trial</h1>
+    <p id="step3Sub" style="font-size:13.5px;color:#4a4a4a;margin:0 0 18px"></p>
+    <div id="summary" style="font-size:13.5px;background:#f9fafb;border:1px solid #eceef0;border-radius:10px;padding:12px 14px;margin-bottom:18px"></div>
+    <div id="payOptions" style="display:flex;flex-direction:column;gap:12px">
+      <label class="pay-opt on" data-opt="trial">
+        <input type="radio" name="billing_choice" value="trial" checked style="margin-top:3px;accent-color:#37b34a">
+        <span><span id="trialLabel" style="display:block;font-weight:700;font-size:14.5px">Start free trial</span><span style="display:block;font-size:12.5px;color:#4a4a4a;margin-top:2px">No card required. We'll remind you before it ends.</span></span>
+      </label>
+      <label class="pay-opt" data-opt="card">
+        <input type="radio" name="billing_choice" value="card" style="margin-top:3px;accent-color:#37b34a">
+        <span><span style="display:block;font-weight:700;font-size:14.5px">Pay now by card</span><span style="display:block;font-size:12.5px;color:#4a4a4a;margin-top:2px">Activate immediately, billed today. Renews automatically.</span></span>
+      </label>
+      <label class="pay-opt" data-opt="instant_eft">
+        <input type="radio" name="billing_choice" value="instant_eft" style="margin-top:3px;accent-color:#37b34a">
+        <span><span style="display:block;font-weight:700;font-size:14.5px">Pay now by Instant EFT</span><span style="display:block;font-size:12.5px;color:#4a4a4a;margin-top:2px">Activate immediately via your bank.</span></span>
+      </label>
+    </div>
+    <p style="font-size:12px;color:#7a7a7a;margin:18px 0 0">By continuing you agree to the CheckA+ terms of service and privacy policy (POPIA compliant).</p>
+    <div style="display:flex;justify-content:space-between;margin-top:22px">
+      <button type="button" id="backStep2" style="font-weight:600;font-size:14.5px;color:#2d2d2d;background:#fff;border:1px solid #d6dce1;padding:13px 22px;border-radius:9px;cursor:pointer">Back</button>
+      <button type="submit" id="submitBtn" style="font-weight:700;font-size:14.5px;color:#fff;background:#37b34a;border:none;padding:13px 26px;border-radius:9px;cursor:pointer">Start free trial</button>
+    </div>
+  </form>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  var C = window.CHECKA_CONFIG || {};
+  var state = { step: 1, planId: null, cycle: 'monthly', data: null, workspace: '', wsOk: false, wsTimer: null, wsReq: 0 };
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('plan')) state.planId = params.get('plan');
+  if (params.get('billing') === 'annual') state.cycle = 'annual';
+  var $ = function (id) { return document.getElementById(id); };
+  var suffix = C.workspaceDomainSuffix || '.checkaplus.co.za';
+  Array.prototype.forEach.call(document.querySelectorAll('.ws-suffix'), function (el) { el.textContent = suffix; });
+  $('step3').action = C.signupPostUrl || $('step3').action;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function money(n) { return 'R' + Number(n).toLocaleString('en-ZA', { maximumFractionDigits: 2 }); }
+  function slugify(v) { return v.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30); }
+  function plan() { return state.data ? state.data.plans.find(function (p) { return p.id === state.planId; }) : null; }
+  function price(p) { return state.cycle === 'annual' ? p.annualPrice : p.monthlyPrice; }
+
+  function renderStepper() {
+    var labels = ['Package', 'Company details', 'Payment'];
+    $('stepper').innerHTML = labels.map(function (label, i) {
+      var n = i + 1, active = n <= state.step;
+      var circle = 'width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;background:' + (active ? '#37b34a' : '#e2e4e6') + ';color:' + (active ? '#fff' : '#7a7a7a');
+      var labelStyle = 'font-size:12.5px;font-weight:600;white-space:nowrap;color:' + (active ? '#2d2d2d' : '#7a7a7a');
+      var line = n < 3 ? '<div style="flex:1;height:2px;background:#e2e4e6"></div>' : '';
+      return '<div style="display:flex;align-items:center;gap:8px;flex:1"><div style="' + circle + '">' + n + '</div><span style="' + labelStyle + '">' + label + '</span>' + line + '</div>';
+    }).join('');
+  }
+
+  function renderPlans() {
+    if (!state.data) return;
+    if (!state.data.plans.length) { $('planOptions').innerHTML = '<div style="color:#7a7a7a">No packages are available right now — please contact us.</div>'; return; }
+    if (!plan()) { var h = state.data.plans.find(function (p) { return p.highlight; }); state.planId = (h || state.data.plans[0]).id; }
+    $('planOptions').innerHTML = state.data.plans.map(function (p) {
+      var selected = p.id === state.planId;
+      var box = 'cursor:pointer;border-radius:12px;padding:16px;border:2px solid ' + (selected ? '#37b34a' : '#e2e4e6') + ';background:' + (selected ? '#37b34a0d' : '#fff');
+      var badge = p.badge ? '<div style="font-size:10.5px;font-weight:700;color:#2a8f3a;margin-bottom:6px">' + esc(p.badge) + '</div>' : '';
+      var shown = state.cycle === 'annual' ? Math.round(p.annualPrice / 12) : p.monthlyPrice;
+      return '<div data-id="' + esc(p.id) + '" style="' + box + '">' + badge +
+        '<div style="font-size:15.5px;font-weight:700">' + esc(p.name) + '</div>' +
+        '<div style="font-size:20px;font-weight:800;margin-top:6px">' + money(shown) + '<span style="font-size:12px;font-weight:500;color:#7a7a7a">/mo</span></div>' +
+        (state.cycle === 'annual' ? '<div style="font-size:11px;color:#7a7a7a">' + money(p.annualPrice) + ' billed yearly</div>' : '') +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10.5px;color:#7a7a7a;margin-top:6px">' + esc(p.users) + ' users · ' + esc(p.inspectionsPerMonth) + ' insp/mo</div></div>';
+    }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('#planOptions > div[data-id]'), function (el) {
+      el.onclick = function () { state.planId = el.getAttribute('data-id'); renderPlans(); };
+    });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.cyc'), function (b) {
+    if (b.getAttribute('data-cycle') === state.cycle) { document.querySelector('.cyc.on').classList.remove('on'); b.classList.add('on'); }
+    b.onclick = function () { state.cycle = b.getAttribute('data-cycle'); document.querySelector('.cyc.on').classList.remove('on'); b.classList.add('on'); renderPlans(); };
+  });
+
+  function showAvail(ok, msg) {
+    var el = $('availability');
+    el.style.color = ok ? '#15803d' : '#b42318';
+    el.textContent = msg;
+  }
+  function checkAvailability() {
+    var ws = state.workspace;
+    state.wsOk = false;
+    if (!ws) { $('availability').textContent = ''; return; }
+    showAvail(true, 'Checking…'); $('availability').style.color = '#7a7a7a';
+    clearTimeout(state.wsTimer);
+    state.wsTimer = setTimeout(function () {
+      var id = ++state.wsReq;
+      fetch(C.workspaceAvailabilityUrl + '?workspace=' + encodeURIComponent(ws)).then(function (r) { return r.json(); }).then(function (j) {
+        if (id !== state.wsReq) return;
+        state.wsOk = !!j.available;
+        showAvail(j.available, j.available ? ws + suffix + ' is available' : j.message);
+      }).catch(function () { state.wsOk = true; $('availability').textContent = ''; });
+    }, 350);
+  }
+  $('workspace').addEventListener('input', function (e) { e.target.value = slugify(e.target.value); state.workspace = e.target.value; state.wsTouched = true; checkAvailability(); });
+  $('companyName').addEventListener('input', function (e) {
+    if (state.wsTouched) return;
+    var s = slugify(e.target.value.toLowerCase().replace(/\b(pty|ltd|cc|inc)\b/g, '').trim().replace(/\s+/g, '-')).replace(/^-+|-+$/g, '').replace(/-+/g, '-');
+    $('workspace').value = s; state.workspace = s; checkAvailability();
+  });
+
+  function go(n) {
+    state.step = n; renderStepper();
+    $('step1').style.display = n === 1 ? 'block' : 'none';
+    $('step2').style.display = n === 2 ? 'block' : 'none';
+    $('step3').style.display = n === 3 ? 'block' : 'none';
+    window.scrollTo(0, 0);
+  }
+  $('toStep2').onclick = function () { if (plan()) go(2); };
+  $('backStep1').onclick = function () { go(1); };
+  $('backStep2').onclick = function () { go(2); };
+
+  function selectOpt(v) {
+    $('f_billing').value = v;
+    Array.prototype.forEach.call(document.querySelectorAll('.pay-opt'), function (l) { l.classList.toggle('on', l.getAttribute('data-opt') === v); l.querySelector('input').checked = l.getAttribute('data-opt') === v; });
+    $('submitBtn').textContent = v === 'trial' ? 'Start free trial' : (price(plan()) > 0 ? 'Continue to payment' : 'Create my workspace');
+  }
+
+  $('toStep3').onclick = function () {
+    var errs = [];
+    if (!$('companyName').value.trim()) errs.push('Enter your company name.');
+    if (!$('yourName').value.trim()) errs.push('Enter your name.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('email').value.trim())) errs.push('Enter a valid email address.');
+    if ($('password').value.length < 8) errs.push('Choose a password of at least 8 characters.');
+    if (!state.workspace || state.workspace.length < 3) errs.push('Choose a workspace address (at least 3 characters).');
+    else if (!state.wsOk && /taken|Use /.test($('availability').textContent)) errs.push('That workspace address is not available.');
+    if (errs.length) { $('step2Err').innerHTML = errs.map(esc).join('<br>'); $('step2Err').style.display = 'block'; return; }
+    $('step2Err').style.display = 'none';
+
+    var p = plan(), pay = (state.data && state.data.payments) || { card: true, instantEft: true };
+    var trial = p.trialDays > 0, cost = price(p);
+    $('step3Title').textContent = trial ? 'Start your trial' : (cost > 0 ? 'Payment' : 'Create your workspace');
+    $('step3Sub').textContent = trial ? 'Try ' + p.name + ' free for ' + p.trialDays + ' days, or pay now to skip the trial.' : (cost > 0 ? 'Choose how you would like to pay.' : p.name + ' is free.');
+    $('trialLabel').textContent = 'Start ' + p.trialDays + '-day free trial';
+    $('summary').innerHTML = '<b>' + esc(p.name) + '</b> · ' + money(cost) + (state.cycle === 'annual' ? ' per year' : ' per month') + ' excl. VAT<br>Workspace: <b>' + esc(state.workspace + suffix) + '</b>';
+    document.querySelector('[data-opt=trial]').style.display = trial ? '' : 'none';
+    document.querySelector('[data-opt=card]').style.display = cost > 0 && pay.card ? '' : 'none';
+    document.querySelector('[data-opt=instant_eft]').style.display = cost > 0 && pay.instantEft ? '' : 'none';
+    selectOpt(trial ? 'trial' : (cost > 0 && pay.card ? 'card' : (cost > 0 && pay.instantEft ? 'instant_eft' : 'trial')));
+
+    $('f_plan').value = state.planId;
+    $('f_cycle').value = state.cycle;
+    $('f_company').value = $('companyName').value.trim();
+    $('f_name').value = $('yourName').value.trim();
+    $('f_email').value = $('email').value.trim();
+    $('f_mobile').value = $('mobile').value.trim();
+    $('f_password').value = $('password').value;
+    $('f_workspace').value = state.workspace;
+    $('f_vat').value = $('vat').value.trim();
+    go(3);
+  };
+
+  Array.prototype.forEach.call(document.querySelectorAll('input[name=billing_choice]'), function (r) {
+    r.addEventListener('change', function () { selectOpt(r.value); });
+  });
+  $('step3').addEventListener('submit', function () { $('submitBtn').disabled = true; $('submitBtn').textContent = 'Please wait…'; });
+  window.addEventListener('pageshow', function () { $('submitBtn').disabled = false; if (state.step === 3) selectOpt($('f_billing').value); });
+
+  renderStepper();
+  fetch(C.plansApiUrl).then(function (r) { return r.json(); }).then(function (json) { state.data = json; renderPlans(); })
+    .catch(function () { $('planOptions').innerHTML = '<div style="color:#b42318">Couldn\'t load packages. Please refresh the page.</div>'; });
+})();
+</script>
+</body>
+</html>

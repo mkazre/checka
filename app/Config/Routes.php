@@ -27,6 +27,13 @@ $routes->get('verify/(:segment)', 'Verify::show/$1');
 // One-time sign-in from the SaaS platform panel ("Log in as admin")
 $routes->get('platform-sso/(:segment)', 'PlatformSso::consume/$1');
 
+// SaaS: the workspace's own subscription page (admins; reachable even when paused so they can pay)
+$routes->group('subscription', ['filter' => 'session'], static function ($routes): void {
+    $routes->get('/', 'Subscription::index');
+    $routes->post('change', 'Subscription::change');
+    $routes->post('cancel', 'Subscription::cancel');
+});
+
 // Public, read-only VIN Check share landing (QR code / emailed link) — feature: vinCheck
 $routes->get('vin-check/(:segment)', 'VinChecks::publicView/$1');
 

@@ -47,6 +47,7 @@
           <a href="<?= site_url('users') ?>" class="<?= str_starts_with($uri,'users')?'active':'' ?>">Users</a>
           <?php if (feature('analytics')): ?><a href="<?= site_url('analytics') ?>" class="<?= str_starts_with($uri,'analytics')?'active':'' ?>">Analytics</a><?php endif; ?>
           <a href="<?= site_url('settings') ?>" class="<?= str_starts_with($uri,'settings')?'active':'' ?>">Settings</a>
+          <?php if (\App\Tenancy\Tenant::active()): ?><a href="<?= site_url('subscription') ?>" class="<?= str_starts_with($uri,'subscription')?'active':'' ?>">Subscription</a><?php endif; ?>
         <?php endif; ?>
       </nav>
       <div class="right">
@@ -71,6 +72,7 @@
 </script>
 
 <main class="container">
+  <?= $isAdmin ? view('saas/_banner') : '' ?>
   <?php if (session()->getFlashdata('message')): ?>
     <div class="flash ok"><?= esc(session()->getFlashdata('message')) ?></div>
   <?php endif; ?>

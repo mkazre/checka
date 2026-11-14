@@ -47,6 +47,9 @@
         <dt>Paid until</dt><dd><?= pf_date($t['current_period_end']) ?></dd>
         <?php if ($t['suspended_at']): ?><dt>Paused since</dt><dd><?= pf_date($t['suspended_at'], true) ?></dd><?php endif; ?>
         <?php if ($t['cancelled_at']): ?><dt>Cancelled</dt><dd><?= pf_date($t['cancelled_at'], true) ?></dd><?php endif; ?>
+        <?php if ($t['cancel_at_period_end']): ?><dt>Ends</dt><dd><span class="badge s-past_due">Cancels on <?= pf_date($t['current_period_end']) ?></span></dd><?php endif; ?>
+        <?php if ($nextPkg): ?><dt>Next renewal</dt><dd>Changes to <?= esc($nextPkg['name']) ?> (<?= esc($t['next_cycle'] ?: $t['billing_cycle']) ?>)</dd><?php endif; ?>
+        <dt>Card on file</dt><dd><?= $t['card_label'] ? esc($t['card_label']) . ' <span class="muted small">(charged automatically on renewal)</span>' : '—' ?></dd>
       </dl>
       <div class="row-actions" style="margin-top:16px">
         <?php $act = static fn (string $do, string $label, string $cls, string $confirm = '') => '<form method="post" action="' . site_url('tenants/' . $t['id'] . '/action') . '"' . ($confirm ? ' data-confirm="' . esc($confirm, 'attr') . '"' : '') . '>' . csrf_field() . '<input type="hidden" name="do" value="' . $do . '"><button class="btn sm ' . $cls . '">' . $label . '</button></form>'; ?>
@@ -98,5 +101,22 @@
       <?php endforeach; ?>
     </div>
   </div>
+</div>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <h2 style="margin:0">Invoices</h2>
+    <details><summary class="btn sm sec" style="list-style:none">+ Manual invoice</summary>
+      <form method="post" action="<?= site_url('tenants/' . $t['id'] . '/invoice') ?>" class="card" style="margin-top:8px;max-width:420px">
+        <?= csrf_field() ?>
+        <div class="f"><label>Description</label><input type="text" name="description" required placeholder="e.g. Extra user seats — March"></div>
+        <div class="grid g2">
+          <div class="f"><label>Amount excl. VAT</label><input type="number" step="0.01" min="0.01" name="amount" required></div>
+          <div class="f"><label>Due in (days)</label><input type="number" min="0" name="due_days" value="7"></div>
+        </div>
+        <label class="check"><input type="checkbox" name="send" value="1" checked><span>Email it to <?= esc($t['email']) ?></span></label>
+        <button class="btn sm">Create invoice</button>
+      </form></details>
+  </div>
+  <?= view('Platform\Views\invoices\_table', ['rows' => $invoices, 'showCompany' => false, 'tenant' => $t]) ?>
 </div>
 <?= $this->endSection() ?>

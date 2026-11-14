@@ -16,6 +16,7 @@ class Settings extends BaseController
         'templates' => 'Email templates',
         'gateways'  => 'Payment gateways',
         'mail'      => 'Email sending',
+        'website'   => 'Website',
     ];
 
     /** Fields never sent back to the browser; leaving them empty keeps the saved value. */
@@ -102,7 +103,7 @@ class Settings extends BaseController
                 $out[$k] = $current[$k] ?? $def;
                 continue;
             }
-            if (is_int($def) && in_array($k, ['enabled', 'sandbox', 'remindOnDue', 'autoSuspend', 'autoUnsuspend', 'trialRequiresCard'], true)) {
+            if (is_int($def) && in_array($k, ['enabled', 'sandbox', 'remindOnDue', 'autoSuspend', 'autoUnsuspend'], true)) {
                 $out[$k] = ! empty($v) ? 1 : 0;
             } elseif (is_int($def)) {
                 $out[$k] = max(0, (int) $v);

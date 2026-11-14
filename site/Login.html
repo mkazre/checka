@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log in — CheckA+</title>
+<meta name="description" content="Log in to your CheckA+ workspace.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>body{margin:0}a:hover{text-decoration:underline}</style>
+</head>
+<body style="font-family:'Inter',system-ui,sans-serif;color:#2d2d2d;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(rgba(45,45,45,.6),rgba(45,45,45,.68)),url('assets/login.jpg') center/cover no-repeat">
+  <div style="background:#fff;width:100%;max-width:420px;border-radius:18px;padding:38px 34px 30px;box-shadow:0 24px 60px rgba(0,0,0,.35)">
+    <a href="Home.html"><img src="assets/logo.png" alt="CheckA+" style="height:50px;width:auto;display:block;margin:0 auto 18px"></a>
+    <h1 style="font-size:22px;font-weight:800;text-align:center;margin:0;letter-spacing:-.01em">Welcome back</h1>
+    <div style="text-align:center;color:#7a7a7a;font-size:13.5px;margin:4px 0 26px">Enter your workspace address to sign in</div>
+
+    <div id="loginView">
+      <label style="display:block;margin-bottom:16px">
+        <span style="display:block;font-size:12px;font-weight:600;color:#7a7a7a;margin-bottom:6px">Your workspace address</span>
+        <div style="display:flex;align-items:stretch;border:1px solid #e2e4e6;border-radius:11px;overflow:hidden;background:#fff">
+          <input type="text" id="workspace" placeholder="yourcompany" style="border:none;outline:none;flex:1;min-width:0;padding:13px 0 13px 14px;font-size:15px;font-family:inherit;color:#2d2d2d">
+          <span class="ws-suffix" style="padding:13px 14px 13px 4px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#7a7a7a;white-space:nowrap">.checkaplus.co.za</span>
+        </div>
+      </label>
+      <button type="button" id="continueBtn" style="width:100%;border:none;background:#37b34a;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px;border-radius:11px;cursor:pointer">Continue to sign in</button>
+      <div style="text-align:center;margin-top:16px"><a href="javascript:void(0)" id="showFind" style="font-size:13px;color:#2a8f3a;font-weight:600">Forgot your workspace? Email me a link</a></div>
+    </div>
+
+    <div id="findView" style="display:none">
+      <form id="findForm" action="https://app.checkaplus.co.za/find-workspace" method="post">
+        <label style="display:block;margin-bottom:16px">
+          <span style="display:block;font-size:12px;font-weight:600;color:#7a7a7a;margin-bottom:6px">Your email address</span>
+          <input type="email" name="email" required placeholder="you@company.co.za" style="width:100%;border:1px solid #e2e4e6;border-radius:11px;padding:12px 13px;font-size:15px;font-family:inherit;color:#2d2d2d">
+        </label>
+        <button type="submit" style="width:100%;border:none;background:#37b34a;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px;border-radius:11px;cursor:pointer">Email me a link</button>
+      </form>
+      <div style="text-align:center;margin-top:16px"><a href="javascript:void(0)" id="showLogin" style="font-size:13px;color:#2a8f3a;font-weight:600">← Back to sign in</a></div>
+    </div>
+
+    <div style="text-align:center;color:#9aa0a6;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin-top:26px">CheckA+ · Inspections you can trust</div>
+    <div style="text-align:center;margin-top:14px"><a href="SignUp.html" style="font-size:13px;color:#4a4a4a">New here? Start a free trial →</a></div>
+  </div>
+
+<script src="config.js"></script>
+<script>
+  if (window.CHECKA_CONFIG) {
+    document.getElementById('findForm').action = window.CHECKA_CONFIG.findWorkspacePostUrl;
+    Array.prototype.forEach.call(document.querySelectorAll('.ws-suffix'), function (el) { el.textContent = window.CHECKA_CONFIG.workspaceDomainSuffix; });
+  }
+  document.getElementById('workspace').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('continueBtn').click(); });
+  document.getElementById('workspace').addEventListener('input', function (e) {
+    e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  });
+  document.getElementById('continueBtn').addEventListener('click', function () {
+    var ws = document.getElementById('workspace').value.trim();
+    if (!ws) return;
+    var url = (window.CHECKA_CONFIG ? window.CHECKA_CONFIG.loginRedirect(ws) : 'https://' + ws + '.checkaplus.co.za/login');
+    window.location.href = url;
+  });
+  document.getElementById('showFind').addEventListener('click', function () {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('findView').style.display = 'block';
+  });
+  document.getElementById('showLogin').addEventListener('click', function () {
+    document.getElementById('findView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'block';
+  });
+</script>
+</body>
+</html>

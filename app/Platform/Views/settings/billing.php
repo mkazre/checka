@@ -25,7 +25,7 @@
       <h2>Free trials</h2>
       <div class="f"><label>Default trial length</label><div style="display:flex;gap:8px;align-items:center"><input type="number" min="0" name="s[trialDays]" value="<?= (int) $s['trialDays'] ?>" style="width:90px"> days</div><small>Each package can set its own; this is the starting value for new packages.</small></div>
       <div class="f"><label>Remind before the trial ends</label><input type="text" name="s[trialRemindBefore]" value="<?= esc($s['trialRemindBefore']) ?>" placeholder="3,1"></div>
-      <label class="check"><?= $chk('trialRequiresCard') ?><span>Ask for a card at sign-up<small>Card is saved and charged when the trial ends (Paystack).</small></span></label>
+      <div class="f"><label>Remove unpaid sign-ups after</label><div style="display:flex;gap:8px;align-items:center"><input type="number" min="1" name="s[abandonDays]" value="<?= (int) $s['abandonDays'] ?>" style="width:90px"> days</div><small>When someone chooses "pay now" but never pays, their reserved address is freed after this.</small></div>
       <div class="f"><label>When a trial ends unpaid</label><select name="s[trialEndAction]">
         <option value="suspend" <?= $s['trialEndAction'] === 'suspend' ? 'selected' : '' ?>>Pause the workspace</option>
         <option value="downgrade" <?= $s['trialEndAction'] === 'downgrade' ? 'selected' : '' ?>>Move to the cheapest free package (if one exists)</option>

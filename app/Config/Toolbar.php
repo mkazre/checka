@@ -150,7 +150,7 @@ class Toolbar extends BaseConfig
         parent::__construct();
 
         // The platform host (and a workspace still being set up) has no workspace tables, so Shield's panel can't run there.
-        if (\App\Tenancy\Tenant::isPlatform() || \App\Tenancy\Tenant::status() === 'provisioning') {
+        if (\App\Tenancy\Tenant::isPlatform() || in_array(\App\Tenancy\Tenant::status(), ['provisioning', 'pending_payment'], true)) {
             $this->collectors = array_values(array_filter($this->collectors, static fn ($c) => ! str_contains($c, 'Shield')));
         }
     }

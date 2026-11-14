@@ -101,6 +101,12 @@ class TenantProvision extends BaseCommand
             EventModel::log((int) $t['id'], 'provisioned', 'Workspace ready (' . $target . ').', 'system');
             CLI::write('Workspace ' . $t['slug'] . ' is live (' . $target . ').', 'green');
 
+            // 6. Welcome email (first setup only)
+            if (empty($t['provisioned_at']) && $t['email']) {
+                $ok = \Platform\Services\PlatformMailer::template('welcome', (string) $t['email'], \Platform\Services\Billing::vars($tenants->find($t['id'])));
+                EventModel::log((int) $t['id'], 'email', $ok ? 'Welcome email sent to ' . $t['email'] . '.' : 'Welcome email FAILED: ' . \Platform\Services\PlatformMailer::$lastError, 'system');
+            }
+
             return EXIT_SUCCESS;
         } catch (Throwable $e) {
             $tenants->update($t['id'], ['provision_error' => mb_substr($e->getMessage(), 0, 2000)]);

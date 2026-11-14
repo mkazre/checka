@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing — CheckA+</title>
+<meta name="description" content="CheckA+ pricing in ZAR for workshops, dealers and fleets. Free trial, no card required.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#fff}a:hover{text-decoration:underline}</style>
+</head>
+<body data-active-page="Pricing" style="font-family:'Inter',system-ui,sans-serif;color:#2d2d2d;max-width:100%;overflow-x:hidden">
+<div id="site-header"></div>
+
+<section style="background:#f4f5f6;padding:56px 24px 40px">
+  <div style="max-width:760px;margin:0 auto;text-align:center">
+    <h1 style="font-size:36px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px">Simple pricing, built for South African workshops</h1>
+    <p id="heroNote" style="font-size:15px;color:#4a4a4a;margin:0 0 28px">Free trial on every plan. Prices in ZAR, exclude VAT.</p>
+    <div id="billingToggle" style="display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #e2e4e6;border-radius:999px;padding:4px"></div>
+  </div>
+</section>
+
+<section style="padding:0 24px 24px">
+  <div style="max-width:1160px;margin:0 auto">
+    <div id="planCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;align-items:start;margin-top:-28px"></div>
+    <div id="enterpriseBox" style="margin-top:22px;border:1px solid #e2e4e6;border-radius:14px;padding:28px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;background:#f9fafb"></div>
+  </div>
+</section>
+
+<section style="padding:48px 24px;background:#f4f5f6">
+  <div style="max-width:1160px;margin:0 auto">
+    <h2 style="font-size:26px;font-weight:800;letter-spacing:-.01em;margin:0 0 24px;text-align:center">Compare every module and limit</h2>
+    <div style="overflow-x:auto;background:#fff;border:1px solid #e2e4e6;border-radius:14px">
+      <table style="width:100%;border-collapse:collapse;min-width:640px">
+        <thead>
+          <tr id="comparisonHead" style="border-bottom:1px solid #e2e4e6"></tr>
+        </thead>
+        <tbody id="comparisonBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section style="padding:48px 24px">
+  <div style="max-width:1160px;margin:0 auto">
+    <h2 style="font-size:24px;font-weight:800;letter-spacing:-.01em;margin:0 0 20px;text-align:center">Add-ons</h2>
+    <div id="addOns" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px"></div>
+  </div>
+</section>
+
+<section style="padding:24px 24px 72px;background:#f4f5f6">
+  <div style="max-width:760px;margin:0 auto">
+    <h2 style="font-size:24px;font-weight:800;letter-spacing:-.01em;margin:0 0 24px;text-align:center">Frequently asked questions</h2>
+    <div id="faqList" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<script src="config.js"></script>
+<script src="site.js"></script>
+<script>
+(function () {
+  var billing = 'monthly';
+  var data = null;
+
+  function money(n) { return 'R' + Number(n).toLocaleString('en-ZA', { maximumFractionDigits: 2 }); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function renderToggle() {
+    var btnBase = "font-family:'Inter',system-ui,sans-serif;font-weight:600;font-size:13.5px;padding:9px 18px;border-radius:999px;border:none;cursor:pointer;background:transparent;color:#4a4a4a;";
+    var btnActive = "font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:13.5px;padding:9px 18px;border-radius:999px;border:none;cursor:pointer;background:#2d2d2d;color:#fff;";
+    var el = document.getElementById('billingToggle');
+    el.innerHTML =
+      '<button type="button" id="btnMonthly" style="' + (billing === 'monthly' ? btnActive : btnBase) + '">Monthly</button>' +
+      '<button type="button" id="btnAnnual" style="' + (billing === 'annual' ? btnActive : btnBase) + '">Annual' + (data.annualNote ? ' <span style="color:#2a8f3a;font-weight:700">· ' + esc(data.annualNote) + '</span>' : '') + '</button>';
+    document.getElementById('btnMonthly').onclick = function () { billing = 'monthly'; renderAll(); };
+    document.getElementById('btnAnnual').onclick = function () { billing = 'annual'; renderAll(); };
+  }
+
+  function renderCards() {
+    var annual = billing === 'annual';
+    var html = data.plans.map(function (p) {
+      var price = annual ? Math.round(p.annualPrice / 12) : p.monthlyPrice;
+      var cardBase = "position:relative;background:#fff;border-radius:16px;padding:28px;";
+      var cardStyle = p.highlight ? cardBase + "border:2px solid #37b34a;box-shadow:0 16px 40px rgba(55,179,74,.14);" : cardBase + "border:1px solid #e2e4e6;";
+      var ctaStyle = p.highlight
+        ? "display:block;text-align:center;font-weight:700;font-size:14.5px;color:#fff;background:#37b34a;padding:13px;border-radius:9px;text-decoration:none;"
+        : "display:block;text-align:center;font-weight:700;font-size:14.5px;color:#2d2d2d;background:#fff;border:1px solid #d6dce1;padding:13px;border-radius:9px;text-decoration:none;";
+      var badge = p.badge ? '<div style="position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#37b34a;color:#fff;font-size:11.5px;font-weight:700;padding:5px 14px;border-radius:999px;white-space:nowrap">' + esc(p.badge) + '</div>' : '';
+      var cta = p.trialDays > 0 ? 'Start ' + p.trialDays + '-day free trial' : (p.monthlyPrice > 0 ? 'Get started' : 'Start free');
+      var modules = p.modules.map(function (m) {
+        return '<div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:#2d2d2d"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#37b34a" stroke-width="3" style="flex:none;margin-top:2px"><path d="M20 6L9 17l-5-5"></path></svg><span>' + esc(m) + '</span></div>';
+      }).join('');
+      return '<div style="' + cardStyle + '">' + badge +
+        '<div style="font-size:18px;font-weight:700">' + esc(p.name) + '</div>' +
+        '<div style="font-size:13px;color:#4a4a4a;margin:6px 0 18px;min-height:40px">' + esc(p.tagline) + '</div>' +
+        '<div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:34px;font-weight:800;letter-spacing:-.02em">' + money(price) + '</span><span style="font-size:13px;color:#7a7a7a">/mo</span></div>' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#7a7a7a;margin-top:4px">' + (annual ? 'billed annually · ' + money(p.annualPrice) + '/yr' : 'billed monthly') + '</div>' +
+        '<div style="display:flex;gap:18px;margin:18px 0;padding:14px 0;border-top:1px solid #eceef0;border-bottom:1px solid #eceef0">' +
+        '<div><div style="font-size:18px;font-weight:700">' + esc(p.users) + '</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#7a7a7a;text-transform:uppercase;letter-spacing:.08em">Users</div></div>' +
+        '<div><div style="font-size:18px;font-weight:700">' + esc(p.inspectionsPerMonth) + '</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#7a7a7a;text-transform:uppercase;letter-spacing:.08em">Inspections/mo</div></div></div>' +
+        '<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:22px">' + modules + '</div>' +
+        '<a href="SignUp.html?plan=' + encodeURIComponent(p.id) + (annual ? '&billing=annual' : '') + '" style="' + ctaStyle + '">' + cta + '</a></div>';
+    }).join('');
+    document.getElementById('planCards').innerHTML = html;
+
+    document.getElementById('enterpriseBox').innerHTML =
+      '<div><div style="font-size:16px;font-weight:700;margin-bottom:4px">' + esc(data.enterprise.name) + '</div><div style="font-size:13.5px;color:#4a4a4a">' + esc(data.enterprise.tagline) + '</div></div>' +
+      '<a href="Contact.html" style="font-weight:700;font-size:14px;color:#2d2d2d;background:#fff;border:1px solid #d6dce1;padding:12px 22px;border-radius:9px;text-decoration:none;white-space:nowrap">' + esc(data.enterprise.cta) + '</a>';
+  }
+
+  function fmt(v) { return v === true ? '<span style="color:#37b34a;font-weight:700">✓</span>' : v === false ? '<span style="color:#b9bec3">—</span>' : esc(v); }
+
+  function renderComparison() {
+    var plans = data.plans;
+    var mono = "font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;";
+    document.getElementById('comparisonHead').innerHTML =
+      '<th style="text-align:left;padding:14px 18px;' + mono + 'color:#7a7a7a">Module</th>' +
+      plans.map(function (p) { return '<th style="text-align:center;padding:14px 12px;font-size:13px;font-weight:700' + (p.highlight ? ';color:#2a8f3a' : '') + '">' + esc(p.name) + '</th>'; }).join('');
+    var rows = '';
+    data.comparisonCategories.forEach(function (cat) {
+      rows += '<tr><td colspan="' + (plans.length + 1) + '" style="padding:14px 18px 6px;' + mono + 'color:#2a8f3a;background:#f9fafb">' + esc(cat.category) + '</td></tr>';
+      cat.items.forEach(function (it) {
+        rows += '<tr style="border-top:1px solid #eef0f2"><td style="padding:11px 18px;font-size:13.5px">' + esc(it.name) + '</td>' +
+          plans.map(function (p) { return '<td style="padding:11px 12px;text-align:center;font-size:13px' + (p.highlight ? ';background:#37b34a0d' : '') + '">' + fmt(it[p.id]) + '</td>'; }).join('') + '</tr>';
+      });
+    });
+    document.getElementById('comparisonBody').innerHTML = rows;
+  }
+
+  function renderAddOns() {
+    document.getElementById('addOns').innerHTML = data.addOns.map(function (a) {
+      return '<div style="border:1px solid #e2e4e6;border-radius:12px;padding:18px;display:flex;justify-content:space-between;align-items:center;gap:10px">' +
+        '<span style="font-size:13.5px">' + esc(a.name) + '</span><span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:#2a8f3a;white-space:nowrap">' + esc(a.price) + '</span></div>';
+    }).join('');
+  }
+
+  function renderFaq() {
+    document.getElementById('faqList').innerHTML = data.faq.map(function (f) {
+      return '<div style="background:#fff;border:1px solid #e2e4e6;border-radius:12px;padding:18px 22px"><div style="font-size:14.5px;font-weight:700;margin-bottom:6px">' + esc(f.q) + '</div><div style="font-size:13.5px;color:#4a4a4a;line-height:1.6">' + esc(f.a) + '</div></div>';
+    }).join('');
+  }
+
+  function renderAll() {
+    var maxTrial = Math.max.apply(null, [0].concat(data.plans.map(function (p) { return p.trialDays || 0; })));
+    document.getElementById('heroNote').textContent = (maxTrial > 0 ? maxTrial + '-day free trial, no card required. ' : '') + (data.billingNote || 'Prices in ZAR, exclude VAT.');
+    document.getElementById('addOns').parentNode.parentNode.style.display = data.addOns.length ? '' : 'none';
+    document.getElementById('faqList').parentNode.parentNode.style.display = data.faq.length ? '' : 'none';
+    document.getElementById('enterpriseBox').style.display = data.enterprise && data.enterprise.name ? '' : 'none';
+    renderToggle();
+    renderCards();
+    renderComparison();
+    renderAddOns();
+    renderFaq();
+  }
+
+  // Live packages from the admin panel (Packages + Settings → Website).
+  fetch(window.CHECKA_CONFIG.plansApiUrl).then(function (r) { return r.json(); }).then(function (json) {
+    data = json;
+    renderAll();
+  }).catch(function () {
+    document.getElementById('planCards').innerHTML = '<div style="text-align:center;color:#b42318;grid-column:1/-1">Could not load pricing. Please refresh the page.</div>';
+  });
+})();
+</script>
+</body>
+</html>

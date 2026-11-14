@@ -9,7 +9,40 @@
 $routes->setDefaultNamespace('Platform\Controllers');
 $routes->setDefaultController('Dashboard');
 
+// The bare domain and www serve the marketing website (site/ folder).
+$host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+$root = strtolower((string) (\App\Tenancy\Tenant::platformConfig()['rootDomain'] ?? ''));
+if (! is_cli() && ($host === $root || $host === 'www.' . $root)) {
+    $routes->get('/', 'Site::page', ['namespace' => 'Platform\Controllers']);
+    $routes->get('(:any)', 'Site::page/$1', ['namespace' => 'Platform\Controllers']);
+
+    return;
+}
+
 $routes->group('', ['namespace' => 'Platform\Controllers'], static function ($routes) {
+    // ---- Public (no admin login): sign-up, pay, website API, gateway callbacks
+    $routes->post('signup', 'Signup::create');
+    $routes->get('signup', 'Signup::redirectToSite');
+    $routes->get('welcome/(:segment)', 'Signup::welcome/$1');
+    $routes->post('find-workspace', 'Api::findWorkspace');
+    $routes->get('api/plans', 'Api::plans');
+    $routes->get('api/workspace-availability', 'Api::availability');
+    $routes->get('api/signup-status/(:segment)', 'Api::signupStatus/$1');
+    $routes->post('api/contact', 'Api::contact');
+    $routes->options('api/(:any)', 'Api::preflight');
+
+    $routes->get('pay/(:segment)', 'Pay::show/$1');
+    $routes->get('pay/(:segment)/invoice', 'Pay::invoice/$1');
+    $routes->post('pay/(:segment)/paystack', 'Pay::paystack/$1');
+    $routes->get('pay/(:segment)/paystack/callback', 'Pay::paystackCallback/$1');
+    $routes->post('pay/(:segment)/payfast', 'Pay::payfast/$1');
+    $routes->post('pay/(:segment)/ozow', 'Pay::ozow/$1');
+    $routes->match(['get', 'post'], 'pay/(:segment)/return/(:segment)', 'Pay::returned/$1/$2');
+    $routes->post('webhooks/paystack', 'Webhooks::paystack');
+    $routes->post('webhooks/payfast', 'Webhooks::payfast');
+    $routes->post('webhooks/ozow', 'Webhooks::ozow');
+
+    // ---- Admin panel
     $routes->get('login', 'Auth::login');
     $routes->post('login', 'Auth::attempt');
     $routes->get('logout', 'Auth::logout');
@@ -35,6 +68,18 @@ $routes->group('', ['namespace' => 'Platform\Controllers'], static function ($ro
         $routes->post('tenants/(:num)/action', 'Tenants::action/$1');
         $routes->post('tenants/(:num)/login-as', 'Tenants::loginAs/$1');
         $routes->get('tenants/(:num)/clients.csv', 'Clients::exportTenant/$1');
+
+        $routes->get('invoices', 'Invoices::index');
+        $routes->get('invoices/export', 'Invoices::export');
+        $routes->post('tenants/(:num)/invoice', 'Invoices::create/$1');
+        $routes->post('invoices/(:num)/paid', 'Invoices::markPaid/$1');
+        $routes->post('invoices/(:num)/void', 'Invoices::void/$1');
+        $routes->post('invoices/(:num)/resend', 'Invoices::resend/$1');
+        $routes->post('invoices/(:num)/charge', 'Invoices::charge/$1');
+
+        $routes->get('leads', 'Leads::index');
+        $routes->get('leads/export', 'Leads::export');
+        $routes->post('leads/(:num)/handled', 'Leads::handled/$1');
 
         $routes->get('clients', 'Clients::index');
         $routes->get('clients/export', 'Clients::export');

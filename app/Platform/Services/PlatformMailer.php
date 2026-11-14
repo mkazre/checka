@@ -38,7 +38,7 @@ class PlatformMailer
 
         try {
             if ($cfg['transport'] === 'brevo') {
-                $res = service('curlrequest', ['http_errors' => false, 'timeout' => 20])->post('https://api.brevo.com/v3/smtp/email', [
+                $res = \Config\Services::curlrequest(['http_errors' => false, 'timeout' => 20], null, null, false)->post('https://api.brevo.com/v3/smtp/email', [
                     'headers' => ['api-key' => $cfg['brevoKey'], 'accept' => 'application/json'],
                     'json'    => [
                         'sender'      => ['email' => $from, 'name' => $fromName],

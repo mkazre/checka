@@ -140,6 +140,8 @@ class Tenants extends BaseController
             'eff'      => TenantRegistry::effective($t),
             'usage'    => TenantData::usage($t, true),
             'events'   => model(EventModel::class)->where('tenant_id', $id)->orderBy('id', 'DESC')->findAll(50),
+            'invoices' => \Platform\Services\Billing::invoicesFor($id),
+            'nextPkg'  => $t['next_package_id'] ? model(PackageModel::class)->find($t['next_package_id']) : null,
             'catalog'  => config('SaasModules')->modules,
             'limitDef' => config('SaasModules')->limits,
         ]);
