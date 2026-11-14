@@ -3,6 +3,7 @@
 <meta name="robots" content="noindex"><title>Sign in · <?= $pname ?> Platform</title>
 <?= $this->include('Platform\Views\_styles') ?>
 <style>body{display:grid;place-items:center;min-height:100vh;padding:16px;background:#fff}.box{width:100%;max-width:380px}.brand{text-align:center;margin-bottom:22px}.brand img{height:64px;width:auto}.brand small{display:block;margin-top:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.box .card{box-shadow:0 18px 50px rgba(16,23,29,.08)}</style>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head><body>
 <div class="box">
   <div class="brand"><img src="<?= base_url('assets/platform/logo.png') ?>" alt="<?= $pname ?>"><small>Platform admin</small></div>

@@ -6,7 +6,8 @@
   .card{background:#fff;border:1px solid #e2e4e6;border-radius:16px;max-width:440px;width:100%;padding:32px;text-align:center;box-shadow:0 18px 50px rgba(16,23,29,.08)}
   h1{font-size:20px;margin:0 0 10px}p{color:#5b6570;line-height:1.6;font-size:14.5px}
   .btn{display:inline-block;margin-top:10px;background:#37b34a;color:#fff;text-decoration:none;font-weight:700;padding:13px 24px;border-radius:10px}
-</style></head>
+</style><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+</head>
 <body><div class="card">
   <h1><?= esc($tenant['name'] ?? 'Your workspace') ?> is almost ready</h1>
   <p>This address is reserved for you. As soon as your first payment is received, we'll set up your workspace automatically.</p>

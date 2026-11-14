@@ -42,6 +42,7 @@
   .foot{text-align:center;color:#9aa0a6;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin-top:22px}
   @media(max-width:420px){.loginbox{padding:30px 22px 24px;border-radius:14px}.loginbox .logo{height:60px}}
 </style>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
   <div class="loginbox">

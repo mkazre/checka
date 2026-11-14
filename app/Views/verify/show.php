@@ -21,6 +21,7 @@
   .row b{font-family:'JetBrains Mono';font-size:12.5px}
   .k{color:#6b7682}
 </style>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
 <div class="card">

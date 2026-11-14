@@ -21,6 +21,7 @@ $pname = esc(\Platform\Services\PlatformSettings::value('general', 'platformName
 <meta name="robots" content="noindex">
 <title><?php $this->renderSection('title') ?> ·<?= $pname ?> Platform</title>
 <?= $this->include('Platform\Views\_styles') ?>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
 <div class="shell">

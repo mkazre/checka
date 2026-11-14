@@ -11,6 +11,7 @@
   pre{background:#1e2731;border:1px solid #2b3742;border-radius:10px;padding:16px;overflow:auto;line-height:1.6}
   .file{color:#8fd3a7}
 </style>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
   <h1><?= esc($exception->getMessage() ?: get_class($exception)) ?></h1>

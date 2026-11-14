@@ -69,7 +69,8 @@ class PlatformMailer
             ], false);
             $email->setFrom($from, $fromName)->setTo($to)->setSubject($subject)->setMessage($html)->setAltMessage($text);
             if (! $email->send(false)) {
-                self::$lastError = trim(strip_tags($email->printDebugger(['headers'])));
+                self::$lastError = mb_substr(trim(strtok(html_entity_decode(strip_tags($email->printDebugger([]))), "
+")), 0, 200);
 
                 return false;
             }

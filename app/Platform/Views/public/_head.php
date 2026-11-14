@@ -31,6 +31,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:9px 0;border-bottom:1px 
 .method b{display:block}.method small{color:var(--mut)}
 .spin{width:42px;height:42px;border:4px solid #e3f2e5;border-top-color:var(--g);border-radius:50%;margin:0 auto 16px;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
 @media(max-width:600px){.card{padding:20px}.method{flex-direction:column;align-items:stretch}}
-</style></head><body>
+</style><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+</head><body>
 <div class="top"><div><a href="<?= esc($site, 'attr') ?>/"><img src="<?= esc($site, 'attr') ?>/assets/logo.png" alt="CheckA+"></a><a href="<?= esc($site, 'attr') ?>/login" style="font-weight:600;font-size:13.5px;color:#4a4a4a;text-decoration:none">Sign in</a></div></div>
 <div class="wrap">

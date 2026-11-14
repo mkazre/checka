@@ -52,6 +52,7 @@
   .vrr-nested{margin-left:12px}
   .vrr-empty{color:var(--ink-3);font-style:italic}
 </style>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
 <div style="width:100%;max-width:620px">

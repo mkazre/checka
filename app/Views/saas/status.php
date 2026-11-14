@@ -13,7 +13,8 @@ $closed = in_array($status, ['cancelled', 'closed'], true);
   p{color:#5b6570;line-height:1.6;font-size:14.5px}
   .btn{display:inline-block;margin-top:14px;background:<?= esc(brand('primary')) ?>;color:#fff;text-decoration:none;font-weight:700;padding:13px 24px;border-radius:10px}
   .muted{font-size:12.5px;color:#8a95a1;margin-top:16px}
-</style></head>
+</style><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+</head>
 <body><div class="card">
   <img src="<?= esc(brand('logo')) ?>" alt="">
   <?php if ($closed): ?>

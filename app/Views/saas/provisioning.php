@@ -7,7 +7,8 @@
   .spin{width:44px;height:44px;border:4px solid #e3f0ea;border-top-color:#0b7a5a;border-radius:50%;margin:0 auto 18px;animation:s 1s linear infinite}
   @keyframes s{to{transform:rotate(360deg)}}
   h1{font-size:20px;margin:0 0 10px}p{color:#5b6570;line-height:1.6;font-size:14.5px;margin:0}
-</style></head>
+</style><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+</head>
 <body><div class="card">
   <div class="spin"></div>
   <h1>Setting up <?= esc($tenant['name'] ?? 'your workspace') ?></h1>

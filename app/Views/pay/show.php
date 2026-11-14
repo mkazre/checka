@@ -38,6 +38,7 @@
   .foot{text-align:center;color:var(--ink-3);font-size:12px;margin-top:18px;line-height:1.6}
   .secure{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--ink-3);font-size:12px}
 </style>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
 <?php

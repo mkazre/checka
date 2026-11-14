@@ -69,7 +69,7 @@ $lim    = \App\Tenancy\Tenant::get()['limits'] ?? [];
 <div class="card" style="padding:20px;margin-top:18px">
   <h3 style="margin-top:0">Invoices</h3>
   <?php if (! $invoices): ?><p class="muted">No invoices yet.</p><?php else: ?>
-  <div class="table-wrap"><table class="table" style="width:100%">
+  <div class="table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="table" style="width:100%;min-width:560px">
     <thead><tr><th>Invoice</th><th>Description</th><th>Total</th><th>Due</th><th>Status</th><th></th></tr></thead>
     <tbody>
     <?php foreach ($invoices as $inv): ?>

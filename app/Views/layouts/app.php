@@ -17,6 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="CheckA+">
 <?php endif; ?>
 <?= $this->renderSection('head') ?>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
 <?php $isAdmin = auth()->loggedIn() && auth()->user()->inGroup('admin'); ?>

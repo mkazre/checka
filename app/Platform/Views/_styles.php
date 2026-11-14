@@ -77,10 +77,20 @@ dl.kv dt{color:var(--mut)}dl.kv dd{margin:0;word-break:break-word}
 code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:#f1f3f5;padding:2px 6px;border-radius:5px;word-break:break-all}
 .ev{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
 .ev:last-child{border:0}.ev time{color:var(--mut);white-space:nowrap;min-width:118px}
+.grid>*{min-width:0}
+.card,.ev,dl.kv dd,.flash{overflow-wrap:anywhere}
 @media(max-width:900px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){
   .side{position:fixed;left:-250px;z-index:20;transition:left .2s}.side.open{left:0}
   main{padding:16px}.burger{display:block;background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px 11px;font-size:18px;margin-bottom:12px}
-  .g2,.g3,.g4{grid-template-columns:1fr}dl.kv{grid-template-columns:1fr}.filters input,.filters select{width:100%}
+  .g2,.g3{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .stat{padding:12px 14px}.stat b{font-size:20px}
+  dl.kv{grid-template-columns:1fr;gap:2px}dl.kv dd{margin-bottom:8px}
+  .filters input,.filters select{width:100%}
+  .card{padding:16px}h1{font-size:21px}
+  .tbl table{min-width:640px}
+  .ev{flex-direction:column;gap:2px}.ev time{min-width:0}
+  .row-actions .btn{flex:1 1 auto;justify-content:center}
+  .mods{grid-template-columns:1fr}
 }
 </style>

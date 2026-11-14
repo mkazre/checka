@@ -54,6 +54,7 @@
   .statusbig.approved{background:#e7f6ec;color:#0f5f2e}
   .statusbig.declined{background:#fbeae8;color:#8a1a12}
 </style>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 </head>
 <body>
 <div class="wrap">

@@ -11,7 +11,8 @@ td{padding:10px 0;border-bottom:1px solid #eee}.r{text-align:right}.tot td{font-
 .stamp{display:inline-block;border:2px solid;border-radius:6px;padding:3px 10px;font-weight:800;letter-spacing:.08em}
 .print{max-width:780px;margin:0 auto;text-align:right;padding-top:16px}
 @media print{body{background:#fff}.page{border:0;margin:0;padding:0}.print{display:none}}
-</style></head><body>
+</style><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+</head><body>
 <div class="print"><button onclick="print()" style="padding:8px 16px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer">Print / save as PDF</button></div>
 <div class="page">
   <div class="row">
