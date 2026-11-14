@@ -25,7 +25,7 @@ $pname = esc(\Platform\Services\PlatformSettings::value('general', 'platformName
 <body>
 <div class="shell">
   <aside class="side" id="side">
-    <a class="logo" href="<?= site_url('/') ?>"><span class="mark">✓</span><span><?= $pname ?><small>Platform</small></span></a>
+    <a class="logo" href="<?= site_url('/') ?>"><img src="<?= base_url('assets/platform/logo.png') ?>" alt="<?= $pname ?>"><small>Platform admin</small></a>
     <nav>
       <?php foreach ($nav as $key => [$label, $icon]): ?>
         <a href="<?= site_url($key) ?>" class="<?= $first === $key ? 'on' : '' ?>">
