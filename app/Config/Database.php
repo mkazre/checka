@@ -90,6 +90,13 @@ class Database extends Config
     {
         parent::__construct();
 
+        // SQLite (local testing): keep one shared file even though each
+        // workspace has its own writable folder.
+        if ($this->default['DBDriver'] === 'SQLite3' && \App\Tenancy\Tenant::baseWritable() !== ''
+            && $this->default['database'] !== ':memory:' && ! preg_match('~^([a-z]:)?[\\\\/]~i', $this->default['database'])) {
+            $this->default['database'] = \App\Tenancy\Tenant::baseWritable() . DIRECTORY_SEPARATOR . $this->default['database'];
+        }
+
         // Platform tables (tenants, packages, subscriptions…) share the main
         // database under their own prefix, on their own connection group.
         $this->platform             = $this->default;

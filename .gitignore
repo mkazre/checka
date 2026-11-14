@@ -34,3 +34,4 @@ public/null/
 /writable/platform/
 /writable/tenants/
 /public/tenant-files/
+/writable/*.db

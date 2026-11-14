@@ -49,6 +49,7 @@ class Filters extends BaseFilters
 
         // SaaS: workspace status + package entitlements (no-op outside SaaS mode)
         'tenant'      => \App\Filters\TenantGuard::class,
+        'platform-auth' => \Platform\Filters\PlatformAuth::class,
     ];
 
     /**

@@ -144,4 +144,14 @@ class Toolbar extends BaseConfig
         'HX-Request'       => 'true',           // HTMX requests
         'X-Up-Version'     => null,             // Unpoly partial requests
     ];
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // The platform host (and a workspace still being set up) has no workspace tables, so Shield's panel can't run there.
+        if (\App\Tenancy\Tenant::isPlatform() || \App\Tenancy\Tenant::status() === 'provisioning') {
+            $this->collectors = array_values(array_filter($this->collectors, static fn ($c) => ! str_contains($c, 'Shield')));
+        }
+    }
 }

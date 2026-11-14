@@ -6,6 +6,13 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
+// SaaS platform host (app.<rootDomain>): the admin panel has its own routes.
+if (\App\Tenancy\Tenant::isPlatform()) {
+    require APPPATH . 'Platform/Config/Routes.php';
+
+    return;
+}
+
 // ---------------------------------------------------------------------
 // Shield authentication routes (login, logout, register, magic-link…)
 // ---------------------------------------------------------------------
@@ -16,6 +23,9 @@ service('auth')->routes($routes);
 // ---------------------------------------------------------------------
 $routes->get('/', 'Home::index');
 $routes->get('verify/(:segment)', 'Verify::show/$1');
+
+// One-time sign-in from the SaaS platform panel ("Log in as admin")
+$routes->get('platform-sso/(:segment)', 'PlatformSso::consume/$1');
 
 // Public, read-only VIN Check share landing (QR code / emailed link) — feature: vinCheck
 $routes->get('vin-check/(:segment)', 'VinChecks::publicView/$1');

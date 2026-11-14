@@ -17,6 +17,7 @@ class Autoload extends AutoloadConfig
     public $psr4 = [
         APP_NAMESPACE => APPPATH, // For custom app namespace
         'Config'      => APPPATH . 'Config',
+        'Platform'    => APPPATH . 'Platform', // SaaS control panel (app.<root domain>)
     ];
 
     /**

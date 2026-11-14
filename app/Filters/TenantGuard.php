@@ -17,7 +17,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 class TenantGuard implements FilterInterface
 {
     /** Always reachable, even when suspended (so the customer can sign in and pay). */
-    private const OPEN = ['login', 'logout', 'register', 'auth', 'subscription', 'pay', 'verify', 'portal', 'assets', 'csrf', 'manifest', 'sw.js'];
+    private const OPEN = ['login', 'logout', 'register', 'auth', 'subscription', 'pay', 'verify', 'portal', 'assets', 'csrf', 'manifest', 'sw.js', 'platform-sso'];
 
     public function before(RequestInterface $request, $arguments = null)
     {
@@ -25,9 +25,13 @@ class TenantGuard implements FilterInterface
             return null;
         }
 
-        $path  = trim($request->getUri()->getPath(), '/');
+        $path  = trim(method_exists($request, 'getPath') ? $request->getPath() : $request->getUri()->getPath(), '/');
         $first = strtolower(explode('/', $path)[0] ?? '');
         $t     = Tenant::get();
+
+        if (Tenant::status() === 'provisioning') {
+            return service('response')->setStatusCode(503)->setHeader('Retry-After', '15')->setBody(view('saas/provisioning', ['tenant' => $t]));
+        }
 
         if (in_array(Tenant::status(), ['suspended', 'cancelled', 'closed'], true) && ! in_array($first, self::OPEN, true)) {
             return service('response')->setStatusCode(402)->setBody(view('saas/status', ['tenant' => $t, 'status' => Tenant::status()]));
