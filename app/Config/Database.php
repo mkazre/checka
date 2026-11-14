@@ -24,6 +24,9 @@ class Database extends Config
      *
      * @var array<string, mixed>
      */
+    /** Platform (control) tables — copied from $default in the constructor, prefix pf_. */
+    public array $platform = [];
+
     public array $default = [
         'DSN'          => '',
         'hostname'     => 'localhost',
@@ -86,6 +89,24 @@ class Database extends Config
     public function __construct()
     {
         parent::__construct();
+
+        // Platform tables (tenants, packages, subscriptions…) share the main
+        // database under their own prefix, on their own connection group.
+        $this->platform             = $this->default;
+        $this->platform['DBPrefix'] = 'pf_';
+
+        // Each workspace gets its own table prefix (shared database) or its own database.
+        if (\App\Tenancy\Tenant::active()) {
+            $db = \App\Tenancy\Tenant::db();
+            if (($db['mode'] ?? 'prefix') === 'database') {
+                foreach (['hostname', 'database', 'username', 'password'] as $k) {
+                    if (! empty($db[$k])) {
+                        $this->default[$k] = $db[$k];
+                    }
+                }
+            }
+            $this->default['DBPrefix'] = (string) ($db['prefix'] ?? '');
+        }
 
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite.

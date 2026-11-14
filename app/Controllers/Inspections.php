@@ -37,6 +37,10 @@ class Inspections extends BaseController
     /** Step 2: create the inspection + snapshot the template into value rows. */
     public function create()
     {
+        if (limit_reached('inspections_month', model(InspectionModel::class)->where('created_at >=', date('Y-m-01 00:00:00'))->countAllResults())) {
+            return redirect()->back()->withInput()->with('error', 'You\'ve used all ' . plan_limit('inspections_month') . ' inspections in your package this month. Upgrade your subscription for more.');
+        }
+
         $client = model(ClientModel::class)->find((int) $this->request->getPost('client_id'));
         if ($client === null) {
             return redirect()->back()->withInput()->with('error', 'Choose the client this inspection is for. New client? Add them under Clients first.');

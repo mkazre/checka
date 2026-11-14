@@ -199,4 +199,18 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // SaaS: every workspace lives on its own subdomain, so links, redirects
+        // and emails must use the workspace's address, not the fixed .env URL.
+        if (\App\Tenancy\Tenant::active()) {
+            $root = (string) (\App\Tenancy\Tenant::platformConfig()['rootDomain'] ?? '');
+            $port = parse_url($this->baseURL, PHP_URL_PORT);
+            $this->baseURL = (parse_url($this->baseURL, PHP_URL_SCHEME) ?: 'https') . '://'
+                . \App\Tenancy\Tenant::slug() . '.' . $root . ($port ? ':' . $port : '') . '/';
+        }
+    }
 }

@@ -9,7 +9,7 @@
  * @var array|null  $company   optional override (purchase orders pass po_company())
  */
 if (empty($logoFile)) {
-    $brandRel = feature('whiteLabel') ? trim((string) setting('Brand.logoPath')) : '';
+    $brandRel = own_branding() ? trim((string) setting('Brand.logoPath')) : '';
     $logoFile = $brandRel !== '' ? FCPATH . $brandRel : FCPATH . 'assets/img/logo.png';
 }
 $co = $company ?? [

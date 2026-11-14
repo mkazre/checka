@@ -32,7 +32,16 @@
         ];
         foreach ($rows as $r):
           [$key, $title, $desc, $stage] = $r; $subs = $r[4] ?? [];
-      ?>
+          $mod    = config('SaasModules')->moduleForFlag($key);
+          $locked = $mod !== null && ! module_enabled($mod);
+          if ($locked): ?>
+        <div style="border-top:1px solid var(--line);padding:12px 0;display:flex;gap:10px;align-items:flex-start;opacity:.6">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-top:3px;flex:none"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          <span style="flex:1"><b style="font-size:14px"><?= esc($title) ?></b> <span class="pill" style="font-size:10px">Not in your package</span>
+            <span class="sub" style="display:block;font-size:12px;color:var(--ink-3);margin-top:2px"><?= esc($desc) ?> <a href="<?= site_url('subscription') ?>">Upgrade</a></span></span>
+          <?php foreach (array_merge([$key], array_keys($subs)) as $keep): if ($feat[$keep]): ?><input type="hidden" name="feat_<?= $keep ?>" value="1"><?php endif; endforeach; ?>
+        </div>
+      <?php continue; endif; ?>
         <div style="border-top:1px solid var(--line);padding:12px 0">
           <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
             <input type="checkbox" name="feat_<?= $key ?>" value="1" <?= $feat[$key]?'checked':'' ?> style="margin-top:3px">

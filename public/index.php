@@ -53,6 +53,12 @@ require FCPATH . '../app/Config/Paths.php';
 
 $paths = new Paths();
 
+// Multi-tenant: work out which workspace this host belongs to (no-op without writable/platform/platform.json).
+require FCPATH . '../app/Tenancy/Tenant.php';
+if (! App\Tenancy\Tenant::bootstrap($paths)) {
+    exit(0);
+}
+
 // LOAD THE FRAMEWORK BOOTSTRAP FILE
 require $paths->systemDirectory . '/Boot.php';
 

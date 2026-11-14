@@ -46,6 +46,9 @@ class Inspections extends ResourceController
     public function create()
     {
         $body       = $this->request->getJSON(true) ?: $this->request->getPost();
+        if (limit_reached('inspections_month', model(InspectionModel::class)->where('created_at >=', date('Y-m-01 00:00:00'))->countAllResults())) {
+            return $this->fail('Your package\'s monthly inspection limit (' . plan_limit('inspections_month') . ') has been reached.', 402);
+        }
         $templateId = (int) ($body['template_id'] ?? 0);
         $template   = model(TemplateModel::class)->withTree($templateId);
         if ($template === null) {

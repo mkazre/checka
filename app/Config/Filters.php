@@ -46,6 +46,9 @@ class Filters extends BaseFilters
         'group'       => GroupFilter::class,
         'permission'  => PermissionFilter::class,
         'force-reset' => ForcePasswordResetFilter::class,
+
+        // SaaS: workspace status + package entitlements (no-op outside SaaS mode)
+        'tenant'      => \App\Filters\TenantGuard::class,
     ];
 
     /**
@@ -73,6 +76,7 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             // 'honeypot',
+            'tenant',
             'csrf' => ['except' => ['api/*']],
             // 'invalidchars',
         ],

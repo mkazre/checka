@@ -14,7 +14,7 @@
     --display:'Inter',system-ui,sans-serif;
     --body:'Inter',system-ui,sans-serif;
   }
-  <?php if (feature('whiteLabel')): ?>
+  <?php if (own_branding()): ?>
   :root{ --brand:<?= brand('primary') ?>; --brand-ink:<?= brand('primary') ?>; --ink:<?= brand('dark') ?>; --panel:<?= brand('dark') ?>; }
   <?php endif; ?>
   *{box-sizing:border-box}

@@ -29,3 +29,8 @@ Thumbs.db
 *.log
 
 public/null/
+
+# SaaS runtime data (per-workspace files, platform registry, tenant logos)
+/writable/platform/
+/writable/tenants/
+/public/tenant-files/

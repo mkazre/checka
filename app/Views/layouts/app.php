@@ -43,7 +43,7 @@
         <?php if (feature('purchasing')): ?><a href="<?= site_url('purchase-orders') ?>" class="<?= (str_starts_with($uri,'purchase-orders') || str_starts_with($uri,'vendors') || str_starts_with($uri,'items'))?'active':'' ?>">Purchasing</a><?php endif; ?>
         <?php if (feature('vinCheck')): ?><a href="<?= site_url('vin-checks') ?>" class="<?= str_starts_with($uri,'vin-check')?'active':'' ?>">VIN Checks</a><?php endif; ?>
         <?php if ($isAdmin): ?>
-          <a href="<?= site_url('templates') ?>" class="<?= str_starts_with($uri,'templates')?'active':'' ?>">Templates</a>
+          <?php if (module_enabled('templates')): ?><a href="<?= site_url('templates') ?>" class="<?= str_starts_with($uri,'templates')?'active':'' ?>">Templates</a><?php endif; ?>
           <a href="<?= site_url('users') ?>" class="<?= str_starts_with($uri,'users')?'active':'' ?>">Users</a>
           <?php if (feature('analytics')): ?><a href="<?= site_url('analytics') ?>" class="<?= str_starts_with($uri,'analytics')?'active':'' ?>">Analytics</a><?php endif; ?>
           <a href="<?= site_url('settings') ?>" class="<?= str_starts_with($uri,'settings')?'active':'' ?>">Settings</a>

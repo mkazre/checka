@@ -21,7 +21,85 @@ if (! function_exists('feature')) {
             return false;
         }
 
+        // In a SaaS workspace the switch only counts if the package includes the module.
+        if (\App\Tenancy\Tenant::active()) {
+            $module = config('SaasModules')->moduleForFlag($key);
+            if ($module !== null && ! module_enabled($module)) {
+                return false;
+            }
+        }
+
         return (bool) setting('Features.' . $key);
+    }
+}
+
+if (! function_exists('module_enabled')) {
+    /**
+     * Does this workspace's package include the module? Always true outside
+     * SaaS mode, for core, and for modules still on the roadmap (they have
+     * nothing to unlock yet).
+     */
+    function module_enabled(string $module): bool
+    {
+        if (! \App\Tenancy\Tenant::active()) {
+            return true;
+        }
+        $m = config('SaasModules')->modules[$module] ?? null;
+        if ($m === null || ! empty($m['core'])) {
+            return true;
+        }
+
+        return in_array($module, \App\Tenancy\Tenant::modules(), true);
+    }
+}
+
+if (! function_exists('plan_limit')) {
+    /** The package limit for this workspace, or null for unlimited (and always null outside SaaS mode). */
+    function plan_limit(string $key): ?int
+    {
+        return \App\Tenancy\Tenant::active() ? \App\Tenancy\Tenant::limit($key) : null;
+    }
+}
+
+if (! function_exists('limit_reached')) {
+    /** True when adding one more would exceed the package limit. */
+    function limit_reached(string $key, int $currentCount): bool
+    {
+        $max = plan_limit($key);
+
+        return $max !== null && $currentCount >= $max;
+    }
+}
+
+if (! function_exists('tenant_files')) {
+    /**
+     * Where a workspace's public files (logos) live: public/tenant-files/<slug>/
+     * in SaaS mode, public/assets/img/ otherwise. 'dir' = filesystem path,
+     * 'rel' = path relative to public/ (for base_url / settings).
+     */
+    function tenant_files(string $as = 'rel'): string
+    {
+        $rel = \App\Tenancy\Tenant::active() ? 'tenant-files/' . \App\Tenancy\Tenant::slug() . '/' : 'assets/img/';
+        if ($as === 'dir') {
+            if (! is_dir(FCPATH . $rel)) {
+                @mkdir(FCPATH . $rel, 0755, true);
+            }
+
+            return FCPATH . $rel;
+        }
+
+        return $rel;
+    }
+}
+
+if (! function_exists('own_branding')) {
+    /**
+     * Use the company's own logo/colours? Always in a SaaS workspace (every
+     * customer brands their instance); otherwise only with the White-label feature.
+     */
+    function own_branding(): bool
+    {
+        return \App\Tenancy\Tenant::active() || feature('whiteLabel');
     }
 }
 
@@ -40,7 +118,7 @@ if (! function_exists('brand')) {
             'dark'    => '#2d2d2d',
         ];
 
-        if (! feature('whiteLabel')) {
+        if (! own_branding()) {
             return $defaults[$key] ?? '';
         }
 
@@ -98,7 +176,7 @@ if (! function_exists('po_logo')) {
             return $as === 'file' ? FCPATH . $rel : base_url($rel) . '?v=' . filemtime(FCPATH . $rel);
         }
         if ($as === 'file') {
-            $brandRel = feature('whiteLabel') ? trim((string) setting('Brand.logoPath')) : '';
+            $brandRel = own_branding() ? trim((string) setting('Brand.logoPath')) : '';
 
             return $brandRel !== '' ? FCPATH . $brandRel : FCPATH . 'assets/img/logo.png';
         }

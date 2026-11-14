@@ -35,6 +35,10 @@ class Users extends BaseController
     {
         $users = model(UserModel::class);
 
+        if (limit_reached('users', $users->countAllResults())) {
+            return redirect()->back()->withInput()->with('error', 'Your package allows ' . plan_limit('users') . ' users. Upgrade your subscription to add more.');
+        }
+
         $user = new User([
             'username' => $this->request->getPost('username'),
             'email'    => $this->request->getPost('email'),

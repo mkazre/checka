@@ -123,8 +123,8 @@ class Settings extends BaseController
         $logo = $this->request->getFile('b_logo');
         if ($logo !== null && $logo->isValid() && str_starts_with((string) $logo->getMimeType(), 'image/')) {
             $name = 'brand-logo.' . ($logo->getExtension() ?: 'png');
-            $logo->move(FCPATH . 'assets/img', $name, true);
-            setting()->set('Brand.logoPath', 'assets/img/' . $name);
+            $logo->move(tenant_files('dir'), $name, true);
+            setting()->set('Brand.logoPath', tenant_files() . $name);
         }
 
         // Purchase-order-only company details (blank = fall back to Billing Settings).
@@ -135,15 +135,15 @@ class Settings extends BaseController
         // Purchase-order-only logo (PNG/JPG/GIF — formats the PDF engine renders reliably).
         $poLogo = $this->request->getFile('po_logo');
         if ($poLogo !== null && $poLogo->isValid() && in_array(strtolower((string) $poLogo->getExtension()), ['png', 'jpg', 'jpeg', 'gif'], true)) {
-            foreach (glob(FCPATH . 'assets/img/po-logo.*') ?: [] as $old) {
+            foreach (glob(tenant_files('dir') . 'po-logo.*') ?: [] as $old) {
                 @unlink($old);
             }
             $name = 'po-logo.' . strtolower($poLogo->getExtension());
-            $poLogo->move(FCPATH . 'assets/img', $name, true);
-            @chmod(FCPATH . 'assets/img/' . $name, 0644);
-            setting()->set('Purchasing.logoPath', 'assets/img/' . $name);
+            $poLogo->move(tenant_files('dir'), $name, true);
+            @chmod(tenant_files('dir') . $name, 0644);
+            setting()->set('Purchasing.logoPath', tenant_files() . $name);
         } elseif ($this->request->getPost('po_logo_remove')) {
-            foreach (glob(FCPATH . 'assets/img/po-logo.*') ?: [] as $old) {
+            foreach (glob(tenant_files('dir') . 'po-logo.*') ?: [] as $old) {
                 @unlink($old);
             }
             setting()->set('Purchasing.logoPath', '');
