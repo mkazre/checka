@@ -66,17 +66,23 @@
       <?= csrf_field() ?>
       <label class="fld">
         <span>Email address</span>
-        <input type="email" name="email" inputmode="email" autocomplete="email" value="<?= old('email') ?>" required autofocus>
+        <input type="email" name="email" inputmode="email" autocomplete="email" value="<?= esc(old('email') ?? (string) service('request')->getGet('email')) ?>" required <?= service('request')->getGet('email') ? '' : 'autofocus' ?>>
       </label>
       <label class="fld">
         <span>Password</span>
-        <input type="password" name="password" autocomplete="current-password" required>
+        <input type="password" name="password" autocomplete="current-password" required <?= service('request')->getGet('email') ? 'autofocus' : '' ?>>
       </label>
       <label class="remember">
         <input type="checkbox" name="remember" <?= old('remember') ? 'checked' : '' ?>> Keep me signed in
       </label>
       <button type="submit" class="btn">Sign in</button>
     </form>
+    <?php if (\App\Tenancy\Tenant::active()): $site = rtrim(str_replace('://app.', '://', \Platform\Services\Billing::appUrl()), '/'); ?>
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:13px">
+        <a href="<?= esc($site, 'attr') ?>/login#forgot-password">Forgot password?</a>
+        <a href="<?= esc($site, 'attr') ?>/login#forgot-email">Forgot your email?</a>
+      </div>
+    <?php endif; ?>
 
     <div class="foot"><?= esc(brand('name')) ?> · <?= esc(brand('tagline')) ?></div>
   </div>

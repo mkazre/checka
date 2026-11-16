@@ -2,7 +2,8 @@
 $paid       = $inv['status'] === 'paid';
 $void       = $inv['status'] === 'void';
 $processing = ! $paid && service('request')->getGet('processing');
-$head       = ($processing || ($paid && $t['status'] === 'provisioning')) ? '<meta http-equiv="refresh" content="6">' : '';
+$building   = $paid && $t['status'] === 'provisioning';
+$head       = $processing ? '<meta http-equiv="refresh" content="6">' : '';
 $recCard    = $method !== 'instant_eft';
 $money      = static fn ($v) => \Platform\Services\Billing::money($v);
 ?>
@@ -33,10 +34,12 @@ $money      = static fn ($v) => \Platform\Services\Billing::money($v);
 <?php if ($paid): ?>
   <div class="card" style="text-align:center">
     <?php if ($t['status'] === 'provisioning'): ?>
-      <div class="spin"></div><h2>Payment received — setting up your workspace</h2><p class="sub">This takes about a minute. This page refreshes by itself.</p>
+      <div class="spin"></div><h2>Payment received — setting up your workspace</h2><p class="sub">This takes about a minute. We'll take you in as soon as it's ready.</p>
+      <?= view('saas/_did_you_know') ?>
+      <script>setInterval(function(){fetch(location.href,{cache:'no-store'}).then(function(r){return r.text()}).then(function(h){if(h.indexOf('id="dyk"')<0)location.reload()}).catch(function(){})},6000);</script>
     <?php else: ?>
       <h2>Thank you — payment received</h2><p class="sub">A receipt has been emailed to <?= esc($t['email']) ?>.</p>
-      <a class="btn" href="<?= esc($login, 'attr') ?>">Go to your workspace</a>
+      <a class="btn" href="<?= $t['signup_token'] ? site_url('welcome/' . $t['signup_token'] . '/enter') : esc($login, 'attr') ?>">Go to your workspace</a>
     <?php endif; ?>
   </div>
 <?php elseif ($processing): ?>

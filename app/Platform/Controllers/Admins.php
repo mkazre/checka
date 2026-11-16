@@ -57,12 +57,23 @@ class Admins extends BaseController
         $name = trim((string) $this->request->getPost('name'));
         $cur  = (string) $this->request->getPost('current');
         $new  = (string) $this->request->getPost('password');
-        $data = ['name' => $name !== '' ? $name : $me['name']];
+        $data  = ['name' => $name !== '' ? $name : $me['name']];
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+        $emailChanged = $email !== '' && $email !== strtolower($me['email']);
 
-        if ($new !== '') {
-            if (! password_verify($cur, $me['password_hash'])) {
-                return redirect()->back()->with('error', 'Your current password is wrong.');
+        if (($emailChanged || $new !== '') && ! password_verify($cur, $me['password_hash'])) {
+            return redirect()->back()->with('error', 'Enter your current password to change your email or password.');
+        }
+        if ($emailChanged) {
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return redirect()->back()->with('error', 'That email address isn\'t valid.');
             }
+            if (model(AdminModel::class)->where('email', $email)->where('id !=', $me['id'])->countAllResults() > 0) {
+                return redirect()->back()->with('error', 'Another team member already uses that email.');
+            }
+            $data['email'] = $email;
+        }
+        if ($new !== '') {
             if (strlen($new) < 10) {
                 return redirect()->back()->with('error', 'New password must be at least 10 characters.');
             }

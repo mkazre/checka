@@ -8,38 +8,70 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>body{margin:0}a:hover{text-decoration:underline}</style>
+<style>
+body{margin:0}a:hover{text-decoration:underline}
+.lbl{display:block;font-size:12px;font-weight:600;color:#7a7a7a;margin-bottom:6px}
+.inp{width:100%;box-sizing:border-box;border:1px solid #e2e4e6;border-radius:11px;padding:12px 13px;font-size:15px;font-family:inherit;color:#2d2d2d;background:#fff}
+.inp:focus{outline:2px solid #37b34a55;border-color:#37b34a}
+.btn{width:100%;border:none;background:#37b34a;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px;border-radius:11px;cursor:pointer}
+.btn:hover{background:#2a8f3a}.btn:disabled{opacity:.6;cursor:default}
+.gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #d6dce1;background:#fff;color:#2d2d2d;font-family:inherit;font-weight:600;font-size:14.5px;padding:12px;border-radius:11px;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.gbtn:hover{background:#f7f8f9;text-decoration:none}
+.or{display:flex;align-items:center;gap:10px;color:#9aa0a6;font-size:12px;margin:16px 0}.or::before,.or::after{content:"";flex:1;height:1px;background:#e2e4e6}
+.links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px}
+.links a,.back{font-size:13px;color:#2a8f3a;font-weight:600;text-decoration:none;cursor:pointer}
+.msg{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-bottom:14px;line-height:1.5}
+.msg.err{background:#fde8e6;color:#9b1c13}.msg.ok{background:#e6f6e9;color:#1f6b2c}.msg.info{background:#eef4ff;color:#1e3f99}
+.ws{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #e2e4e6;border-radius:12px;padding:13px 14px;text-decoration:none;color:#2d2d2d;margin-bottom:10px}
+.ws:hover{border-color:#37b34a;background:#37b34a0d;text-decoration:none}
+.ws small{display:block;color:#7a7a7a;font-family:'JetBrains Mono',monospace;font-size:11.5px}
+.view{display:none}.view.on{display:block}
+</style>
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png"><link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="responsive.css">
 </head>
 <body style="font-family:'Inter',system-ui,sans-serif;color:#2d2d2d;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(rgba(45,45,45,.6),rgba(45,45,45,.68)),url('assets/login.jpg') center/cover no-repeat">
-  <div style="background:#fff;width:100%;max-width:420px;border-radius:18px;padding:38px 34px 30px;box-shadow:0 24px 60px rgba(0,0,0,.35)">
+  <div style="background:#fff;width:100%;max-width:420px;border-radius:18px;padding:38px 34px 30px;box-shadow:0 24px 60px rgba(0,0,0,.35);box-sizing:border-box">
     <a href="Home.html"><img src="assets/logo.png" alt="CheckA+" style="height:50px;width:auto;display:block;margin:0 auto 18px"></a>
-    <h1 style="font-size:22px;font-weight:800;text-align:center;margin:0;letter-spacing:-.01em">Welcome back</h1>
-    <div style="text-align:center;color:#7a7a7a;font-size:13.5px;margin:4px 0 26px">Enter your workspace address to sign in</div>
+    <h1 id="title" style="font-size:22px;font-weight:800;text-align:center;margin:0;letter-spacing:-.01em">Welcome back</h1>
+    <div id="subtitle" style="text-align:center;color:#7a7a7a;font-size:13.5px;margin:4px 0 24px">Sign in to your workspace</div>
+    <div id="msg"></div>
 
-    <div id="loginView">
-      <label style="display:block;margin-bottom:16px">
-        <span style="display:block;font-size:12px;font-weight:600;color:#7a7a7a;margin-bottom:6px">Your workspace address</span>
-        <div style="display:flex;align-items:stretch;border:1px solid #e2e4e6;border-radius:11px;overflow:hidden;background:#fff">
-          <input type="text" id="workspace" placeholder="yourcompany" style="border:none;outline:none;flex:1;min-width:0;padding:13px 0 13px 14px;font-size:15px;font-family:inherit;color:#2d2d2d">
-          <span class="ws-suffix" style="padding:13px 14px 13px 4px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#7a7a7a;white-space:nowrap">.checkaplus.co.za</span>
-        </div>
-      </label>
-      <button type="button" id="continueBtn" style="width:100%;border:none;background:#37b34a;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px;border-radius:11px;cursor:pointer">Continue to sign in</button>
-      <div style="text-align:center;margin-top:16px"><a href="javascript:void(0)" id="showFind" style="font-size:13px;color:#2a8f3a;font-weight:600">Forgot your workspace? Email me a link</a></div>
+    <!-- Sign in -->
+    <form id="loginView" class="view on" autocomplete="on">
+      <label style="display:block;margin-bottom:14px"><span class="lbl">Email address</span>
+        <input class="inp" type="email" id="email" name="email" autocomplete="username" required placeholder="you@company.co.za"></label>
+      <label style="display:block;margin-bottom:18px"><span class="lbl">Password</span>
+        <input class="inp" type="password" id="password" name="password" autocomplete="current-password" required></label>
+      <button class="btn" id="loginBtn" type="submit">Sign in</button>
+      <div id="googleBox" style="display:none">
+        <div class="or">or</div>
+        <a class="gbtn" id="googleBtn" href="#"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</a>
+      </div>
+      <div class="links"><a data-go="forgotPw">Forgot password?</a><a data-go="forgotEmail">Forgot your email?</a></div>
+    </form>
+
+    <!-- Choose a workspace -->
+    <div id="chooseView" class="view">
+      <div id="chooseList"></div>
+      <a class="back" data-go="login">← Back to sign in</a>
     </div>
 
-    <div id="findView" style="display:none">
-      <form id="findForm" action="https://app.checkaplus.co.za/find-workspace" method="post">
-        <label style="display:block;margin-bottom:16px">
-          <span style="display:block;font-size:12px;font-weight:600;color:#7a7a7a;margin-bottom:6px">Your email address</span>
-          <input type="email" name="email" required placeholder="you@company.co.za" style="width:100%;border:1px solid #e2e4e6;border-radius:11px;padding:12px 13px;font-size:15px;font-family:inherit;color:#2d2d2d">
-        </label>
-        <button type="submit" style="width:100%;border:none;background:#37b34a;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px;border-radius:11px;cursor:pointer">Email me a link</button>
-      </form>
-      <div style="text-align:center;margin-top:16px"><a href="javascript:void(0)" id="showLogin" style="font-size:13px;color:#2a8f3a;font-weight:600">← Back to sign in</a></div>
-    </div>
+    <!-- Forgot password -->
+    <form id="forgotPwView" class="view">
+      <label style="display:block;margin-bottom:16px"><span class="lbl">Your email address</span>
+        <input class="inp" type="email" id="fpEmail" required placeholder="you@company.co.za"></label>
+      <button class="btn" type="submit">Email me a reset link</button>
+      <div class="links"><a data-go="login">← Back to sign in</a><a data-go="forgotEmail">Forgot your email?</a></div>
+    </form>
+
+    <!-- Forgot email -->
+    <form id="forgotEmailView" class="view">
+      <label style="display:block;margin-bottom:16px"><span class="lbl">Workspace address, company name or phone number</span>
+        <input class="inp" type="text" id="feLookup" required placeholder="e.g. yourcompany"></label>
+      <button class="btn" type="submit">Find my sign-in email</button>
+      <div class="links"><a data-go="login">← Back to sign in</a><a data-go="forgotPw">Forgot password?</a></div>
+    </form>
 
     <div style="text-align:center;color:#9aa0a6;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin-top:26px">CheckA+ · Inspections you can trust</div>
     <div style="text-align:center;margin-top:14px"><a href="SignUp.html" style="font-size:13px;color:#4a4a4a">New here? Start a free trial →</a></div>
@@ -47,28 +79,68 @@
 
 <script src="config.js"></script>
 <script>
-  if (window.CHECKA_CONFIG) {
-    document.getElementById('findForm').action = window.CHECKA_CONFIG.findWorkspacePostUrl;
-    Array.prototype.forEach.call(document.querySelectorAll('.ws-suffix'), function (el) { el.textContent = window.CHECKA_CONFIG.workspaceDomainSuffix; });
+(function () {
+  var C = window.CHECKA_CONFIG || {};
+  var API = C.appBase || '';
+  var $ = function (id) { return document.getElementById(id); };
+  var VIEWS = { login: ['Welcome back', 'Sign in to your workspace'], choose: ['Choose a workspace', 'Your email belongs to more than one workspace'],
+                forgotPw: ['Forgot your password?', "We'll email you a link to choose a new one"], forgotEmail: ['Forgot your email?', "We'll tell you which email signs in to your workspace"] };
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function msg(type, text, link) { $('msg').innerHTML = text ? '<div class="msg ' + type + '">' + esc(text) + (link ? ' <a href="' + esc(link[0]) + '" style="font-weight:700;color:inherit">' + esc(link[1]) + '</a>' : '') + '</div>' : ''; }
+  function show(v, keepMsg) {
+    ['login', 'choose', 'forgotPw', 'forgotEmail'].forEach(function (n) { $(n + 'View').classList.toggle('on', n === v); });
+    $('title').textContent = VIEWS[v][0]; $('subtitle').textContent = VIEWS[v][1];
+    if (!keepMsg) msg();
+    if (v === 'forgotPw' && $('email').value) $('fpEmail').value = $('email').value;
+    history.replaceState(null, '', v === 'login' ? location.pathname : '#' + { forgotPw: 'forgot-password', forgotEmail: 'forgot-email', choose: 'choose' }[v]);
   }
-  document.getElementById('workspace').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('continueBtn').click(); });
-  document.getElementById('workspace').addEventListener('input', function (e) {
-    e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (a) { a.addEventListener('click', function () { show(a.getAttribute('data-go')); }); });
+  if (location.hash === '#forgot-password') show('forgotPw');
+  if (location.hash === '#forgot-email') show('forgotEmail');
+  var qs = new URLSearchParams(location.search);
+  if (qs.get('email')) $('email').value = qs.get('email');
+
+  function post(path, data) {
+    return fetch(API + path, { method: 'POST', body: new URLSearchParams(data) })
+      .then(function (r) { return r.json().catch(function () { return { error: 'Something went wrong. Please try again.' }; }); });
+  }
+  function busy(form, on, label) { var b = form.querySelector('button[type=submit]'); b.disabled = on; if (label) b.textContent = label; }
+
+  $('loginView').addEventListener('submit', function (e) {
+    e.preventDefault(); msg();
+    var f = this; busy(f, true, 'Signing in…');
+    post('/api/account/login', { email: $('email').value.trim(), password: $('password').value }).then(function (j) {
+      if (j.redirect) { location.href = j.redirect; return; }
+      busy(f, false, 'Sign in');
+      if (j.choose) {
+        $('chooseList').innerHTML = j.choose.map(function (w) { return '<a class="ws" href="' + esc(w.url) + '"><span><b>' + esc(w.name) + '</b><small>' + esc(w.address) + '</small></span><span style="color:#2a8f3a;font-weight:700">Open →</span></a>'; }).join('');
+        show('choose');
+      } else if (j.info) { msg('info', j.info, j.url ? [j.url, j.redirect_label || 'Continue'] : null); }
+      else { msg('err', j.error || 'Could not sign in.'); }
+    }).catch(function () { busy(f, false, 'Sign in'); msg('err', 'Could not reach the server. Check your connection and try again.'); });
   });
-  document.getElementById('continueBtn').addEventListener('click', function () {
-    var ws = document.getElementById('workspace').value.trim();
-    if (!ws) return;
-    var url = (window.CHECKA_CONFIG ? window.CHECKA_CONFIG.loginRedirect(ws) : 'https://' + ws + '.checkaplus.co.za/login');
-    window.location.href = url;
+
+  $('forgotPwView').addEventListener('submit', function (e) {
+    e.preventDefault(); var f = this; busy(f, true, 'Sending…');
+    post('/api/account/forgot-password', { email: $('fpEmail').value.trim() }).then(function (j) {
+      busy(f, false, 'Email me a reset link');
+      j.error ? msg('err', j.error) : msg('ok', j.message);
+    }).catch(function () { busy(f, false, 'Email me a reset link'); msg('err', 'Could not reach the server. Please try again.'); });
   });
-  document.getElementById('showFind').addEventListener('click', function () {
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('findView').style.display = 'block';
+
+  $('forgotEmailView').addEventListener('submit', function (e) {
+    e.preventDefault(); var f = this; busy(f, true, 'Looking…');
+    post('/api/account/forgot-email', { lookup: $('feLookup').value.trim() }).then(function (j) {
+      busy(f, false, 'Find my sign-in email');
+      j.error ? msg('err', j.error) : msg('ok', j.message);
+    }).catch(function () { busy(f, false, 'Find my sign-in email'); msg('err', 'Could not reach the server. Please try again.'); });
   });
-  document.getElementById('showLogin').addEventListener('click', function () {
-    document.getElementById('findView').style.display = 'none';
-    document.getElementById('loginView').style.display = 'block';
-  });
+
+  fetch(API + '/api/account/config').then(function (r) { return r.json(); }).then(function (j) {
+    if (j.google) { $('googleBox').style.display = ''; $('googleBtn').href = API + '/account/google'; }
+  }).catch(function () {});
+})();
 </script>
 </body>
 </html>

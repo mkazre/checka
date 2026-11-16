@@ -70,6 +70,9 @@ class TenantProvision extends BaseCommand
                     $user = $users->findById($users->getInsertID());
                 }
                 $user->addGroup('admin');
+                if (! empty($t['contact_name'])) {
+                    setting()->set('Profile.name', $t['contact_name'], 'user:' . $user->id);
+                }
                 $user->activate();
                 // Use the password chosen at sign-up (stored only as a hash).
                 if (! empty($pending['password_hash'])) {

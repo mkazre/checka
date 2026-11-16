@@ -37,6 +37,11 @@ class PlatformSettings
             'annualDiscountNote'  => '2 months free',
             'abandonDays'         => 7,         // unpaid sign-ups are removed after this many days
         ],
+        'auth' => [
+            'googleEnabled'      => 0,
+            'googleClientId'     => '',
+            'googleClientSecret' => '',
+        ],
         'website' => [
             'billingNote'       => 'All prices exclude VAT. Switch to annual billing for 2 months free.',
             'enterpriseName'    => 'Enterprise',

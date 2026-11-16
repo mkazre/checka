@@ -31,6 +31,17 @@ $routes->group('', ['namespace' => 'Platform\Controllers'], static function ($ro
     $routes->post('api/contact', 'Api::contact');
     $routes->options('api/(:any)', 'Api::preflight');
 
+    // Central customer sign-in (website Log in page)
+    $routes->get('api/account/config', 'Account::config');
+    $routes->post('api/account/login', 'Account::login');
+    $routes->post('api/account/forgot-password', 'Account::forgotPassword');
+    $routes->post('api/account/forgot-email', 'Account::forgotEmail');
+    $routes->get('account/reset/(:segment)', 'Account::resetForm/$1');
+    $routes->post('account/reset/(:segment)', 'Account::reset/$1');
+    $routes->get('account/google', 'Account::google');
+    $routes->get('account/google/callback', 'Account::googleCallback');
+    $routes->get('welcome/(:segment)/enter', 'Signup::enter/$1');
+
     $routes->get('pay/(:segment)', 'Pay::show/$1');
     $routes->get('pay/(:segment)/invoice', 'Pay::invoice/$1');
     $routes->post('pay/(:segment)/paystack', 'Pay::paystack/$1');

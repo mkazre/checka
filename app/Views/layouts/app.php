@@ -25,7 +25,7 @@
 <?php
   $h = (int) date('H');
   $greet = $h < 12 ? 'Good morning' : ($h < 17 ? 'Good afternoon' : 'Good evening');
-  $me = auth()->loggedIn() ? (auth()->user()->username ?: explode('@', (string) auth()->user()->email)[0]) : '';
+  $me = auth()->loggedIn() ? user_display_name() : '';
 ?>
 <header class="topbar" id="topbar">
   <div class="wrap">
@@ -61,7 +61,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> New Inspection
         </a>
         <?php if (auth()->loggedIn()): ?>
-          <div class="who"><b><?= esc($greet) ?>, <?= esc($me) ?></b><br><?= $isAdmin?'Administrator':'Mechanic' ?></div>
+          <a class="who" href="<?= site_url('account') ?>" title="My account" style="text-decoration:none;color:inherit"><b><?= esc($greet) ?>, <?= esc($me) ?></b><br><?= $isAdmin?'Administrator':'Mechanic' ?> · My account</a>
           <a class="btn ghost sm" href="<?= site_url('logout') ?>">Logout</a>
         <?php endif; ?>
       </div>

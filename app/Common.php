@@ -266,3 +266,21 @@ if (! function_exists('vin_label_key')) {
         return trim(preg_replace('/\s+/', ' ', ucwords((string) $spaced)));
     }
 }
+
+if (! function_exists('user_display_name')) {
+    /** A user's chosen name (My account), falling back to their username / email. */
+    function user_display_name($user = null): string
+    {
+        $user ??= auth()->user();
+        if (! $user) {
+            return '';
+        }
+        $name = '';
+        try {
+            $name = (string) setting()->get('Profile.name', 'user:' . $user->id);
+        } catch (\Throwable $e) {
+        }
+
+        return $name !== '' ? $name : ($user->username ?: explode('@', (string) $user->email)[0]);
+    }
+}

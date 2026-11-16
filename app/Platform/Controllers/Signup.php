@@ -95,6 +95,8 @@ class Signup extends BaseController
             'ip' => $this->request->getIPAddress(), 'created_at' => date('Y-m-d H:i:s'),
         ]);
 
+        session()->set('signup_token', $token); // lets this browser sign straight in once the workspace is ready
+
         if ($payNow) {
             $inv = Billing::createInvoice($t, 'first', $pkg['name'] . ' — ' . ($cycle === 'annual' ? 'annual' : 'monthly') . ' subscription', $price, [
                 'package_id' => $pkg['id'], 'billing_cycle' => $cycle, 'period_start' => date('Y-m-d'), 'period_end' => Billing::addCycle(date('Y-m-d'), $cycle),
@@ -114,6 +116,28 @@ class Signup extends BaseController
         }
 
         return view('Platform\Views\public\welcome', ['t' => $t, 'token' => $token, 'login' => Billing::workspaceUrl($t['slug'], 'login')]);
+    }
+
+    /** "Go to my workspace" after sign-up: signs this browser straight in (same browser, within 24 hours). */
+    public function enter(string $token)
+    {
+        $t = preg_match('/^[a-f0-9]{32}$/', $token) ? model(TenantModel::class)->where('signup_token', $token)->first() : null;
+        if (! $t) {
+            return redirect()->to(rtrim(str_replace('://app.', '://', Billing::appUrl()), '/') . '/login');
+        }
+        $email = (string) $t['email'];
+        if (! $t['provisioned_at']) {
+            return redirect()->to(site_url('welcome/' . $token));
+        }
+        if (hash_equals((string) session('signup_token'), $token) && strtotime((string) $t['created_at']) > time() - 86400) {
+            foreach (\Platform\Services\Accounts::find($email) as $m) {
+                if ((int) $m['tenant']['id'] === (int) $t['id']) {
+                    return redirect()->to(\Platform\Services\Accounts::ssoUrl($t, $m['user_id'], 'sign-up'));
+                }
+            }
+        }
+
+        return redirect()->to(Billing::workspaceUrl($t['slug'], 'login') . '?email=' . rawurlencode($email));
     }
 
     private function fail(array $errors)

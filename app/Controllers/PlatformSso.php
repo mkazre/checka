@@ -21,11 +21,13 @@ class PlatformSso extends BaseController
         @unlink($file);
 
         if (! is_array($data) || ($data['slug'] ?? '') !== Tenant::slug() || ($data['expires'] ?? 0) < time()) {
-            return redirect()->to(site_url('login'))->with('error', 'That sign-in link has expired. Try again from the platform panel.');
+            return redirect()->to(site_url('login'))->with('error', 'That sign-in link has expired — please sign in below.');
         }
 
-        $row = db_connect()->table('auth_groups_users')->select('user_id')->whereIn('group', ['superadmin', 'admin'])
-            ->orderBy('user_id', 'ASC')->get(1)->getRowArray();
+        // A specific user (central sign-in / Google), otherwise the first administrator ("log in as").
+        $row = ! empty($data['user_id'])
+            ? db_connect()->table('users')->select('id AS user_id')->where('id', (int) $data['user_id'])->where('deleted_at', null)->get(1)->getRowArray()
+            : db_connect()->table('auth_groups_users')->select('user_id')->whereIn('group', ['superadmin', 'admin'])->orderBy('user_id', 'ASC')->get(1)->getRowArray();
         if (! $row) {
             return redirect()->to(site_url('login'))->with('error', 'This workspace has no administrator yet.');
         }
