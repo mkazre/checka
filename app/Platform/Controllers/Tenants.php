@@ -117,9 +117,10 @@ class Tenants extends BaseController
             $m->update($id, ['db_prefix' => 'w' . $id . '_']);
         }
         TenantRegistry::write($m->find($id));
+        \Platform\Services\Provisioner::kick($m->find($id));
         EventModel::log($id, 'created', 'Workspace created on ' . $pkg['name'] . ($attach ? ' (attached to existing tables "' . $prefix . '")' : '') . '.');
 
-        $msg = 'Workspace created. It will be ready within a minute (the setup job runs automatically).';
+        $msg = 'Workspace created and being set up now — it will be ready in a moment.';
         if ($generated) {
             $msg .= ' Their admin password is: ' . $password . ' — copy it now, it is not shown again.';
         }
@@ -270,6 +271,9 @@ class Tenants extends BaseController
         }
 
         TenantRegistry::write($m->find($id));
+        if ($do === 'retry') {
+            \Platform\Services\Provisioner::kick($m->find($id));
+        }
         EventModel::log($id, $do, $msg);
 
         return redirect()->to(site_url('tenants/' . $id))->with('success', $msg);

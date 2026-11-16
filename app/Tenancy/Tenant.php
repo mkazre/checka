@@ -37,7 +37,7 @@ final class Tenant
         self::$platform = $pf;
 
         if (PHP_SAPI === 'cli') {
-            $slug = (string) (getenv('CHECKA_TENANT') ?: '');
+            $slug = trim((string) (getenv('CHECKA_TENANT') ?: ''));
             if ($slug === '') {
                 self::$isPlatformHost = true;
 

@@ -29,6 +29,10 @@ class TenantGuard implements FilterInterface
         $first = strtolower(explode('/', $path)[0] ?? '');
         $t     = Tenant::get();
 
+        if ($first === 'platform-provision') {
+            return null; // the signed build request itself
+        }
+
         if (Tenant::status() === 'pending_payment') {
             $inv = db_connect('platform')->table('invoices')->where('tenant_id', (int) ($t['id'] ?? 0))->where('status', 'unpaid')->orderBy('id')->get(1)->getRowArray();
 

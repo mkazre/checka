@@ -216,6 +216,9 @@ class Billing
         }
         $t = $tm->find($t['id']);
         TenantRegistry::write($t);
+        if ($t['status'] === 'provisioning') {
+            Provisioner::kick($t);
+        }
         $added = array_diff(TenantRegistry::effective($t)['modules'], $before);
         if ($added && $t['provisioned_at']) {
             TenantData::enableModules($t, $added);

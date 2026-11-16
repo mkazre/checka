@@ -160,6 +160,14 @@ class Api extends BaseController
             return $this->json(['status' => 'unknown'], 404);
         }
 
+        if ($t['status'] === 'provisioning' && ! $t['provision_error'] && strtotime((string) $t['created_at']) < time() - 15) {
+            $key = 'kick_' . $t['id'];
+            if (! cache($key)) {
+                cache()->save($key, 1, 45);
+                \Platform\Services\Provisioner::kick($t);
+            }
+        }
+
         return $this->json([
             'status' => $t['status'],
             'ready'  => (bool) $t['provisioned_at'],

@@ -20,7 +20,7 @@ class PlatformPending extends BaseCommand
     public function run(array $params)
     {
         foreach (model(TenantModel::class)->where('status', 'provisioning')->where('provision_error', null)->findAll(20) as $t) {
-            echo $t['slug'], PHP_EOL;
+            echo $t['slug'], "\n";
         }
 
         return EXIT_SUCCESS;

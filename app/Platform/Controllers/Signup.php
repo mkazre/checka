@@ -105,6 +105,8 @@ class Signup extends BaseController
             return redirect()->to(site_url('pay/' . $inv['uid']) . '?method=' . urlencode($option) . '&welcome=' . $token);
         }
 
+        \Platform\Services\Provisioner::kick($t);
+
         return redirect()->to(site_url('welcome/' . $token));
     }
 
